@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "variables";
+@import "themes";
+@import "components";
+
+// Global utilities
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+body {
+  padding-right: 0 !important;
+  overflow: hidden !important;
+}
+
+// Adaptive Placeholder Color
+.form-control::placeholder,
+.form-select::placeholder,
+textarea::placeholder {
+  color: var(--bs-secondary-color, #9ca3af) !important;
+  opacity: 0.7;
+}
+
+// Compact Form Inputs Globally
+.form-control, 
+.form-select, 
+.input-group-text,
+.btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+// Popups above the admin sidebar / rail menu (z-index 1060): Bootstrap's defaults (1050 / 1055)
+// left the sidebar on top of large modals (media preview) and outside the dimmed backdrop.
+.modal-backdrop {
+  --bs-backdrop-zindex: 1070;
+}
+
+.modal {
+  --bs-modal-zindex: 1075;
+}

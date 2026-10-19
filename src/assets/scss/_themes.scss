@@ -1,0 +1,75 @@
+// Light / Dark Theme Support utilizing CSS Variables
+
+:root {
+  --cms-body-bg: #{$light};
+  --cms-body-color: #{$secondary};
+  --cms-card-bg: #ffffff;
+  --cms-card-border: rgba(0, 0, 0, 0.08);
+  --cms-sidebar-bg: #ffffff;
+  --cms-sidebar-border: rgba(0, 0, 0, 0.08);
+  --cms-header-bg: #ffffff;
+  --cms-header-border: rgba(0, 0, 0, 0.08);
+  --cms-table-header-bg: #f7f9fc;
+  --cms-input-bg: #ffffff;
+  --cms-input-border: #e3e8ee;
+}
+
+[data-theme="dark"] {
+  --cms-body-bg: #0a111a;
+  --cms-body-color: #a1aab5;
+  --cms-card-bg: #141b22;
+  --cms-card-border: rgba(255, 255, 255, 0.1);
+  --cms-sidebar-bg: #141b22;
+  --cms-sidebar-border: rgba(255, 255, 255, 0.1);
+  --cms-header-bg: #141b22;
+  --cms-header-border: rgba(255, 255, 255, 0.1);
+  --cms-table-header-bg: #1c242c;
+  --cms-input-bg: #1c242c;
+  --cms-input-border: rgba(255, 255, 255, 0.15);
+
+  // Override Bootstrap base variables via css custom props where possible
+  --bs-body-bg: var(--cms-body-bg);
+  --bs-body-color: #f7f9fc;
+}
+
+body {
+  background-color: var(--cms-body-bg);
+  color: var(--cms-body-color);
+  font-family: $font-family-base;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-bs-theme='dark'] .bg-white {
+  background-color: var(--cms-card-bg) !important;
+}
+
+[data-bs-theme='dark'] .bg-light {
+  background-color: var(--cms-input-bg) !important;
+}
+
+[data-bs-theme='dark'] .text-dark {
+  color: #f7f9fc !important;
+}
+
+[data-bs-theme='dark'] .card-header.bg-white {
+  background-color: transparent !important;
+}
+
+/* Tab Alignment & Dark Mode Fixes */
+.nav-tabs .nav-link.active {
+  border-bottom-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .nav-tabs {
+  border-bottom-color: var(--cms-card-border);
+}
+
+[data-bs-theme="dark"] .nav-tabs .nav-link:hover:not(.active) {
+  border-color: var(--cms-card-border) var(--cms-card-border) transparent;
+}
+
+[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+  background-color: var(--cms-input-bg) !important;
+  border-color: var(--cms-card-border) var(--cms-card-border) var(--cms-input-bg) !important;
+  color: #fff !important;
+}

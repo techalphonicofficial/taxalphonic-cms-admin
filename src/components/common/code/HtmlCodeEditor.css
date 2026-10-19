@@ -1,0 +1,28 @@
+/* VS Code-style frame around Monaco (HtmlCodeEditorImpl.jsx) */
+.hce { --hce-bg: #1e1e1e; --hce-bar: #252526; --hce-tab: #1e1e1e; --hce-fg: #cccccc; --hce-muted: #8b8b8b; --hce-hover: rgba(255, 255, 255, .08); --hce-on: rgba(255, 255, 255, .14); --hce-border: #3c3c3c; --hce-status: #007acc;
+  display: flex; flex-direction: column; border: 1px solid var(--hce-border); border-radius: 10px; overflow: hidden; background: var(--hce-bg); color: var(--hce-fg); }
+.hce.light { --hce-bg: #ffffff; --hce-bar: #f3f3f3; --hce-tab: #ffffff; --hce-fg: #333333; --hce-muted: #6e6e6e; --hce-hover: rgba(0, 0, 0, .06); --hce-on: rgba(0, 0, 0, .1); --hce-border: #e1e1e1; }
+.hce.full { position: fixed; inset: 0; z-index: 2000; border-radius: 0; border: 0; }
+.hce.full .hce-editor { flex: 1; min-height: 0; }
+
+.hce-bar { display: flex; align-items: stretch; justify-content: space-between; background: var(--hce-bar); border-bottom: 1px solid var(--hce-border); min-height: 36px; }
+.hce-tab { display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 13px; background: var(--hce-tab); border-right: 1px solid var(--hce-border); border-top: 2px solid var(--hce-status); margin-bottom: -1px; }
+.hce-tab i { color: #e44d26; }
+.hce-tools { display: flex; align-items: center; gap: 2px; padding: 0 6px; flex-wrap: wrap; }
+.hce-btn { display: inline-flex; align-items: center; gap: 5px; height: 26px; min-width: 28px; padding: 0 7px; border: 0; border-radius: 5px; background: transparent; color: var(--hce-fg); font-size: 12.5px; }
+.hce-btn:hover { background: var(--hce-hover); }
+.hce-btn.on { background: var(--hce-on); }
+.hce-btn:focus-visible { outline: 1px solid var(--hce-status); }
+.hce-sep { width: 1px; height: 16px; background: var(--hce-border); margin: 0 4px; }
+
+.hce-hint { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12.5px; background: rgba(0, 122, 204, .12); color: var(--hce-fg); border-bottom: 1px solid var(--hce-border); }
+.hce-hint button { border: 0; background: none; padding: 0; color: #3794ff; text-decoration: underline; font: inherit; }
+.hce-editor { position: relative; }
+.hce-loading { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 120px; color: #8b8b8b; font-size: 13px; background: #1e1e1e; }
+
+.hce-status { display: flex; align-items: center; gap: 14px; padding: 0 10px; height: 24px; font-size: 12px; background: var(--hce-status); color: #fff; white-space: nowrap; overflow: hidden; }
+.hce-status i { margin-right: 3px; }
+.hce-status .hce-tw { color: #b9f3ff; }
+@media (max-width: 767.98px) {
+  .hce-status span:nth-child(n+5) { display: none; }
+}

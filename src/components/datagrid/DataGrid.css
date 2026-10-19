@@ -1,0 +1,518 @@
+/* ULTRA-PREMIUM MODERN SAAS CSS for TANSTACK TABLE */
+
+body {
+  background-color: #f4f7fb !important;
+  /* Soft, cool off-white background */
+}
+
+/* Page Level Enhancements */
+.premium-page-header {
+  margin-bottom: 2rem;
+  padding: 1rem 1.4rem;
+}
+
+.premium-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #111827;
+  font-size: 1.75rem;
+}
+
+.premium-btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  color: white;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.premium-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.45);
+  color: white;
+}
+
+/* Card Wrapper */
+.premium-data-grid-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Toolbar */
+.grid-toolbar {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.grid-search-wrapper {
+  position: relative;
+  width: 320px;
+}
+
+.grid-search-wrapper i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.grid-search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.25rem;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01);
+}
+
+.grid-search-input:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: rgba(99, 91, 255, 0.3);
+  box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.12);
+}
+
+.toolbar-actions .btn {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  border-color: #e5e7eb;
+  background: white;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s;
+}
+
+.toolbar-actions .btn:hover {
+  background-color: #f9fafb;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+/* Table Wrapper for Scroll */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Table Styles */
+.premium-table {
+  margin-bottom: 0;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.premium-table th,
+.premium-table td {
+  padding: 0.5rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.premium-table thead th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+}
+
+.premium-table thead th:hover {
+  background-color: #f1f5f9;
+}
+
+/* Sticky Headers and Pinned Columns */
+.premium-table th.pinned-right,
+.premium-table td.pinned-right {
+  position: sticky;
+  right: 0;
+  background-color: #ffffff;
+  z-index: 5;
+  /* Above regular cells, below headers */
+}
+
+/* Elevate pinned cell z-index when row is hovered or dropdown is open so it overlaps subsequent rows */
+.premium-table tbody tr:hover td.pinned-right,
+.premium-table tbody tr:focus-within td.pinned-right {
+  z-index: 6;
+}
+
+.premium-table tbody tr:has([aria-expanded="true"]) td.pinned-right {
+  z-index: 20;
+}
+
+.premium-table thead th.pinned-right {
+  background-color: #f8fafc;
+  z-index: 15;
+  /* Highest */
+}
+
+/* Add shadow to pinned column edge to show depth */
+.premium-table th.pinned-right::before,
+.premium-table td.pinned-right::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #e5e7eb;
+  /* Border color */
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+.premium-table tbody tr {
+  transition: background-color 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.premium-table tbody tr:hover,
+.premium-table tbody tr:focus-within {
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  z-index: 10;
+}
+
+.premium-table tbody tr:has([aria-expanded="true"]) {
+  z-index: 50;
+}
+
+.premium-table tbody tr:hover td {
+  border-bottom-color: transparent;
+}
+
+.premium-table tbody tr.row-selected {
+  background-color: #eff6ff;
+  /* Tailwind blue-50 */
+}
+
+.premium-table tbody tr.row-selected>td.pinned-right {
+  background-color: #eff6ff;
+}
+
+.premium-table tbody tr.row-selected:hover>td.pinned-right {
+  background-color: #e0f2fe;
+  /* Tailwind blue-100 on hover */
+}
+
+.premium-table tbody tr:hover>td.pinned-right {
+  background-color: #f8fafc;
+}
+
+
+/* Sort Icons */
+.sort-icon {
+  margin-left: 0.375rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  display: inline-block;
+}
+
+/* Pagination */
+.grid-pagination {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: none;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.pagination-controls .btn {
+  padding: 0.375rem 0.625rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  border-radius: 0.375rem;
+  margin-left: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.pagination-controls .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-controls .btn:not(:disabled):hover {
+  background-color: #f3f4f6;
+}
+
+/* Select Checkboxes */
+.grid-checkbox {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.25rem;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  accent-color: #3b82f6;
+  /* Modern browsers */
+}
+
+/* Scrollbar Styling */
+.table-responsive-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.table-responsive-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 0.375rem;
+}
+
+.action-buttons .btn:hover {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+.action-buttons .btn.text-danger:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+/* Bulk Action Bar */
+.bulk-action-bar {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 50;
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.bulk-action-bar .selected-count {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.625rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.bulk-action-divider {
+  width: 1px;
+  height: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.bulk-action-bar .btn-light {
+  background: transparent;
+  border: none;
+  color: #d1d5db;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.bulk-action-bar .btn-light:hover {
+  color: white;
+}
+
+.bulk-action-bar .btn-danger {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  font-size: 0.875rem;
+}
+
+.bulk-action-bar .btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Dark Mode Overrides for DataGrid */
+[data-bs-theme="dark"] body {
+  background-color: var(--bs-body-bg) !important;
+}
+
+[data-bs-theme="dark"] .premium-title {
+  color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .premium-data-grid-container {
+  background: var(--cms-card-bg);
+  border-color: var(--cms-card-border);
+}
+
+[data-bs-theme="dark"] .grid-toolbar,
+[data-bs-theme="dark"] .grid-pagination {
+  background-color: var(--cms-card-bg);
+  border-color: var(--cms-card-border);
+}
+
+[data-bs-theme="dark"] .grid-search-input {
+  background-color: var(--cms-input-bg);
+  border-color: var(--cms-input-border);
+  color: var(--cms-body-color);
+}
+
+[data-bs-theme="dark"] .toolbar-actions .btn,
+[data-bs-theme="dark"] .pagination-controls .btn {
+  background-color: var(--cms-input-bg);
+  border-color: var(--cms-input-border);
+  color: var(--cms-body-color);
+}
+
+[data-bs-theme="dark"] .premium-table th,
+[data-bs-theme="dark"] .premium-table td {
+  border-bottom-color: var(--cms-card-border);
+}
+
+[data-bs-theme="dark"] .premium-table thead th {
+  background-color: var(--cms-table-header-bg);
+  color: #a1aab5;
+  border-bottom-color: var(--cms-card-border);
+}
+
+[data-bs-theme="dark"] .premium-table th.pinned-right,
+[data-bs-theme="dark"] .premium-table td.pinned-right {
+  background-color: var(--cms-card-bg);
+}
+
+[data-bs-theme="dark"] .premium-table thead th.pinned-right {
+  background-color: var(--cms-table-header-bg);
+}
+
+[data-bs-theme="dark"] .premium-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .premium-table tbody tr:hover>td.pinned-right {
+  background-color: #1e293b;
+}
+
+[data-bs-theme="dark"] .action-buttons .btn {
+  color: #a1aab5;
+}
+
+[data-bs-theme="dark"] .action-buttons .btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .loading-overlay {
+  background: rgba(10, 17, 26, 0.6);
+}
+
+
+.premium-table th {
+  position: relative;
+}
+
+.th-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background: rgba(0, 0, 0, 0.1);
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
+}
+
+.resizer.isResizing {
+  background: #0d6efd;
+  opacity: 1;
+}
+
+.premium-table th:hover .resizer {
+  opacity: 1;
+}
+/* Keep the pinned actions on one line so the sticky column never wraps */
+.premium-table th.pinned-right,
+.premium-table td.pinned-right {
+  white-space: nowrap;
+}

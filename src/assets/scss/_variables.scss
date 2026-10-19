@@ -1,0 +1,55 @@
+// Custom Colors - Premium Enterprise Feel (Modern & Soft)
+$primary: #635bff !default; // Stripe-like blurple
+$secondary: #4f566b !default;
+$success: #00d924 !default;
+$info: #00b4d8 !default;
+$warning: #ffb703 !default;
+$danger: #df1b41 !default;
+$light: #f7f9fc !default;
+$dark: #0a2540 !default;
+
+// Typography (Inter / Roboto)
+$font-family-base: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-size-base: 0.875rem !default; // 14px
+$line-height-base: 1.6 !default; // Increased for better readability
+
+// Body
+$body-bg: #fafafa !default; // Clean, soft off-white
+$body-color: #334155 !default; // Modern slate text
+
+// Global Borders & Radii
+$border-radius: 0.5rem !default;
+$border-radius-sm: 0.375rem !default;
+$border-radius-lg: 0.75rem !default;
+
+// Card
+$card-border-width: 0 !default;
+$card-border-color: transparent !default;
+$card-border-radius: 16px !default;
+$card-box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04) !default;
+
+// Sidebar
+$sidebar-width: 260px !default;
+$sidebar-mini-width: 80px !default;
+$sidebar-bg: #ffffff !default;
+$sidebar-color: $secondary !default;
+$sidebar-active-bg: rgba($primary, 0.08) !default;
+$sidebar-active-color: $primary !default;
+
+// Header
+$header-height: 64px !default;
+
+// Inputs
+$input-padding-y: 0.65rem !default;
+$input-padding-x: 1rem !default;
+$input-border-radius: 8px !default;
+$input-focus-border-color: rgba($primary, 0.3) !default;
+$input-focus-box-shadow: 0 0 0 4px rgba($primary, 0.12) !default; // Modern ring shadow
+
+// Buttons
+$btn-padding-y: 0.5rem !default;
+$btn-padding-x: 1.25rem !default;
+$btn-border-radius: 8px !default;
+
+// Import Bootstrap to apply variable overrides
+@import "bootstrap/scss/bootstrap";
