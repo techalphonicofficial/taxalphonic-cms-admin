@@ -5,7 +5,7 @@ React SPA used by editors to manage the Tax Alphonic website content. It talks o
 ## Stack and commands
 - Vite + React 19, react-router-dom 7, react-bootstrap / Bootstrap 5 + bootstrap-icons, TanStack Query and Table, react-hook-form, TipTap and Jodit editors, chart.js, react-toastify.
 - `npm run dev`, `npm run build`, `npm run lint` (oxlint). Not a git repo. No tests.
-- `.env`: `VITE_API_URL` (default `http://192.168.0.166:5000/api/v1`), `VITE_APP_URL` (points at the backend), and `VITE_SITE_URL` (the Next.js website, default `http://192.168.0.166:3000`, used by Live Preview).
+- `.env`: `VITE_API_URL` (default `https://api.taxalphonic.com/api/v1`), `VITE_APP_URL` (points at the backend), and `VITE_SITE_URL` (the Next.js website, default `http://192.168.0.166:3000`, used by Live Preview).
 
 ## Layout
 - `src/App.jsx` holds all routes. Admin routes sit inside `<ProtectedRoute>` + `AdminLayout`, and each one is wrapped in `<RoutePermission action module>` (modules match the backend `checkPermission` names). The sidebar comes from `src/config/menuConfig.js`.

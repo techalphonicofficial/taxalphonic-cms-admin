@@ -108,7 +108,7 @@ const PortfolioItemsList = () => {
             style={{ width: '48px', height: '48px' }}
           >
             {image ? (
-              <img src={image.startsWith('http') ? image : `${import.meta.env.VITE_APP_URL || 'http://192.168.0.166:5000'}${image}`} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={image.startsWith('http') ? image : `${import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com'}${image}`} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <i className="bi bi-image text-muted"></i>
             )}

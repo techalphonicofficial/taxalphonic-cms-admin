@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.166:5000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.taxalphonic.com/api/v1';
 
 // Public endpoints the website uses to render and submit a form (cms-backend routes/formRoutes.js)
 export const publicFormEndpoints = (slug) => [
