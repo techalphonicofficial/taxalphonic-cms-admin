@@ -224,7 +224,7 @@ const PackageForm = () => {
   return (
     <div className="premium-form-layout">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center mb-4">
         <div>
           <Breadcrumb items={[
             { label: 'Services', link: '/services' },
@@ -559,16 +559,6 @@ const PackageForm = () => {
                   className="form-control" 
                 />
               </div>
-
-              <hr />
-              <button 
-                type="submit" 
-                form="packageForm" 
-                className="premium-btn-primary w-100"
-                disabled={isLoading}
-              >
-                {isEditMode ? 'Update Package' : 'Publish Package'}
-              </button>
             </div>
           </div>
         </div>

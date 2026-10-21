@@ -114,19 +114,23 @@ const RoleForm = () => {
 
   return (
     <div className="container-fluid p-0">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <div>
           <h4 className="mb-1 fw-bold">{isEditMode ? 'Edit Role' : 'Add New Role'}</h4>
           <p className="text-muted mb-0">Define role details and permissions</p>
         </div>
-        <Link to="/roles" className="btn btn-light border shadow-sm rounded-pill px-4">
-          <i className="bi bi-arrow-left me-2"></i> Back to Roles
-        </Link>
+        <div className="d-flex gap-2">
+          <Link to="/roles" className="btn btn-light border rounded-pill px-4">Cancel</Link>
+          <button type="submit" form="role-form" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading}>
+            {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
+            {isEditMode ? 'Update Role' : 'Create Role'}
+          </button>
+        </div>
       </div>
 
       <div className="card shadow-sm border-0 rounded-4">
         <div className="card-body p-4 p-md-5">
-          <form onSubmit={handleSubmit}>
+          <form id="role-form" onSubmit={handleSubmit}>
             <div className="row g-4 mb-5">
               <div className="col-md-6">
                 <label className="form-label fw-medium">Role Name <span className="text-danger">*</span></label>
@@ -190,13 +194,6 @@ const RoleForm = () => {
 
             <hr className="my-5 opacity-10" />
 
-            <div className="d-flex justify-content-end gap-3">
-              <Link to="/roles" className="btn btn-light rounded-pill px-4">Cancel</Link>
-              <button type="submit" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading}>
-                {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
-                {isEditMode ? 'Update Role' : 'Create Role'}
-              </button>
-            </div>
           </form>
         </div>
       </div>

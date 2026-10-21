@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import SearchableSelect from '../components/common/SearchableSelect';
+import EditorBar from '../components/common/EditorBar';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 
@@ -52,12 +53,16 @@ const LocationForm = () => {
 
   return (
     <div className="container-fluid">
+      <EditorBar
+        title={`${isEdit ? 'Edit' : 'New'} Location`}
+        breadcrumb={[{ label: 'Locations', link: '/locations' }, { label: isEdit ? 'Edit' : 'New' }]}
+      >
+        <button type="button" onClick={() => navigate('/locations')} className="btn btn-light border px-4 rounded-3">Cancel</button>
+        <button type="submit" form="location-form" className="btn btn-primary px-4 rounded-3">Save Location</button>
+      </EditorBar>
       <div className="card shadow-sm border-0 rounded-4">
-        <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-          <h2 className="mb-0 fw-bold">{isEdit ? 'Edit' : 'New'} Location</h2>
-        </div>
         <div className="card-body p-4">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form id="location-form" onSubmit={handleSubmit(onSubmit)}>
             <div className="row">
               <div className="col-md-6 mb-3">
                 <label className="form-label fw-semibold">Country Master</label>
@@ -113,8 +118,6 @@ const LocationForm = () => {
               <input {...register('active')} className="form-check-input" type="checkbox" id="activeCheck" />
               <label className="form-check-label" htmlFor="activeCheck">Active</label>
             </div>
-            <button type="submit" className="btn btn-primary px-4 rounded-3">Save Location</button>
-            <button type="button" onClick={() => navigate('/locations')} className="btn btn-light ms-2 px-4 rounded-3">Cancel</button>
           </form>
         </div>
       </div>

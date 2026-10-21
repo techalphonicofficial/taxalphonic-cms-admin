@@ -258,7 +258,7 @@ const AiSettings = () => {
 
   return (
     <div className="container-fluid p-0">
-      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h4 className="mb-1 fw-bold">pSEO AI Settings</h4>
           <p className="text-muted mb-0">Choose the AI provider and model, and control how matrix page content is generated.</p>

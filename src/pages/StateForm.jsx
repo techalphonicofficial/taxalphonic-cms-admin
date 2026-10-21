@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import SearchableSelect from '../components/common/SearchableSelect';
+import EditorBar from '../components/common/EditorBar';
 import api from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 
@@ -60,14 +61,20 @@ const StateForm = () => {
 
     return (
         <div className="container-fluid p-0">
+            <EditorBar
+                title={isEdit ? 'Edit State' : 'Create New State'}
+                breadcrumb={[{ label: 'States', link: '/states' }, { label: isEdit ? 'Edit' : 'New' }]}
+            >
+                <button type="button" className="btn btn-light border" onClick={() => navigate('/states')}>Cancel</button>
+                <button type="submit" form="state-form" className="btn btn-primary" disabled={loading}>
+                    {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : null} Save Data
+                </button>
+            </EditorBar>
             <div className="row justify-content-center">
                 <div className="col-12 col-xl-8">
                     <div className="card shadow-sm border-0">
-                        <div className="card-header bg-white border-0 pt-4 pb-0">
-                            <h5 className="card-title fw-bold mb-0">{isEdit ? 'Edit State' : 'Create New State'}</h5>
-                        </div>
                         <div className="card-body p-4">
-                            <form onSubmit={handleSubmit(onSubmit)}>
+                            <form id="state-form" onSubmit={handleSubmit(onSubmit)}>
                                 <div className="mb-3">
                                     <label className="form-label fw-medium"><span className="text-danger">*</span> Country Master</label>
                                     <input type="hidden" {...register('countryId', { required: 'Country is required' })} />
@@ -96,12 +103,6 @@ const StateForm = () => {
                                         <input className="form-check-input" type="checkbox" id="status" {...register('status')} value="active" defaultChecked={true} />
                                         <label className="form-check-label" htmlFor="status">Active State</label>
                                     </div>
-                                </div>
-                                <div className="d-flex justify-content-end gap-2">
-                                    <button type="button" className="btn btn-light" onClick={() => navigate('/states')}>Cancel</button>
-                                    <button type="submit" className="btn btn-primary" disabled={loading}>
-                                        {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : null} Save Data
-                                    </button>
                                 </div>
                             </form>
                         </div>

@@ -219,7 +219,7 @@ const SeoForm = () => {
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <Breadcrumb items={[{ label: 'SEO Management', link: '/cms/seo' }, { label: isEdit ? 'Edit Config' : 'New Config' }]} />
           <h2 className="premium-title mb-0 fs-5" style={{ letterSpacing: '-0.5px' }}>
@@ -227,9 +227,15 @@ const SeoForm = () => {
           </h2>
           <p className="text-muted small mb-0">Fields you fill here replace the page's own SEO on the website; empty fields keep the page's own value (shown greyed out).</p>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <button type="button" className="btn btn-light flex-grow-1 fw-medium" onClick={() => navigate('/cms/seo')}>Cancel</button>
+          <button type="submit" form="seo-config-form" className="premium-btn-primary flex-grow-1 justify-content-center" disabled={saving}>
+            {saving ? <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</> : <><i className="bi bi-check-lg me-2"></i> Save Config</>}
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={onSubmit} noValidate>
+      <form id="seo-config-form" onSubmit={onSubmit} noValidate>
         <div className="row g-4">
           <div className="col-lg-8">
             {/* 1. Which page */}
@@ -419,7 +425,7 @@ const SeoForm = () => {
               </div>
             </div>
 
-            <div className="card shadow-sm border-0 rounded-4 position-sticky" style={{ top: 80 }}>
+            <div className="card shadow-sm border-0 rounded-4 position-sticky ta-below-bar">
               <div className="card-body p-4">
                 <h5 className="card-title fw-bold mb-3">Settings</h5>
                 <label className="form-label fw-medium">Status</label>
@@ -428,14 +434,6 @@ const SeoForm = () => {
                   <option value="inactive">Inactive (page uses its own SEO)</option>
                 </select>
                 {selected && <div className="small text-muted">For: <b>{selected.label}</b></div>}
-              </div>
-              <div className="card-footer bg-white border-top-0 p-4 pt-0">
-                <div className="d-flex gap-2">
-                  <button type="button" className="btn btn-light flex-grow-1 fw-medium" onClick={() => navigate('/cms/seo')}>Cancel</button>
-                  <button type="submit" className="premium-btn-primary flex-grow-1 justify-content-center" disabled={saving}>
-                    {saving ? <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</> : <><i className="bi bi-check-lg me-2"></i> Save Config</>}
-                  </button>
-                </div>
               </div>
             </div>
           </div>

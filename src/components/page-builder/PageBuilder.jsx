@@ -489,7 +489,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
         {/* Sidebar: Available Blocks (drag one into an area, or click + to add it) */}
         <div className="flex-shrink-0 w-100" style={{ maxWidth: '320px' }}>
-          <div className="premium-form-card w-100 sticky-top" style={{ top: '2rem', zIndex: 10, maxHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}>
+          <div className="premium-form-card w-100 sticky-top ta-below-bar" style={{ zIndex: 10, maxHeight: 'calc(100vh - var(--ta-sticky-offset, 0px) - 7rem)', overflowY: 'auto' }}>
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-1">
                 <h6 className="mb-0 fw-bold text-muted text-uppercase" style={{ fontSize: '0.85rem', letterSpacing: '0.5px' }}>Available Blocks</h6>

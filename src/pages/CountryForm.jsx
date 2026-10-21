@@ -76,16 +76,25 @@ const CountryForm = () => {
 
   return (
     <div className="pb-4">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <Breadcrumb items={[{ label: 'Countries', link: '/cms/countries' }, { label: isEditMode ? 'Edit' : 'New' }]} />
           <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>
             {isEditMode ? 'Edit Country' : 'Add Country'}
           </h2>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/cms/countries" className="btn btn-light border">Cancel</Link>
+          <button type="submit" form="country-form" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting
+              ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
+              : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Country' : 'Save Country'}</>
+            }
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form id="country-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="row g-4">
           
           {/* Main Column */}
@@ -152,7 +161,7 @@ const CountryForm = () => {
 
           {/* Sidebar Column */}
           <div className="col-12 col-lg-4">
-            <div className="card border-0 shadow-sm rounded-4 mb-4 sticky-top" style={{ top: '100px' }}>
+            <div className="card border-0 shadow-sm rounded-4 mb-4 sticky-top ta-below-bar">
               <div className="card-body p-4">
                 <h5 className="card-title fw-bold mb-4">Publishing</h5>
 
@@ -172,15 +181,6 @@ const CountryForm = () => {
 
                 <hr className="my-4 text-muted opacity-25" />
 
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary rounded-3 py-2" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
-                      : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Country' : 'Save Country'}</>
-                    }
-                  </button>
-                  <Link to="/cms/countries" className="btn btn-light rounded-3 py-2">Cancel</Link>
-                </div>
               </div>
             </div>
           </div>

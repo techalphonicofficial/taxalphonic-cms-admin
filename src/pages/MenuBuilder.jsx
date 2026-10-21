@@ -115,16 +115,25 @@ const MenuBuilder = () => {
 
   return (
     <div className="pb-4">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <Breadcrumb items={[{ label: 'Pages', link: '/pages' }, { label: 'Menus', link: '/pages/menus' }, { label: isEditMode ? 'Edit' : 'New' }]} />
           <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>
             {isEditMode ? 'Edit Menu' : 'Add Menu'}
           </h2>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/pages/menus" className="btn btn-light border">Cancel</Link>
+          <button type="submit" form="menu-form" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting
+              ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
+              : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Menu' : 'Save Menu'}</>
+            }
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form id="menu-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="row g-4">
           <div className="col-12 col-lg-8">
             <div className="card border-0 shadow-sm rounded-4 mb-4">
@@ -223,7 +232,7 @@ const MenuBuilder = () => {
           </div>
 
           <div className="col-12 col-lg-4">
-            <div className="card border-0 shadow-sm rounded-4 mb-4 sticky-top" style={{ top: '100px' }}>
+            <div className="card border-0 shadow-sm rounded-4 mb-4 sticky-top ta-below-bar">
               <div className="card-body p-4">
                 <h5 className="card-title fw-bold mb-4">Publishing</h5>
                 <div className="mb-4">
@@ -234,15 +243,6 @@ const MenuBuilder = () => {
                   </select>
                 </div>
                 <hr className="my-4 text-muted opacity-25" />
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary rounded-3 py-2" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
-                      : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Menu' : 'Save Menu'}</>
-                    }
-                  </button>
-                  <Link to="/pages/menus" className="btn btn-light rounded-3 py-2">Cancel</Link>
-                </div>
               </div>
             </div>
           </div>

@@ -169,12 +169,15 @@ const AboutView = () => {
   }
 
   return (
-    <div className="container-fluid pt-2 pb-4">
-      <div className="row mb-3">
-        <div className="col-12">
+    <div className="container-fluid pb-4">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
           <h2 className="mb-1 fw-bold fs-3">About Page Management</h2>
           <p className="text-body-secondary mb-0">Manage the content of your About Agency page dynamically.</p>
         </div>
+        <button type="submit" form="about-form" className="btn btn-primary px-4" disabled={saving}>
+          {saving ? 'Saving...' : <><i className="bi bi-save me-2"></i>Save About Page</>}
+        </button>
       </div>
 
       <div className="card shadow-sm border-0">
@@ -198,7 +201,7 @@ const AboutView = () => {
           </ul>
         </div>
         <div className="card-body p-4">
-          <form onSubmit={handleSubmit}>
+          <form id="about-form" onSubmit={handleSubmit}>
             
             {/* Home Page About Tab */}
             {activeTab === 'home_about' && (
@@ -424,11 +427,6 @@ const AboutView = () => {
               </div>
             )}
 
-            <div className="d-flex justify-content-end mt-4 pt-3 border-top">
-              <button type="submit" className="btn btn-primary px-4" disabled={saving}>
-                {saving ? 'Saving...' : <><i className="bi bi-save me-2"></i>Save About Page</>}
-              </button>
-            </div>
           </form>
         </div>
       </div>

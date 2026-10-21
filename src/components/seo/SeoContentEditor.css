@@ -1,6 +1,6 @@
 /* Visual editor for pSEO content (SeoContentEditor.jsx) */
 .sce-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
-.sce-nav { position: sticky; top: 80px; display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #fff; border: 1px solid var(--bs-border-color); border-radius: 14px; }
+.sce-nav { position: sticky; top: calc(var(--ta-sticky-offset, 0px) - 0.5rem); display: flex; flex-direction: column; gap: 2px; padding: 10px; background: #fff; border: 1px solid var(--bs-border-color); border-radius: 14px; }
 .sce-nav-title { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--bs-secondary-color); padding: 4px 8px 6px; }
 .sce-nav-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 0; border-radius: 9px; background: transparent; font-size: 13.5px; text-align: left; color: var(--bs-body-color); }
 .sce-nav-item:hover { background: var(--bs-tertiary-bg); }
@@ -8,7 +8,7 @@
 .sce-nav-item i { width: 16px; text-align: center; }
 
 .sce-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.sce-card { background: #fff; border: 1px solid var(--bs-border-color); border-radius: 14px; scroll-margin-top: 80px; transition: box-shadow .15s, border-color .15s; }
+.sce-card { background: #fff; border: 1px solid var(--bs-border-color); border-radius: 14px; scroll-margin-top: calc(var(--ta-sticky-offset, 0px) + 1rem); transition: box-shadow .15s, border-color .15s; }
 .sce-card.open { border-color: var(--bs-primary-border-subtle); box-shadow: 0 6px 24px rgba(15, 23, 42, .06); }
 .sce-card-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; user-select: none; border-radius: 14px; }
 .sce-card-head:hover { background: var(--bs-tertiary-bg); }
@@ -61,5 +61,3 @@
   .sce-nav-item { width: auto; }
 }
 
-/* Save bar of SeoPageEditForm stays in view while editing long content */
-.seo-save-bar { position: sticky; bottom: 0; z-index: 5; margin: 0 -1rem -1rem; padding: 12px 1rem; background: rgba(255, 255, 255, .94); backdrop-filter: blur(6px); border-top: 1px solid var(--bs-border-color); border-radius: 0 0 1rem 1rem; }

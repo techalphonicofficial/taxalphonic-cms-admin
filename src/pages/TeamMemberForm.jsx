@@ -130,7 +130,7 @@ const TeamMemberForm = () => {
 
   return (
     <div className="pb-4 max-w-5xl">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+      <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div className="w-100">
           <Breadcrumb items={[
             { label: 'Team Members', link: '/cms/team' },
@@ -138,9 +138,19 @@ const TeamMemberForm = () => {
           ]} />
           <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>{isEditMode ? 'Edit Team Member' : 'Add Team Member'}</h2>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/cms/team" className="btn btn-light border">Cancel</Link>
+          <button type="submit" form="team-member-form" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</>
+            ) : (
+              <><i className="bi bi-check-circle me-2"></i> Save Team Member</>
+            )}
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form id="team-member-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="row g-4">
           {/* Main Content Column */}
           <div className="col-12 col-lg-8">
@@ -289,16 +299,6 @@ const TeamMemberForm = () => {
                   <div className="form-text">Lower numbers appear first.</div>
                 </div>
 
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</>
-                    ) : (
-                      <><i className="bi bi-check-circle me-2"></i> Save Team Member</>
-                    )}
-                  </button>
-                  <Link to="/cms/team" className="btn btn-light border">Cancel</Link>
-                </div>
               </div>
             </div>
           </div>

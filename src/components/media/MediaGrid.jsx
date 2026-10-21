@@ -5,9 +5,14 @@ import { confirmDialog } from '../common/confirm';
 import { mediaUrl } from '../../utils/mediaUrl';
 import MediaPreviewModal from './MediaPreviewModal';
 import { STORAGE_LABELS } from '../../utils/storageLabels';
+import FolderTiles from './FolderTiles';
+import { entriesFromDrop } from './folderUpload';
 
 const MediaGrid = () => {
-  const { mediaItems, isLoading, selectedItems, setSelectedItems, viewMode, deleteMedia, uploadMedia, fetchMedia } = useMediaLibrary();
+  const {
+    mediaItems, isLoading, selectedItems, setSelectedItems, viewMode, deleteMedia, uploadMedia, fetchMedia,
+    uploadFolder, isUploading, currentFolderId, currentCategoryId, searchQuery,
+  } = useMediaLibrary();
   // Index of the file shown in the full-size preview (click a card / row), null = closed.
   const [previewIndex, setPreviewIndex] = useState(null);
 
@@ -50,12 +55,24 @@ const MediaGrid = () => {
     e.preventDefault();
   };
 
+  // Dropped files and whole folders (subfolders kept). folderId: a folder tile, else the open folder.
+  const dropInto = (e, folderId = currentFolderId) => {
+    if (isUploading || !e.dataTransfer) return;
+    // The DataTransfer is only readable during the event, so read it before anything async.
+    entriesFromDrop(e.dataTransfer).then(({ entries, hasFolders }) => {
+      if (!entries.length) return;
+      if (hasFolders || folderId !== currentFolderId) uploadFolder(entries, folderId);
+      else uploadMedia(entries.map(entry => entry.file));
+    }).catch(() => toast.error('Could not read the dropped files'));
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      uploadMedia(e.dataTransfer.files);
-    }
+    dropInto(e);
   };
+
+  // Folder tiles and path bar, except while searching or browsing a category.
+  const tiles = !searchQuery.trim() && !currentCategoryId ? <FolderTiles onDropInto={dropInto} /> : null;
 
   if (isLoading && mediaItems.length === 0) {
     return (
@@ -67,26 +84,31 @@ const MediaGrid = () => {
 
   if (mediaItems.length === 0) {
     return (
-      <div 
-        className="flex-grow-1 d-flex flex-column justify-content-center align-items-center bg-body-tertiary h-100"
+      <div
+        className="flex-grow-1 p-4 overflow-y-auto bg-body-tertiary h-100 custom-scrollbar d-flex flex-column"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        <div className="text-center text-muted p-5 border border-2 border-dashed rounded-3 bg-white">
-          <i className="bi bi-cloud-arrow-up fs-1 mb-2 d-block text-primary opacity-75"></i>
-          <h5 className="fw-bold">Drag and drop files here</h5>
-          <p className="mb-0">or use the Upload button</p>
+        {tiles}
+        <div className="flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+          <div className="text-center text-muted p-5 border border-2 border-dashed rounded-3 bg-white">
+            <i className="bi bi-cloud-arrow-up fs-1 mb-2 d-block text-primary opacity-75"></i>
+            <h5 className="fw-bold">Drag and drop files or folders here</h5>
+            <p className="mb-0">or use the Upload button</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
+    <div
       className="flex-grow-1 p-4 overflow-y-auto bg-body-tertiary h-100 custom-scrollbar"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      {tiles}
+      {tiles && <div className="text-muted fw-bold small text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Files</div>}
       {viewMode === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
           {mediaItems.map((item, itemIndex) => {

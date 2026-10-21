@@ -56,16 +56,25 @@ const PageCategoryForm = () => {
 
   return (
     <div className="pb-4">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <Breadcrumb items={[{ label: 'Pages', link: '/pages' }, { label: 'Categories', link: '/pages/categories' }, { label: isEditMode ? 'Edit' : 'New' }]} />
           <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>
             {isEditMode ? 'Edit Category' : 'Add Category'}
           </h2>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/pages/categories" className="btn btn-light border px-4">Cancel</Link>
+          <button type="submit" form="page-category-form" className="btn btn-primary px-4" disabled={isSubmitting}>
+            {isSubmitting
+              ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
+              : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Category' : 'Save Category'}</>
+            }
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form id="page-category-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="row g-4 justify-content-center">
           <div className="col-12 col-lg-8">
             <div className="card border-0 shadow-sm rounded-4 mb-4">
@@ -121,15 +130,6 @@ const PageCategoryForm = () => {
 
                 <hr className="my-4 text-muted opacity-25" />
 
-                <div className="d-flex justify-content-end gap-3">
-                  <Link to="/pages/categories" className="btn btn-light border px-4">Cancel</Link>
-                  <button type="submit" className="btn btn-primary px-4" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
-                      : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Category' : 'Save Category'}</>
-                    }
-                  </button>
-                </div>
 
               </div>
             </div>

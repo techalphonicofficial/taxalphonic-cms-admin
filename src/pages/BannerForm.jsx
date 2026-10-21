@@ -205,7 +205,7 @@ const BannerForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="pb-5">
       {/* Page Header */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+      <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
           <div className="w-100">
           <Breadcrumb items={[
             { label: 'Banners', link: '/cms/banners' },

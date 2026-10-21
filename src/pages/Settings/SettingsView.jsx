@@ -83,9 +83,9 @@ const SettingsView = () => {
   if (!schema) return null;
 
   return (
-    <div className="container-fluid pt-2 pb-4">
-      <div className="row mb-3">
-        <div className="col-12">
+    <div className="container-fluid pb-4">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb mb-1 small">
               <li className="breadcrumb-item">
@@ -107,11 +107,24 @@ const SettingsView = () => {
             </div>
           </div>
         </div>
+        <button type="submit" form="settings-form" className="btn btn-primary px-4 py-2" disabled={saving}>
+          {saving ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Saving...
+            </>
+          ) : (
+            <>
+              <i className="bi bi-save me-2"></i>
+              Save Changes
+            </>
+          )}
+        </button>
       </div>
 
       <div className="row">
         <div className="col-12">
-          <form onSubmit={handleSubmit}>
+          <form id="settings-form" onSubmit={handleSubmit}>
             {(() => {
               const groupedFields = [];
               let currentGroup = { heading: null, fields: [] };
@@ -255,22 +268,6 @@ const SettingsView = () => {
                 </div>
               );
             })()}
-
-            <div className="d-flex justify-content-end mb-5">
-              <button type="submit" className="btn btn-primary px-4 py-2" disabled={saving}>
-                {saving ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-save me-2"></i>
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
           </form>
         </div>
       </div>

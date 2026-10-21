@@ -76,7 +76,7 @@ const BlogTagForm = () => {
 
   return (
     <div>
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+      <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
           <div className="w-100">
           <Breadcrumb items={[
             { label: 'Blog Tags', link: '/blog-tags' },
@@ -84,13 +84,19 @@ const BlogTagForm = () => {
           ]} />
           <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>{isEditMode ? 'Edit Tag' : 'New Tag'}</h2>
           </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/blog-tags" className="btn btn-light border">Cancel</Link>
+          <button type="submit" form="blog-tag-form" className="btn btn-primary px-4" disabled={isLoading}>
+            {isLoading ? 'Saving...' : 'Save Tag'}
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card border-0 shadow-sm">
         <div className="card-body p-4">
-          <form onSubmit={handleSubmit}>
+          <form id="blog-tag-form" onSubmit={handleSubmit}>
             <div className="row g-4">
               <div className="col-md-4">
                 <label className="form-label fw-medium">Tag Name</label>
@@ -133,12 +139,6 @@ const BlogTagForm = () => {
                 </select>
               </div>
 
-              <div className="col-12 mt-5 text-end">
-                <Link to="/blog-tags" className="btn btn-light border me-2">Cancel</Link>
-                <button type="submit" className="btn btn-primary px-4" disabled={isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Tag'}
-                </button>
-              </div>
             </div>
           </form>
         </div>

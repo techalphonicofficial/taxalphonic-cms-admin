@@ -127,8 +127,8 @@ const PageForm = () => {
   return (
     <div className="pb-5">
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Sticky Form Header */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+        {/* Sticky editor header (Save / Discard), .ta-editor-bar */}
+        <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
           <div className="w-100">
           <Breadcrumb items={[
             { label: 'Pages', link: '/pages' },

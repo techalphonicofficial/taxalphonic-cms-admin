@@ -370,7 +370,7 @@ const ServiceForm = () => {
 
   return (
     <div className="pb-4">
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+      <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div className="w-100">
           <Breadcrumb items={[
             { label: 'Services', link: '/services' },

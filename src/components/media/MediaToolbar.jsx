@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { useMediaLibrary } from '../../context/MediaLibraryContext';
+import { Dropdown } from 'react-bootstrap';
 import { confirmDialog } from '../common/confirm';
+import { ACCEPT } from './folderUpload';
 
 const MediaToolbar = () => {
   const { 
@@ -12,7 +14,9 @@ const MediaToolbar = () => {
     setSelectedItems,
     deleteMedia,
     uploadMedia,
-    isUploading 
+    isUploading,
+    pickFolder,
+    uploadProgress,
   } = useMediaLibrary();
 
   const fileInputRef = useRef(null);
@@ -85,20 +89,32 @@ const MediaToolbar = () => {
           onChange={handleFileChange} 
           style={{ display: 'none' }} 
           multiple 
-          accept="image/*,video/*,audio/*,.pdf,.doc,.docx" 
+          accept={ACCEPT}
         />
-        <button 
-          className="premium-btn-primary py-1 px-3" 
-          style={{ fontSize: '0.875rem' }}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-        >
-          {isUploading ? (
-            <><span className="spinner-border spinner-border-sm me-2"></span> Uploading...</>
-          ) : (
-            <><i className="bi bi-cloud-arrow-up me-2"></i> Upload</>
-          )}
-        </button>
+        <Dropdown align="end">
+          <Dropdown.Toggle
+            as="button"
+            type="button"
+            className="premium-btn-primary py-1 px-3"
+            style={{ fontSize: '0.875rem' }}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <><span className="spinner-border spinner-border-sm me-2"></span> {uploadProgress ? `Uploading ${uploadProgress.done}/${uploadProgress.total}` : 'Uploading...'}</>
+            ) : (
+              <><i className="bi bi-cloud-arrow-up me-2"></i> Upload</>
+            )}
+          </Dropdown.Toggle>
+          <Dropdown.Menu className="shadow-sm small">
+            <Dropdown.Item as="button" type="button" onClick={() => fileInputRef.current?.click()}>
+              <i className="bi bi-file-earmark-arrow-up me-2"></i>Upload files
+            </Dropdown.Item>
+            <Dropdown.Item as="button" type="button" onClick={() => pickFolder()}>
+              <i className="bi bi-folder-symlink me-2"></i>Upload folder
+              <div className="text-muted" style={{ fontSize: '0.75rem' }}>Keeps its subfolders</div>
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
       </div>
     </div>
   );

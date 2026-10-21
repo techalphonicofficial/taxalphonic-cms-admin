@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import RailMenu from '../components/layout/sidebar/RailMenu';
 import SecondarySidebar from '../components/layout/sidebar/SecondarySidebar';
@@ -12,8 +12,44 @@ const SidebarContent = () => (
   </>
 );
 
+/**
+ * Keeps --ta-sticky-offset on <main> equal to the height of the page's sticky editor header
+ * (.ta-editor-bar, global.scss), 0 when there is none, so sticky side panels sit below it.
+ */
+const useEditorBarOffset = (mainRef) => {
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return undefined;
+    let bar = null;
+    let frame = 0;
+    const sizeObserver = new ResizeObserver(() => {
+      main.style.setProperty('--ta-sticky-offset', `${bar ? Math.round(bar.offsetHeight) : 0}px`);
+    });
+    const update = () => {
+      frame = 0;
+      const next = main.querySelector('.ta-editor-bar');
+      if (next === bar) return;
+      if (bar) sizeObserver.unobserve(bar);
+      bar = next;
+      if (bar) sizeObserver.observe(bar);
+      else main.style.setProperty('--ta-sticky-offset', '0px');
+    };
+    // Pages render their header after loading, so look again when <main>'s content changes.
+    const domObserver = new MutationObserver(() => { if (!frame) frame = requestAnimationFrame(update); });
+    domObserver.observe(main, { childList: true, subtree: true });
+    update();
+    return () => {
+      domObserver.disconnect();
+      sizeObserver.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [mainRef]);
+};
+
 const AdminLayout = () => {
   const { isMobileOpen, toggleMobileSidebar } = useSidebar();
+  const mainRef = useRef(null);
+  useEditorBarOffset(mainRef);
 
   return (
     <div className="d-flex w-100 vh-100 overflow-hidden bg-body-tertiary">
@@ -50,7 +86,7 @@ const AdminLayout = () => {
       <div className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0, backgroundColor: 'var(--cms-body-bg)' }}>
         <Header toggleSidebar={toggleMobileSidebar} />
 
-        <main className="p-4 flex-grow-1 overflow-y-scroll overflow-x-hidden">
+        <main ref={mainRef} className="p-4 flex-grow-1 overflow-y-scroll overflow-x-hidden">
           <Outlet />
         </main>
       </div>

@@ -97,19 +97,23 @@ const UserForm = () => {
 
   return (
     <div className="container-fluid p-0">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <div>
           <h4 className="mb-1 fw-bold">{isEditMode ? 'Edit User' : 'Add New User'}</h4>
           <p className="text-muted mb-0">Fill in the details below</p>
         </div>
-        <Link to="/users" className="btn btn-light border shadow-sm rounded-pill px-4">
-          <i className="bi bi-arrow-left me-2"></i> Back to Users
-        </Link>
+        <div className="d-flex gap-2">
+          <Link to="/users" className="btn btn-light border rounded-pill px-4">Cancel</Link>
+          <button type="submit" form="user-form" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading}>
+            {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
+            {isEditMode ? 'Update User' : 'Create User'}
+          </button>
+        </div>
       </div>
 
       <div className="card shadow-sm border-0 rounded-4 max-w-2xl">
         <div className="card-body p-4 p-md-5">
-          <form onSubmit={handleSubmit}>
+          <form id="user-form" onSubmit={handleSubmit}>
             <div className="row g-4">
               <div className="col-md-6">
                 <label className="form-label fw-medium">First Name <span className="text-danger">*</span></label>
@@ -160,13 +164,6 @@ const UserForm = () => {
 
             <hr className="my-5 opacity-10" />
 
-            <div className="d-flex justify-content-end gap-3">
-              <Link to="/users" className="btn btn-light rounded-pill px-4">Cancel</Link>
-              <button type="submit" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading}>
-                {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
-                {isEditMode ? 'Update User' : 'Create User'}
-              </button>
-            </div>
           </form>
         </div>
       </div>

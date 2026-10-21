@@ -1,48 +1,72 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMediaLibrary } from '../../context/MediaLibraryContext';
+import FolderMenu, { FolderNameInput } from './FolderMenu';
+
+const containsFolder = (folder, id) => (folder.children || []).some(child => child.id === id || containsFolder(child, id));
 
 const FolderNode = ({ folder, level = 0 }) => {
-  const { currentFolderId, setCurrentFolderId, deleteFolder } = useMediaLibrary();
+  const { currentFolderId, setCurrentFolderId, setCurrentCategoryId, createFolder, renameFolder } = useMediaLibrary();
   const [isOpen, setIsOpen] = useState(false);
+  const [editing, setEditing] = useState(null); // 'rename' | 'subfolder' | null
   const hasChildren = folder.children && folder.children.length > 0;
-  
+
   const isSelected = currentFolderId === folder.id;
+  const holdsCurrent = containsFolder(folder, currentFolderId);
+
+  // Opening a folder from the grid tiles expands the tree down to it.
+  useEffect(() => {
+    if (holdsCurrent) setIsOpen(true);
+  }, [holdsCurrent]);
+
+  const open = () => {
+    setCurrentFolderId(folder.id);
+    setCurrentCategoryId(null);
+  };
 
   return (
     <div className="folder-node">
-      <div 
-        className={`d-flex align-items-center justify-content-between py-1 px-2 rounded cursor-pointer transition-all ${isSelected ? 'bg-primary-subtle text-primary fw-medium' : 'hover-bg text-secondary'}`}
-        style={{ paddingLeft: `${level * 1 + 0.5}rem` }}
-      >
-        <div className="d-flex align-items-center overflow-hidden flex-grow-1">
-          <div 
-            className="me-2" 
-            style={{ width: '20px', textAlign: 'center' }}
-            onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-          >
-            {hasChildren ? (
-              <i className={`bi ${isOpen ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} small text-muted`}></i>
-            ) : (
-              <span style={{ display: 'inline-block', width: '16px' }}></span>
-            )}
-          </div>
-          <div className="d-flex align-items-center flex-grow-1 overflow-hidden" onClick={() => setCurrentFolderId(folder.id)}>
-            <i className={`bi ${isOpen ? 'bi-folder2-open' : 'bi-folder'} me-2 ${isSelected ? 'text-primary' : 'text-muted'}`}></i>
-            <span className="text-truncate small">{folder.name}</span>
-          </div>
+      {editing === 'rename' ? (
+        <div className="py-1 pe-1" style={{ paddingLeft: `${level + 0.5}rem` }}>
+          <FolderNameInput initial={folder.name} onSave={(name) => { renameFolder(folder.id, name); setEditing(null); }} onCancel={() => setEditing(null)} />
         </div>
-        
-        {isSelected && (
-          <button 
-            className="btn btn-sm btn-link text-danger p-0 ms-2"
-            onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }}
-            title="Delete Folder"
-          >
-            <i className="bi bi-trash"></i>
-          </button>
-        )}
-      </div>
-      
+      ) : (
+        <div
+          className={`d-flex align-items-center justify-content-between py-1 px-2 rounded cursor-pointer transition-all ${isSelected ? 'bg-primary-subtle text-primary fw-medium' : 'hover-bg text-secondary'}`}
+          style={{ paddingLeft: `${level + 0.5}rem` }}
+        >
+          <div className="d-flex align-items-center overflow-hidden flex-grow-1">
+            <div
+              className="me-2"
+              style={{ width: '20px', textAlign: 'center' }}
+              onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+            >
+              {hasChildren ? (
+                <i className={`bi ${isOpen ? 'bi-caret-down-fill' : 'bi-caret-right-fill'} small text-muted`}></i>
+              ) : (
+                <span style={{ display: 'inline-block', width: '16px' }}></span>
+              )}
+            </div>
+            <div className="d-flex align-items-center flex-grow-1 overflow-hidden" onClick={open} title={folder.name}>
+              <i className={`bi ${isOpen ? 'bi-folder2-open' : 'bi-folder'} me-2 ${isSelected ? 'text-primary' : 'text-muted'}`}></i>
+              <span className="text-truncate small">{folder.name}</span>
+            </div>
+          </div>
+
+          <FolderMenu
+            folder={folder}
+            className="ms-1 flex-shrink-0"
+            onRename={() => setEditing('rename')}
+            onNewSubfolder={() => { setIsOpen(true); setEditing('subfolder'); }}
+          />
+        </div>
+      )}
+
+      {editing === 'subfolder' && (
+        <div className="py-1 pe-1" style={{ paddingLeft: `${level + 1.5}rem` }}>
+          <FolderNameInput placeholder="Subfolder name..." onSave={(name) => { createFolder(name, folder.id); setEditing(null); }} onCancel={() => setEditing(null)} />
+        </div>
+      )}
+
       {isOpen && hasChildren && (
         <div className="folder-children mt-1">
           {folder.children.map(child => (

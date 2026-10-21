@@ -410,7 +410,7 @@ const FormBuilder = () => {
   return (
     <div className="pb-5">
       {/* Header */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+      <div className="ta-editor-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
         <div className="w-100">
           <Breadcrumb items={[
             { label: 'Services', link: '/services' },
@@ -550,7 +550,7 @@ const FormBuilder = () => {
 
             {/* Sidebar: Field palette */}
             <div className="flex-shrink-0 w-100" style={{ maxWidth: '400px' }}>
-              <div className="sticky-top d-flex flex-column gap-3" style={{ top: '1rem', zIndex: 10, maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto' }}>
+              <div className="sticky-top ta-below-bar d-flex flex-column gap-3" style={{ zIndex: 10, maxHeight: 'calc(100vh - var(--ta-sticky-offset, 0px) - 7rem)', overflowY: 'auto' }}>
                 <div className="premium-form-card w-100">
                   <div className="card-body p-4">
                     <h6 className="mb-3 fw-bold text-muted text-uppercase" style={{ fontSize: '0.85rem', letterSpacing: '0.5px' }}>Add Field</h6>

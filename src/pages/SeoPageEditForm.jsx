@@ -117,12 +117,13 @@ const SeoPageEditForm = () => {
 
     return (
         <div className="container-fluid p-0">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="ta-editor-bar d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
                     <h4 className="mb-1 fw-bold">Edit Canonical Variant</h4>
                     <p className="text-muted mb-0">Inspect, regenerate with AI, and fine-tune multi-section outputs mapping to this endpoint.</p>
                 </div>
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-2 align-items-center flex-wrap">
+                    {dirty && <span className="text-warning-emphasis small"><i className="bi bi-circle-fill me-1" style={{ fontSize: 8 }}></i>Unsaved changes</span>}
                     <button
                         type="button"
                         onClick={() => setAiModalOpen(true)}
@@ -130,15 +131,17 @@ const SeoPageEditForm = () => {
                     >
                         <i className="bi bi-robot me-2 text-primary"></i> AI Content Studio
                     </button>
-                    <Link to="/seo-pages" className="btn btn-light border shadow-sm rounded-pill px-4">
-                        <i className="bi bi-arrow-left me-2"></i> Back to Matrix
-                    </Link>
+                    <Link to="/seo-pages" className="btn btn-light border rounded-pill px-4">Cancel</Link>
+                    <button type="submit" form="seo-page-form" disabled={saving} className="btn btn-primary rounded-pill px-4 fw-medium shadow-sm">
+                        {saving ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
+                        Save
+                    </button>
                 </div>
             </div>
 
             <div className="card shadow-sm border-0 rounded-4">
                 <div className="card-body p-4 p-md-5">
-                    <form onSubmit={handleSave}>
+                    <form id="seo-page-form" onSubmit={handleSave}>
                         <div className="row g-4 mb-4">
 
                             <div className="col-md-8">
@@ -285,17 +288,6 @@ const SeoPageEditForm = () => {
                                 </div>
                             </div>
 
-                        </div>
-
-                        <hr className="my-5 opacity-10" />
-
-                        <div className="d-flex justify-content-end align-items-center gap-3 seo-save-bar">
-                            {dirty && <span className="text-warning-emphasis small me-auto"><i className="bi bi-circle-fill me-1" style={{ fontSize: 8 }}></i>Unsaved changes</span>}
-                            <Link to="/seo-pages" className="btn btn-light rounded-pill px-4">Cancel</Link>
-                            <button type="submit" disabled={saving} className="btn btn-primary rounded-pill px-5 fw-medium shadow-sm">
-                                {saving ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
-                                Save Variant Constraints
-                            </button>
                         </div>
 
                     </form>

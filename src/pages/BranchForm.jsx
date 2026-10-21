@@ -90,7 +90,7 @@ const BranchForm = () => {
 
   return (
     <div className="pb-4">
-      <div className="d-flex justify-content-between align-items-center mb-2">
+      <div className="ta-editor-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <Breadcrumb items={[
             { label: 'Branches', link: '/cms/branches' },
@@ -100,9 +100,18 @@ const BranchForm = () => {
             {isEditMode ? 'Edit Branch' : 'Add Branch'}
           </h2>
         </div>
+        <div className="d-flex gap-2 flex-shrink-0">
+          <Link to="/cms/branches" className="btn btn-light border">Cancel</Link>
+          <button type="submit" form="branch-form" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting
+              ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Saving...</>
+              : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Branch' : 'Save Branch'}</>
+            }
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form id="branch-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="row g-4">
           {/* Main Column */}
           <div className="col-12 col-lg-8">
@@ -243,15 +252,6 @@ const BranchForm = () => {
                   <div className="form-text">Only one branch should be the head office.</div>
                 </div>
 
-                <div className="d-grid gap-2">
-                  <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? <><span className="spinner-border spinner-border-sm me-2" role="status"></span>Saving...</>
-                      : <><i className="bi bi-check-circle me-2"></i>{isEditMode ? 'Update Branch' : 'Save Branch'}</>
-                    }
-                  </button>
-                  <Link to="/cms/branches" className="btn btn-light border">Cancel</Link>
-                </div>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import EditorBar from '../components/common/EditorBar';
 
 const ProblemForm = () => {
   const { id } = useParams();
@@ -29,12 +30,16 @@ const ProblemForm = () => {
 
   return (
     <div className="container-fluid">
+      <EditorBar
+        title={`${isEdit ? 'Edit' : 'New'} Problem`}
+        breadcrumb={[{ label: 'Problems', link: '/problems' }, { label: isEdit ? 'Edit' : 'New' }]}
+      >
+        <button type="button" onClick={() => navigate('/problems')} className="btn btn-light border px-4 rounded-3">Cancel</button>
+        <button type="submit" form="problems-form" className="btn btn-primary px-4 rounded-3">Save</button>
+      </EditorBar>
       <div className="card shadow-sm border-0 rounded-4">
-        <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-          <h2 className="mb-0 fw-bold">{isEdit ? 'Edit' : 'New'} Problem</h2>
-        </div>
         <div className="card-body p-4">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form id="problems-form" onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <label className="form-label fw-semibold">Name</label>
               <input {...register('name')} className="form-control" required />
@@ -51,8 +56,6 @@ const ProblemForm = () => {
               <input {...register('active')} className="form-check-input" type="checkbox" id="activeCheck" />
               <label className="form-check-label" htmlFor="activeCheck">Active</label>
             </div>
-            <button type="submit" className="btn btn-primary px-4 rounded-3">Save</button>
-            <button type="button" onClick={() => navigate('/problems')} className="btn btn-light ms-2 px-4 rounded-3">Cancel</button>
           </form>
         </div>
       </div>
