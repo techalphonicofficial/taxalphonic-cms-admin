@@ -5,6 +5,8 @@ import { HOME_PLACEMENT_RULES } from './homeBlocks';
 // website renders, and back.
 
 export const ZONE_LABELS = {
+  header: 'Header',
+  footer: 'Footer',
   hero: 'Hero',
   top: 'Top (full width)',
   main: 'Main content',
@@ -29,10 +31,14 @@ export const DEFAULT_PLACEMENT = {
 // Blocks the website has a sidebar design for (lead card, side-trust grid, side-why, side CTA).
 export const SERVICE_SIDEBAR_BLOCKS = ['Form', 'Highlights', 'Checklist', 'CallToAction'];
 
-export const SERVICE_ZONES = ['hero', 'top', 'main', 'sidebar', 'bottom'];
+// header / footer: the landing page regions (LandingHeader / LandingFooter blocks, landingBlocks.js);
+// empty on every other builder. They stay first / last in the saved list.
+export const SERVICE_ZONES = ['header', 'hero', 'top', 'main', 'sidebar', 'bottom', 'footer'];
 const SERVICE_PLACEMENTS = ['top', 'main', 'sidebar', 'bottom'];
+const REGION_ZONE = { LandingHeader: 'header', LandingFooter: 'footer' };
 
 export const servicePlacementOf = (section) => {
+  if (REGION_ZONE[section.type]) return REGION_ZONE[section.type];
   if (section.type === 'HeroBanner') return 'hero';
   const placement = section.config?.placement;
   // Homepage blocks are full-width designs: the Bottom area unless placed elsewhere (website: same rule).
@@ -41,6 +47,9 @@ export const servicePlacementOf = (section) => {
 
 /** Why `type` can't go in `zone`, or '' when it can. */
 export const serviceDropError = (type, zone, label) => {
+  // Landing page header / footer never mix with the body.
+  if (REGION_ZONE[type] && zone !== REGION_ZONE[type]) return `The ${label} block stays in the ${ZONE_LABELS[REGION_ZONE[type]]} area.`;
+  if (!REGION_ZONE[type] && (zone === 'header' || zone === 'footer')) return `Only the ${zone === 'header' ? 'Header' : 'Footer'} block goes in the ${ZONE_LABELS[zone]} area.`;
   if (type === 'HeroBanner' && zone !== 'hero') return `${label} always stays at the top of the page.`;
   if (type !== 'HeroBanner' && zone === 'hero') return 'Only the Hero Banner goes in the Hero area.';
   if (zone === 'sidebar' && !SERVICE_SIDEBAR_BLOCKS.includes(type)) {

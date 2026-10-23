@@ -57,7 +57,9 @@ const ServicePreviewPane = ({ draft, kind = 'service' }) => {
         <SitePreviewFrame draft={draft} kind={kind} width={width} dark={dark} reloadKey={reloadKey} onStatus={setStatus} />
       </div>
       <div className="small text-muted mt-2">
-        Page content only (the website header and footer are not shown). Forms can be filled in but are not sent from the preview.
+        {kind === 'landing'
+          ? 'Header, body and footer of the landing page. Forms can be filled in but are not sent from the preview.'
+          : 'Page content only (the website header and footer are not shown). Forms can be filled in but are not sent from the preview.'}
       </div>
     </div>
   );

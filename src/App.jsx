@@ -77,6 +77,8 @@ import ProblemsList from './pages/ProblemsList';
 import ProblemList from './pages/ProblemsList';
 import ProblemForm from './pages/ProblemForm';
 import SeoPagesList from './pages/SeoPagesList';
+import LandingPagesList from './pages/landing/LandingPagesList';
+import LandingPageForm from './pages/landing/LandingPageForm';
 import SeoPageForm from './pages/SeoPageForm';
 import SeoPageEditForm from './pages/SeoPageEditForm';
 import StatesList from './pages/StatesList';
@@ -211,6 +213,11 @@ function App() {
             <Route path="about-page" element={<AboutView />} />
             <Route path="settings/:group" element={<SettingsView />} />
             <Route path="settings" element={<SettingsView />} />
+
+            {/* Landing pages on subdomains (module LandingPages) */}
+            <Route path="landing-pages" element={<RoutePermission action="read" module="LandingPages"><LandingPagesList /></RoutePermission>} />
+            <Route path="landing-pages/new" element={<RoutePermission action="create" module="LandingPages"><LandingPageForm key="new" /></RoutePermission>} />
+            <Route path="landing-pages/edit/:id" element={<RoutePermission action="read" module="LandingPages"><LandingPageForm key="edit" /></RoutePermission>} />
 
             {/* PSEO Matrix Routes */}
             <Route path="seo-pages" element={<SeoPagesList />} />

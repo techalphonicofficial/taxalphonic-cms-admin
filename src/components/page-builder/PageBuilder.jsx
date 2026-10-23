@@ -8,6 +8,7 @@ import { JOURNEY_BLOCKS, JOURNEY_REFERENCE_STAGES, journeyDefaultPayload, journe
 import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, toolsHubSections } from './toolBlocks';
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
 import BackgroundSettings from './BackgroundSettings';
+import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
   SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
   homeDropError, homeRows, insertInFlat, serviceDropError, servicePlacementOf, serviceZones
@@ -37,7 +38,7 @@ const SERVICE_ONLY_BLOCKS = [
   { type: 'LocationsServed', label: 'Locations We Serve', icon: 'bi-geo-alt' }
 ];
 
-const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS, ...JOURNEY_BLOCKS, ...TOOL_BLOCKS, ...COMMON_BLOCKS].map(b => [b.type, b]));
+const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS, ...JOURNEY_BLOCKS, ...TOOL_BLOCKS, ...COMMON_BLOCKS, ...LANDING_BLOCKS].map(b => [b.type, b]));
 const HOME_TYPES = new Set(HOME_BLOCKS.map(b => b.type));
 const JOURNEY_TYPES = new Set(JOURNEY_BLOCKS.map(b => b.type));
 const TOOL_TYPES = new Set(TOOL_BLOCKS.map(b => b.type));
@@ -50,7 +51,8 @@ const defaultPayloadFor = (type) => (
     : JOURNEY_TYPES.has(type) ? journeyDefaultPayload(type)
       : TOOL_TYPES.has(type) ? toolDefaultPayload(type)
         : isCommonType(type) ? commonDefaultPayload(type)
-          : {}
+          : isLandingRegion(type) ? landingDefaultPayload(type)
+            : {}
 );
 
 // Homepage designs offered in the other builders (the hero stays homepage-only).
@@ -68,6 +70,8 @@ const PLACEMENTS = [
 
 // Hints shown in each area of the canvas.
 const ZONE_HINTS = {
+  header: 'Header block only (website header, landing header or none)',
+  footer: 'Footer block only (website footer, landing footer or none)',
   hero: 'Hero Banner only',
   top: 'Full width, under the hero',
   main: 'Left column',
@@ -89,7 +93,7 @@ const summarize = (section) => {
 
 // Per-block layout options stored in section.config (services, and placement on the homepage).
 const BlockSettings = ({ section, onChange, home = false }) => {
-  if (section.type === 'HeroBanner') return null;
+  if (section.type === 'HeroBanner' || isLandingRegion(section.type)) return null;
   const config = section.config || {};
   const set = (key, value) => onChange({ ...config, [key]: value });
 
@@ -154,6 +158,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   const isJourney = blockSet === 'journey';
   // blockSet="tool": a free tool page or the tools hub (toolBlocks.js), one full-width list like journeys.
   const isTool = blockSet === 'tool';
+  // blockSet="landing" (Landing Pages): the service canvas plus Header and Footer areas.
+  const isLanding = blockSet === 'landing';
   const zoned = isHome || layoutSettings;
   // Palette groups: the builder's own blocks first, then general-purpose and homepage blocks,
   // which every builder offers (the website renders them on any page).
@@ -162,6 +168,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     : AVAILABLE_BLOCKS;
   const ownTitle = isTool ? 'Tool blocks' : isJourney ? 'Journey blocks' : isHome ? 'Homepage blocks' : 'Page blocks';
   const paletteGroups = [
+    // Landing pages (blockSet="landing", with layoutSettings): the Header / Footer regions first.
+    ...(isLanding ? [{ title: 'Header & Footer', items: LANDING_BLOCKS }] : []),
     { title: ownTitle, items: ownBlocks },
     { title: 'General blocks', items: COMMON_BLOCKS },
     ...(isHome ? [] : [{ title: 'Homepage sections', items: HOME_EXTRA_BLOCKS }]),
@@ -260,6 +268,10 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         toast.warning('This page already has a Hero Banner.');
         return;
       }
+      if (isLandingRegion(blockType) && sections.some(s => s.type === blockType)) {
+        toast.warning(`This page already has a ${labelOf(blockType)} block. Open it to change its style.`);
+        return;
+      }
       // Lands at the end of the area the block goes to by default.
       const zones = serviceZones(sections);
       zones[servicePlacementOf(section)].push(section);
@@ -311,8 +323,11 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     const error = serviceDropError(moving.type, zone, labelOf(moving.type));
     if (error) return toast.warning(error);
     if (fromPalette && zone === 'hero' && hasServiceHero()) return toast.warning('This page already has a Hero Banner.');
+    if (fromPalette && isLandingRegion(moving.type) && sections.some(s => s.type === moving.type)) {
+      return toast.warning(`This page already has a ${labelOf(moving.type)} block.`);
+    }
 
-    const placed = zone === 'hero' ? moving : withPlacement(moving, zone);
+    const placed = zone === 'hero' || isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
     const zones = serviceZones(sections.filter(s => s !== moving));
     zones[zone].splice(index, 0, placed);
     update(SERVICE_ZONES.flatMap(z => zones[z]));
@@ -489,10 +504,12 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     const zones = serviceZones(sections);
     return (
       <>
+        {isLanding && renderZone('zone:header', ZONE_LABELS.header, ZONE_HINTS.header, zones.header, { tone: 'info' })}
         {renderZone('zone:hero', ZONE_LABELS.hero, ZONE_HINTS.hero, zones.hero, { tone: 'warning' })}
         {renderZone('zone:top', ZONE_LABELS.top, ZONE_HINTS.top, zones.top)}
         {renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar])}
         {renderZone('zone:bottom', ZONE_LABELS.bottom, ZONE_HINTS.bottom, zones.bottom)}
+        {isLanding && renderZone('zone:footer', ZONE_LABELS.footer, ZONE_HINTS.footer, zones.footer, { tone: 'info' })}
       </>
     );
   };

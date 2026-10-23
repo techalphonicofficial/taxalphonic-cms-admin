@@ -332,7 +332,7 @@ const BlogForm = () => {
                             style={{ width: '120px', height: '120px', flexShrink: 0 }}
                           >
                             {featuredImage ? (
-                              <img src={featuredImage.startsWith('http') ? featuredImage : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${featuredImage}`} alt="Featured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={featuredImage.startsWith('http') ? featuredImage : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${featuredImage}`} alt="Featured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <i className="bi bi-image text-muted fs-1"></i>
                             )}
@@ -365,7 +365,7 @@ const BlogForm = () => {
                         <div className="d-flex flex-wrap gap-2 mb-2">
                           {(watch('gallery') || []).map((imgUrl, idx) => (
                             <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px' }}>
-                              <img src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${imgUrl}`} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${imgUrl}`} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               <button
                                 type="button"
                                 className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center"

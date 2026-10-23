@@ -14,7 +14,7 @@ import { siteUrl } from '../config/siteUrl';
  * Backend: controllers/SeoController.js (works out the URL from the picked record).
  */
 
-const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'http://localhost:5000').replace(/\/$/, '');
+const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com').replace(/\/$/, '');
 const mediaUrl = (url) => (!url || /^(https?:)?\/\//i.test(url) ? url : `${MEDIA_BASE}/${url.replace(/^\/+/, '')}`);
 
 const TARGET_TYPES = [

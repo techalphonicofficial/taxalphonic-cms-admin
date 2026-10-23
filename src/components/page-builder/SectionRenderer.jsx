@@ -11,6 +11,7 @@ import SearchableSelect from '../common/SearchableSelect';
 import { HOME_SCHEMAS } from './homeBlocks';
 import { JOURNEY_SCHEMAS } from './journeyBlocks';
 import { COMMON_SCHEMAS } from './commonBlocks';
+import { LANDING_SCHEMAS } from './landingBlocks';
 import { TOOL_SCHEMAS, toolSchemaFor } from './toolBlocks';
 import { DEFAULT_SETTINGS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 import { imageHint } from '../../config/imageSizes';
@@ -643,10 +644,10 @@ const SectionRenderer = ({ section, onChange }) => {
       return <LocationsServedForm data={section.data} onChange={newData => onChange(section.id, newData)} />;
     default:
       // Homepage, Journey Stage and general-purpose blocks are schema-driven (homeBlocks.js, journeyBlocks.js, commonBlocks.js).
-      if (HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type]) {
+      if (HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type] || LANDING_SCHEMAS[section.type]) {
         return (
           <SchemaFields
-            fields={HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type]}
+            fields={HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type] || LANDING_SCHEMAS[section.type]}
             value={section.data?.payload}
             onChange={payload => onChange(section.id, { ...section.data, payload })}
           />

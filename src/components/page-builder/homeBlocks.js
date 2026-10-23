@@ -148,10 +148,19 @@ export const HOME_SCHEMAS = {
       fields: [{ key: 'value', placeholder: 'Value', width: 'col-md-4' }, { key: 'label', placeholder: 'Label', width: 'col-md-8' }],
     },
     {
+      // Hides the whole right side (image or dashboard) without deleting its content.
+      key: 'rightSide', label: 'Right side (image / dashboard visual)', type: 'select',
+      options: [
+        { value: 'show', label: 'Show' },
+        { value: 'hide', label: 'Hide (text uses the full width)' },
+      ],
+    },
+    {
       key: 'heroImage', label: 'Right side image (optional)', type: 'image',
       hint: `When set, this image shows instead of the dashboard visual below. ${imageHint('heroImage')}`,
+      showIf: (d) => d.rightSide !== 'hide',
     },
-    { key: 'heroImageAlt', label: 'Image alt text', type: 'text', showIf: (d) => Boolean(String(d.heroImage || '').trim()) },
+    { key: 'heroImageAlt', label: 'Image alt text', type: 'text', showIf: (d) => d.rightSide !== 'hide' && Boolean(String(d.heroImage || '').trim()) },
     {
       key: 'visualSize', label: 'Right side size (image or dashboard)', type: 'select',
       options: [
@@ -160,10 +169,12 @@ export const HOME_SCHEMAS = {
         { value: 'md', label: 'Medium' },
         { value: 'sm', label: 'Small' },
       ],
+      showIf: (d) => d.rightSide !== 'hide',
     },
     {
       key: 'dashboard', label: 'Dashboard visual (right side, when there is no image)', type: 'group',
-      hint: 'Leave value, bars and chips empty (and no image) to hide the visual; the text then uses the full width.',
+      showIf: (d) => d.rightSide !== 'hide' && !String(d.heroImage || '').trim(),
+      hint: 'Shown when no image is set. "Right side: Hide" above takes it off the page without losing these texts.',
       fields: [
         { key: 'brand', label: 'Brand', type: 'text' },
         { key: 'label', label: 'Corner label', type: 'text' },

@@ -62,7 +62,6 @@ export const JOURNEY_SCHEMAS = {
     { key: 'secondaryButton', label: 'Secondary button', type: 'button' },
     { key: 'image', label: 'Image instead of the icon circle (optional)', type: 'image', hint: imageHint('journeyHero') },
     { key: 'showMeta', label: 'Stage / steps / services info and progress bar', type: 'select', options: [{ value: 'show', label: 'Show' }, { value: 'hide', label: 'Hide' }] },
-    { key: 'crumbLabel', label: 'Breadcrumb label', type: 'text', placeholder: 'Business Journey' },
     { key: 'goalText', label: 'Progress suffix', type: 'text', placeholder: 'to revenue' },
   ],
   JourneyOffer: [
@@ -170,7 +169,7 @@ const SHARED = {
     chips: [{ text: '⏱ {read} min read' }, { text: '✅ 100% Online Process' }, { text: '👨‍💼 CA/CS Expert Assisted' }, { text: '🔄 Updated Sep 2026' }],
     primaryButton: { text: '🎧 Get help with this stage', url: '/talk-to-expert' },
     secondaryButton: { text: '📅 Book a meeting', url: '/book-meeting' },
-    image: '', showMeta: 'show', crumbLabel: 'Business Journey', goalText: 'to revenue',
+    image: '', showMeta: 'show', goalText: 'to revenue',
   },
   JourneyOffer: {
     kicker: '🎯 What you get', heading: 'Our promise for this stage', outcome: '',

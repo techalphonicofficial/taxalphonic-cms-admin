@@ -3,6 +3,7 @@ export const railMenuData = [
   { id: 'accessControl', label: 'Access Control', icon: 'bi-shield-lock', path: '/users', permission: { action: 'read', module: 'Users' } },
   { id: 'cms', label: 'CMS', icon: 'bi-file-earmark-text', path: '/pages', permission: { action: 'read', module: 'CMS' } },
   { id: 'services', label: 'Services', icon: 'bi-briefcase', path: '/services', permission: { action: 'read', module: 'Services' } },
+  { id: 'landing', label: 'Landing Pages', icon: 'bi-window-stack', path: '/landing-pages', permission: { action: 'read', module: 'LandingPages' } },
   { id: 'portfolio', label: 'Portfolio', icon: 'bi-collection', path: '/portfolio-items', permission: { action: 'read', module: 'Portfolio' } },
   { id: 'blog', label: 'Blog', icon: 'bi-journal-richtext', path: '/blogs', permission: { action: 'read', module: 'Blogs' } },
   { id: 'seo', label: 'SEO', icon: 'bi-search', path: '/cms/seo', badge: 'New', permission: { action: 'read', module: 'SEO' } },
@@ -71,6 +72,16 @@ export const secondaryMenuData = {
         { label: 'Branches', path: '/cms/branches', icon: 'bi-building', permission: { action: 'read', module: 'CMS' } },
         { label: 'Partners & Clients', path: '/cms/partners', icon: 'bi-people', permission: { action: 'read', module: 'CMS' } },
         { label: 'Global Presence', path: '/cms/countries', icon: 'bi-globe', permission: { action: 'read', module: 'CMS' } },
+      ]
+    }
+  ],
+  // Service landing pages on subdomains (cbdt.taxalphonic.com), pages/landing.
+  landing: [
+    {
+      group: 'Landing Pages',
+      items: [
+        { label: 'All Landing Pages', path: '/landing-pages', icon: 'bi-window-stack', permission: { action: 'read', module: 'LandingPages' } },
+        { label: 'New Landing Page', path: '/landing-pages/new', icon: 'bi-plus-circle', permission: { action: 'create', module: 'LandingPages' } },
       ]
     }
   ],

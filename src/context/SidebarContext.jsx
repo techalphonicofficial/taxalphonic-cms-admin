@@ -29,7 +29,7 @@ export const SidebarProvider = ({ children }) => {
         
         let logoUrl = settings.logo || null;
         if (logoUrl && !logoUrl.startsWith('http')) {
-          const baseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5000';
+          const baseUrl = import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com';
           logoUrl = logoUrl.startsWith('/') ? `${baseUrl}${logoUrl}` : `${baseUrl}/${logoUrl}`;
         }
 

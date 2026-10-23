@@ -5,5 +5,6 @@ import css2 from './components/tax-alphonic/blocks/blocks.css?inline';
 import css3 from './components/tax-alphonic/service-page.css?inline';
 import css4 from './components/tax-alphonic/journey/journey-page.css?inline';
 import css5 from './components/tax-alphonic/tools/tools-page.css?inline';
+import css6 from './components/tax-alphonic/landing/landing.css?inline';
 
-export default [css0, css1, css2, css3, css4, css5];
+export default [css0, css1, css2, css3, css4, css5, css6];

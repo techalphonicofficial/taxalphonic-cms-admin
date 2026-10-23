@@ -6,7 +6,8 @@ import ApiPage from './website/components/tax-alphonic/pages/ApiPage';
 import HomeSections from './website/components/tax-alphonic/home/HomeSections';
 import JourneySections from './website/components/tax-alphonic/journey/JourneySections';
 import ToolSections from './website/components/tax-alphonic/tools/ToolSections';
-import { buildHomePreview, buildJourneyPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
+import LandingPage from './website/components/tax-alphonic/landing/LandingPage';
+import { buildHomePreview, buildJourneyPreview, buildLandingPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
 import { setPreviewFrame } from './shims/frameGlobals';
 
 // Same draft kinds and builders as the website's /cms-preview page.
@@ -16,7 +17,27 @@ const KINDS = {
   home: { build: buildHomePreview, render: (data) => <HomeSections sections={data} /> },
   journey: { build: buildJourneyPreview, render: (data) => <JourneySections sections={data.sections} stages={data.stages} page={data.page} /> },
   tool: { build: buildToolPreview, render: (data) => <ToolSections sections={data.sections} tools={data.tools} page={data.page} /> },
+  // Landing pages: the "Website header / footer" style is the live site's own Header / Footer
+  // (not part of this preview copy), shown here as a labelled bar.
+  landing: {
+    build: buildLandingPreview,
+    render: (data) => (
+      <LandingPage
+        page={data.page}
+        branding={data.branding}
+        contact={data.contact}
+        siteHeader={<SiteChromeStub label="Website header" detail="the header menu and logo from Menus & Navigation / Settings" />}
+        siteFooter={<SiteChromeStub label="Website footer" detail="the footer menu and Footer Display options" />}
+      />
+    ),
+  },
 };
+
+const SiteChromeStub = ({ label, detail }) => (
+  <div style={{ padding: '14px 24px', background: '#eef6f8', borderBottom: '1px dashed #9ccfd8', borderTop: '1px dashed #9ccfd8', font: '13px/1.4 system-ui, sans-serif', color: '#2b5560', textAlign: 'center' }}>
+    <b>{label}</b> — on the live page this is {detail}.
+  </div>
+);
 
 // Fonts the website loads in app/layout.js (next/font Sora + Inter, exposed as CSS variables).
 const FRAME_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">

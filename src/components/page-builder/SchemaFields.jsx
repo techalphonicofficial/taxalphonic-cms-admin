@@ -7,7 +7,7 @@ import MediaPickerModal from '../media/MediaPickerModal';
 import SearchableSelect from '../common/SearchableSelect';
 import api from '../../services/api';
 
-const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'http://localhost:5000').replace(/\/$/, '');
+const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com').replace(/\/$/, '');
 const previewUrl = (url) => (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') ? url : `${MEDIA_BASE}/${url.replace(/^\/+/, '')}`);
 
 // An image from the Media library (or a pasted URL), with a small preview.

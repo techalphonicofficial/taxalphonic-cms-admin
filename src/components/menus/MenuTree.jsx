@@ -28,7 +28,7 @@ const changeList = (items, parentPath, fn) => (
   parentPath.length ? updateAt(items, parentPath, item => ({ ...item, children: fn(item.children || []) })) : fn(items)
 );
 
-const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'http://localhost:5000').replace(/\/$/, '');
+const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com').replace(/\/$/, '');
 const isImageIcon = (value) => /^(https?:|\/|data:|uploads\/)/i.test(value) || /\.(png|jpe?g|webp|gif|svg|avif)(\?.*)?$/i.test(value);
 const iconSrc = (value) => (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') ? value : `${MEDIA_BASE}/${value.replace(/^\/+/, '')}`);
 
