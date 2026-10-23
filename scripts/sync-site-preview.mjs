@@ -21,6 +21,8 @@ const ENTRIES = [
   'components/tax-alphonic/pages/ApiServicePage.jsx',
   'components/tax-alphonic/pages/ApiPage.jsx',
   'components/tax-alphonic/home/HomeSections.jsx',
+  'components/tax-alphonic/journey/JourneySections.jsx',
+  'components/tax-alphonic/tools/ToolSections.jsx',
 ];
 // Replaced by shims in src/site-preview/shims.
 const SHIMMED = new Set(['service/apiClient.js', 'service/formSubmission.js']);

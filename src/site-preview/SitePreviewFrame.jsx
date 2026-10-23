@@ -4,7 +4,9 @@ import styles from './website/styles';
 import ApiServicePage from './website/components/tax-alphonic/pages/ApiServicePage';
 import ApiPage from './website/components/tax-alphonic/pages/ApiPage';
 import HomeSections from './website/components/tax-alphonic/home/HomeSections';
-import { buildHomePreview, buildPagePreview, buildServicePreview } from './website/service/servicePreview';
+import JourneySections from './website/components/tax-alphonic/journey/JourneySections';
+import ToolSections from './website/components/tax-alphonic/tools/ToolSections';
+import { buildHomePreview, buildJourneyPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
 import { setPreviewFrame } from './shims/frameGlobals';
 
 // Same draft kinds and builders as the website's /cms-preview page.
@@ -12,6 +14,8 @@ const KINDS = {
   service: { build: buildServicePreview, render: (data) => <ApiServicePage service={data} /> },
   page: { build: buildPagePreview, render: (data) => <ApiPage page={data} /> },
   home: { build: buildHomePreview, render: (data) => <HomeSections sections={data} /> },
+  journey: { build: buildJourneyPreview, render: (data) => <JourneySections sections={data.sections} stages={data.stages} page={data.page} /> },
+  tool: { build: buildToolPreview, render: (data) => <ToolSections sections={data.sections} tools={data.tools} page={data.page} /> },
 };
 
 // Fonts the website loads in app/layout.js (next/font Sora + Inter, exposed as CSS variables).

@@ -7,7 +7,7 @@ import MediaPickerModal from '../media/MediaPickerModal';
 import SearchableSelect from '../common/SearchableSelect';
 import api from '../../services/api';
 
-const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com').replace(/\/$/, '');
+const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'http://localhost:5000').replace(/\/$/, '');
 const previewUrl = (url) => (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') ? url : `${MEDIA_BASE}/${url.replace(/^\/+/, '')}`);
 
 // An image from the Media library (or a pasted URL), with a small preview.
@@ -95,7 +95,7 @@ const FormPicker = ({ label, hint, value, onChange, className = 'col-md-6' }) =>
 
 /**
  * Renders a block editor from a field schema (see HOME_SCHEMAS in homeBlocks.js).
- * Field types: text, textarea, button, list, group, form, select, note, image; any field may set showIf(data).
+ * Field types: text, textarea, button, list, group, form, select, note, image, color; any field may set showIf(data).
  * and writes into `value` (the block payload, or a nested group object).
  */
 const SchemaFields = ({ fields, value, onChange }) => {
@@ -151,6 +151,19 @@ const SchemaFields = ({ fields, value, onChange }) => {
             );
           case 'image':
             return <ImageField key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
+          case 'color': {
+            const hex = /^#[0-9a-f]{6}$/i.test(data[field.key] || '') ? data[field.key] : '#0e96ac';
+            return (
+              <div key={field.key} className={field.width || 'col-md-6'}>
+                <label className="form-label">{field.label}</label>
+                <div className="input-group">
+                  <input type="color" className="form-control form-control-color flex-grow-0" style={{ width: 48 }} value={hex} onChange={e => set(field.key)(e.target.value)} title="Pick a colour" />
+                  <input type="text" className="form-control" value={data[field.key] || ''} placeholder="#0E96AC" onChange={e => set(field.key)(e.target.value)} />
+                </div>
+                {field.hint && <div className="form-text">{field.hint}</div>}
+              </div>
+            );
+          }
           case 'group':
             return (
               <div key={field.key} className="col-12">

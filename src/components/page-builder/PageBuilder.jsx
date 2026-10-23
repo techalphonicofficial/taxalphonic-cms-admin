@@ -4,6 +4,10 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'react-toastify';
 import SectionRenderer from './SectionRenderer';
 import { HOME_BLOCKS, HOME_PLACEMENTS, HOME_PLACEMENT_RULES, defaultHomeSections, homeDefaultPayload } from './homeBlocks';
+import { JOURNEY_BLOCKS, JOURNEY_REFERENCE_STAGES, journeyDefaultPayload, journeyStageSections } from './journeyBlocks';
+import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, toolsHubSections } from './toolBlocks';
+import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
+import BackgroundSettings from './BackgroundSettings';
 import {
   SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
   homeDropError, homeRows, insertInFlat, serviceDropError, servicePlacementOf, serviceZones
@@ -33,7 +37,26 @@ const SERVICE_ONLY_BLOCKS = [
   { type: 'LocationsServed', label: 'Locations We Serve', icon: 'bi-geo-alt' }
 ];
 
-const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS].map(b => [b.type, b]));
+const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS, ...JOURNEY_BLOCKS, ...TOOL_BLOCKS, ...COMMON_BLOCKS].map(b => [b.type, b]));
+const HOME_TYPES = new Set(HOME_BLOCKS.map(b => b.type));
+const JOURNEY_TYPES = new Set(JOURNEY_BLOCKS.map(b => b.type));
+const TOOL_TYPES = new Set(TOOL_BLOCKS.map(b => b.type));
+// Blocks whose Background panel is about the page hero.
+const HERO_TYPES = new Set(['HeroBanner', 'HomeHero', 'JourneyHero', 'ToolHero']);
+
+// Starting content of a new block, whatever builder it is added in.
+const defaultPayloadFor = (type) => (
+  HOME_TYPES.has(type) ? homeDefaultPayload(type)
+    : JOURNEY_TYPES.has(type) ? journeyDefaultPayload(type)
+      : TOOL_TYPES.has(type) ? toolDefaultPayload(type)
+        : isCommonType(type) ? commonDefaultPayload(type)
+          : {}
+);
+
+// Homepage designs offered in the other builders (the hero stays homepage-only).
+const HOME_EXTRA_BLOCKS = HOME_BLOCKS.filter(b => b.type !== 'HomeHero');
+const JOURNEY_ORDER = Object.fromEntries(JOURNEY_BLOCKS.map((b, i) => [b.type, i]));
+const TOOL_ORDER = Object.fromEntries(TOOL_BLOCKS.map((b, i) => [b.type, i]));
 const labelOf = (type) => BLOCK_META[type]?.label || type;
 
 const PLACEMENTS = [
@@ -124,12 +147,30 @@ const PALETTE_PREFIX = 'palette:';
 // blockSet="home": the Home Page Builder (homepage sections only, prefilled with the current content).
 // Service pages (layoutSettings) and the homepage show the canvas as the page's layout areas;
 // blocks are dragged between them (or in from Available Blocks) and only land where they fit.
+// blockSet="journey": a Journey Stage page (journeyBlocks.js): one full-width list, blocks keep
+// the reference order when added, and a reference stage can fill the whole page.
 const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, blockSet = 'default' }) => {
   const isHome = blockSet === 'home';
+  const isJourney = blockSet === 'journey';
+  // blockSet="tool": a free tool page or the tools hub (toolBlocks.js), one full-width list like journeys.
+  const isTool = blockSet === 'tool';
   const zoned = isHome || layoutSettings;
-  const blocks = isHome ? HOME_BLOCKS
+  // Palette groups: the builder's own blocks first, then general-purpose and homepage blocks,
+  // which every builder offers (the website renders them on any page).
+  const ownBlocks = isTool ? TOOL_BLOCKS : isJourney ? JOURNEY_BLOCKS : isHome ? HOME_BLOCKS
     : layoutSettings ? [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...(blockSet === 'service' ? SERVICE_ONLY_BLOCKS : [])]
     : AVAILABLE_BLOCKS;
+  const ownTitle = isTool ? 'Tool blocks' : isJourney ? 'Journey blocks' : isHome ? 'Homepage blocks' : 'Page blocks';
+  const paletteGroups = [
+    { title: ownTitle, items: ownBlocks },
+    { title: 'General blocks', items: COMMON_BLOCKS },
+    ...(isHome ? [] : [{ title: 'Homepage sections', items: HOME_EXTRA_BLOCKS }]),
+  ];
+  const [paletteSearch, setPaletteSearch] = useState('');
+  const query = paletteSearch.trim().toLowerCase();
+  const visibleGroups = paletteGroups
+    .map(g => ({ ...g, items: query ? g.items.filter(b => `${b.label} ${b.type}`.toLowerCase().includes(query)) : g.items }))
+    .filter(g => g.items.length);
   const [sections, setSections] = useState(initialSections);
   // Accordion: only one block is open at a time; null = all collapsed.
   const [openId, setOpenId] = useState(null);
@@ -167,8 +208,42 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     id: `sec_${Date.now()}`,
     type,
     config: {},
-    data: { payload: isHome ? homeDefaultPayload(type) : {} }
+    data: { payload: defaultPayloadFor(type) }
   });
+
+  // Tools: replace every block with a tool template ("__blank"), the hub ("__hub") or a reference tool.
+  const fillTool = async (key) => {
+    const tool = TOOL_REFERENCE.find(t => t.key === key) || null;
+    const label = key === '__hub' ? 'the tools hub' : tool ? `"${tool.title}"` : 'an empty tool template';
+    if (sections.length && !(await confirmDialog({
+      title: `Fill the page with ${label}?`,
+      message: 'Every block is replaced. Your current blocks will be lost (until you leave without saving).',
+      tone: 'warning',
+      confirmText: 'Fill page',
+    }))) return;
+    setOpenId(null);
+    update(key === '__hub' ? toolsHubSections() : toolPageSections(tool));
+  };
+  const toolOptions = (
+    <>
+      <option value="__blank">Empty tool page</option>
+      <option value="__hub">Tools hub (/tools)</option>
+      {TOOL_REFERENCE.map(t => <option key={t.key} value={t.key}>{t.icon} {t.title}</option>)}
+    </>
+  );
+
+  // Journey: replace every block with the template, optionally filled with a reference stage.
+  const fillJourney = async (stageKey) => {
+    const stage = JOURNEY_REFERENCE_STAGES.find(s => s.key === stageKey) || null;
+    if (sections.length && !(await confirmDialog({
+      title: stage ? `Fill the page with "${stage.title}"?` : 'Reset to the journey template?',
+      message: stage ? 'Every block is replaced with the reference content of this stage (texts, steps, services, story). Your current blocks will be lost (until you leave without saving).' : 'Every block is replaced with the empty journey template. Your current blocks will be lost (until you leave without saving).',
+      tone: 'warning',
+      confirmText: stage ? 'Fill page' : 'Reset',
+    }))) return;
+    setOpenId(null);
+    update(journeyStageSections(stage));
+  };
 
   const reveal = (section) => {
     // New blocks open straight away (everything else collapses) and scroll into view.
@@ -192,6 +267,23 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     } else if (isHome) {
       // The hero goes first; other blocks at the end of the page, ready to be dragged.
       update(blockType === 'HomeHero' ? [section, ...sections] : [...sections, section]);
+    } else if (isJourney) {
+      if (blockType === 'JourneyHero' && sections.some(s => s.type === 'JourneyHero')) {
+        toast.warning('This page already has a Stage Hero: it defines the stage, keep one.');
+        return;
+      }
+      // Lands where it sits in the reference page (before the first block that comes after it).
+      const order = JOURNEY_ORDER[blockType] ?? 99;
+      const at = sections.findIndex(s => (JOURNEY_ORDER[s.type] ?? 99) > order);
+      update(at < 0 ? [...sections, section] : [...sections.slice(0, at), section, ...sections.slice(at)]);
+    } else if (isTool) {
+      if (blockType === 'ToolHero' && sections.some(s => s.type === 'ToolHero')) {
+        toast.warning('This page already has a Tool Hero.');
+        return;
+      }
+      const order = TOOL_ORDER[blockType] ?? 99;
+      const at = sections.findIndex(s => (TOOL_ORDER[s.type] ?? 99) > order);
+      update(at < 0 ? [...sections, section] : [...sections.slice(0, at), section, ...sections.slice(at)]);
     } else {
       update([section, ...sections]);
     }
@@ -271,15 +363,13 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     if (fromPalette && placed && typeof placed === 'object') reveal(placed);
   };
 
+  const setConfig = (section) => (config) => update(sections.map(s => s.id === section.id ? { ...s, config } : s));
+
   const editorFor = (section) => (
     <>
-      {zoned && (
-        <BlockSettings
-          home={isHome}
-          section={section}
-          onChange={(config) => update(sections.map(s => s.id === section.id ? { ...s, config } : s))}
-        />
-      )}
+      {zoned && <BlockSettings home={isHome} section={section} onChange={setConfig(section)} />}
+      {/* Every block, in every builder: colour, image, overlay (website: blocks/BlockBackground.jsx). */}
+      <BackgroundSettings key={section.id} section={section} hero={HERO_TYPES.has(section.type)} onChange={setConfig(section)} />
       <SectionRenderer
         section={section}
         onChange={(id, newData) => update(sections.map(s => s.id === id ? { ...s, data: newData } : s))}
@@ -451,7 +541,32 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                 {sections.length} block{sections.length === 1 ? '' : 's'} on this page
                 {zoned && ' · drag blocks between areas; blocks only drop where they fit'}
               </span>
-              <div className="d-flex gap-3 flex-shrink-0">
+              <div className="d-flex gap-3 flex-shrink-0 align-items-center">
+                {isJourney && (
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: 'auto' }}
+                    value=""
+                    onChange={e => { if (e.target.value) fillJourney(e.target.value === '__blank' ? null : e.target.value); }}
+                    title="Replace the blocks with the template or a reference stage"
+                  >
+                    <option value="">Fill from template…</option>
+                    <option value="__blank">Empty journey template</option>
+                    {JOURNEY_REFERENCE_STAGES.map(s => <option key={s.key} value={s.key}>{s.number} · {s.title}</option>)}
+                  </select>
+                )}
+                {isTool && (
+                  <select
+                    className="form-select form-select-sm"
+                    style={{ width: 'auto' }}
+                    value=""
+                    onChange={e => { if (e.target.value) fillTool(e.target.value); }}
+                    title="Replace the blocks with a tool template, the hub or a reference tool"
+                  >
+                    <option value="">Fill from template…</option>
+                    {toolOptions}
+                  </select>
+                )}
                 {isHome && (
                   <button
                     type="button"
@@ -484,6 +599,36 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
             </div>
           )}
 
+          {isJourney && sections.length === 0 && (
+            <div className="text-center py-4 mb-3 text-muted border border-dashed rounded">
+              <div className="d-flex flex-wrap justify-content-center gap-2">
+                <button type="button" className="btn btn-primary" onClick={() => fillJourney(null)}>
+                  <i className="bi bi-magic me-1"></i> Load the journey template
+                </button>
+                <select className="form-select" style={{ width: 'auto' }} value="" onChange={e => e.target.value && fillJourney(e.target.value)}>
+                  <option value="">…or start from a reference stage</option>
+                  {JOURNEY_REFERENCE_STAGES.map(s => <option key={s.key} value={s.key}>{s.number} · {s.title}</option>)}
+                </select>
+              </div>
+              <div className="small mt-2">Adds every section of the reference stage page in order. Then fill the Stage Hero (number, title, icon, colour) and the texts.</div>
+            </div>
+          )}
+
+          {isTool && sections.length === 0 && (
+            <div className="text-center py-4 mb-3 text-muted border border-dashed rounded">
+              <div className="d-flex flex-wrap justify-content-center gap-2">
+                <button type="button" className="btn btn-primary" onClick={() => fillTool('__blank')}>
+                  <i className="bi bi-magic me-1"></i> Load the tool template
+                </button>
+                <select className="form-select" style={{ width: 'auto' }} value="" onChange={e => e.target.value && fillTool(e.target.value)}>
+                  <option value="">…or start from</option>
+                  {toolOptions}
+                </select>
+              </div>
+              <div className="small mt-2">Then choose the calculator in the Calculator block and set its texts.</div>
+            </div>
+          )}
+
           {isHome ? renderHomeCanvas() : layoutSettings ? renderServiceCanvas() : renderFlatCanvas()}
         </div>
 
@@ -497,12 +642,21 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                   {sections.length} added
                 </span>
               </div>
-              <p className="small text-muted mb-3">Drag a block onto the page, or click + to add it.</p>
+              <p className="small text-muted mb-2">Drag a block onto the page, or click + to add it.</p>
+              <div className="input-group input-group-sm mb-3">
+                <span className="input-group-text bg-transparent"><i className="bi bi-search"></i></span>
+                <input type="search" className="form-control" placeholder="Search blocks…" value={paletteSearch} onChange={e => setPaletteSearch(e.target.value)} />
+              </div>
+              {!visibleGroups.length && <div className="small text-muted text-center py-3">No block matches “{paletteSearch}”.</div>}
               <Droppable droppableId="palette" isDropDisabled>
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps} className="d-flex flex-column gap-3">
-                    {blocks.map((block, index) => (
-                      <Draggable key={block.type} draggableId={`${PALETTE_PREFIX}${block.type}`} index={index}>
+                    {visibleGroups.flatMap(group => [{ heading: group.title, count: group.items.length }, ...group.items]).map((block, position, all) => block.heading ? (
+                      <div key={`group-${block.heading}`} className={`small fw-bold text-uppercase text-secondary d-flex justify-content-between ${position ? 'mt-2 pt-2 border-top' : ''}`} style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>
+                        <span>{block.heading}</span><span className="fw-normal">{block.count}</span>
+                      </div>
+                    ) : (
+                      <Draggable key={block.type} draggableId={`${PALETTE_PREFIX}${block.type}`} index={all.slice(0, position).filter(b => !b.heading).length}>
                         {(drag, snapshot) => {
                           const item = (props = {}) => (
                             <div className="premium-block-btn w-100" style={{ cursor: 'grab' }} {...props}>

@@ -55,6 +55,8 @@ export const secondaryMenuData = {
         { label: 'Home Page', path: '/pages/home', icon: 'bi-house-door', permission: { action: 'update', module: 'CMS' } },
         { label: 'All Pages', path: '/pages', icon: 'bi-file-earmark', permission: { action: 'read', module: 'CMS' } },
         { label: 'Add New Page', path: '/pages/new', icon: 'bi-plus-circle', permission: { action: 'create', module: 'CMS' } },
+        { label: 'New Journey Stage', path: '/pages/new?template=journey', icon: 'bi-signpost-split', permission: { action: 'create', module: 'CMS' } },
+        { label: 'New Free Tool', path: '/pages/new?template=tool', icon: 'bi-calculator', permission: { action: 'create', module: 'CMS' } },
         { label: 'Menus & Navigation', path: '/pages/menus', icon: 'bi-list-nested', permission: { action: 'read', module: 'CMS' } },
       ]
     },

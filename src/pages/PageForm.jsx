@@ -7,6 +7,8 @@ import JoditEditor from 'jodit-react';
 import PageBuilder from '../components/page-builder/PageBuilder';
 import ServicePreviewPane from '../components/page-builder/ServicePreviewPane';
 import { HOME_PAGE_SLUG, defaultHomeSections } from '../components/page-builder/homeBlocks';
+import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, isJourneyPage, journeyStageSections } from '../components/page-builder/journeyBlocks';
+import { TOOL_REFERENCE, TOOL_SLUG_PREFIX, TOOLS_HUB_SLUG, isToolPage, toolPageSections, toolsHubSections } from '../components/page-builder/toolBlocks';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
@@ -43,7 +45,26 @@ const PageForm = () => {
   const [initialData, setInitialData] = useState(null);
   // Home mode: the page with slug "home" is the website homepage (Home Page Builder).
   const [isHome, setIsHome] = useState(!isEditing && searchParams.get('template') === 'home');
-  const [pageSections, setPageSections] = useState(() => (isHome ? defaultHomeSections() : []));
+  // Journey mode: a Journey Stage page (slug "journey/<stage>", built from Journey blocks).
+  // New ones open with the template, or a reference stage with ?template=journey&stage=idea.
+  const [isJourney, setIsJourney] = useState(!isEditing && searchParams.get('template') === 'journey');
+  const startStage = !isEditing && isJourney ? JOURNEY_REFERENCE_STAGES.find(s => s.key === searchParams.get('stage')) : null;
+  // Tool mode: a free tool page (slug "tool/<key>") or the tools hub (slug "tools"), built from Tool blocks.
+  // New ones: ?template=tool (empty), &tool=<reference key> or &tool=hub.
+  const [isTool, setIsTool] = useState(!isEditing && searchParams.get('template') === 'tool');
+  const startToolKey = !isEditing && isTool ? searchParams.get('tool') : null;
+  const startTool = TOOL_REFERENCE.find(t => t.key === startToolKey) || null;
+  const startHub = startToolKey === 'hub';
+  const [pageSections, setPageSections] = useState(() => (isHome ? defaultHomeSections()
+    : isJourney ? journeyStageSections(startStage)
+    : isTool ? (startHub ? toolsHubSections() : toolPageSections(startTool))
+    : []));
+  // A tool page's whole URL path ("tool/gst-calculator", or "tools" for the hub); follows the title until edited.
+  const [toolSlug, setToolSlug] = useState(startHub ? TOOLS_HUB_SLUG : startTool ? `${TOOL_SLUG_PREFIX}${startTool.key}` : '');
+  const [toolSlugTouched, setToolSlugTouched] = useState(Boolean(startHub || startTool));
+  // The /journey/<key> part of a journey page's URL; follows the title until edited by hand.
+  const [stageKey, setStageKey] = useState(startStage?.key || '');
+  const [stageKeyTouched, setStageKeyTouched] = useState(Boolean(startStage));
   // Page Builder card: show the blocks or the live preview of the unsaved draft.
   const [homeView, setHomeView] = useState('builder');
   const [previewMounted, setPreviewMounted] = useState(false);
@@ -55,8 +76,8 @@ const PageForm = () => {
 
   const { register, handleSubmit, control, reset, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
-      title: isHome ? 'Home' : '',
-      slug: isHome ? HOME_PAGE_SLUG : '',
+      title: isHome ? 'Home' : startStage ? startStage.title : startHub ? 'Free Tools & Calculators' : startTool ? startTool.title : '',
+      slug: isHome ? HOME_PAGE_SLUG : startStage ? `${JOURNEY_SLUG_PREFIX}${startStage.key}` : startHub ? TOOLS_HUB_SLUG : startTool ? `${TOOL_SLUG_PREFIX}${startTool.key}` : '',
       content: '',
       status: 'draft',
       metaTitle: '',
@@ -66,15 +87,33 @@ const PageForm = () => {
 
   const title = watch('title');
 
-  // Auto-generate slug from title (the homepage keeps its fixed slug)
+  const slugify = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+  // Auto-generate slug from title (the homepage keeps its fixed slug; a journey page is journey/<key>)
   useEffect(() => {
     if (isHome) {
       setValue('slug', HOME_PAGE_SLUG);
+    } else if (isJourney) {
+      const key = stageKeyTouched ? stageKey : slugify(title);
+      if (!stageKeyTouched) setStageKey(key);
+      if (key) setValue('slug', `${JOURNEY_SLUG_PREFIX}${key}`, { shouldValidate: true, shouldDirty: true });
+    } else if (isTool) {
+      const path = toolSlugTouched ? toolSlug : (title ? `${TOOL_SLUG_PREFIX}${slugify(title)}` : '');
+      if (!toolSlugTouched) setToolSlug(path);
+      if (path) setValue('slug', path, { shouldValidate: true, shouldDirty: true });
     } else if (title) {
-      const generatedSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      setValue('slug', generatedSlug, { shouldValidate: true, shouldDirty: true });
+      setValue('slug', slugify(title), { shouldValidate: true, shouldDirty: true });
     }
-  }, [title, setValue, isHome]);
+  }, [title, setValue, isHome, isJourney, stageKey, stageKeyTouched, isTool, toolSlug, toolSlugTouched]);
+
+  // A journey / tool page with no title yet takes its hero's title.
+  const onSectionsChange = (newSections) => {
+    setPageSections(newSections);
+    if ((isJourney || isTool) && !String(watch('title') || '').trim()) {
+      const heroTitle = newSections.find(s => s.type === (isTool ? 'ToolHero' : 'JourneyHero'))?.data?.payload?.title;
+      if (heroTitle) setValue('title', heroTitle, { shouldValidate: true, shouldDirty: true });
+    }
+  };
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -85,6 +124,15 @@ const PageForm = () => {
         const data = res.data.data;
         setInitialData(data);
         setIsHome(data.slug === HOME_PAGE_SLUG);
+        if (isJourneyPage(data)) {
+          setIsJourney(true);
+          setStageKey(String(data.slug || '').replace(JOURNEY_SLUG_PREFIX, ''));
+          setStageKeyTouched(true);
+        } else if (isToolPage(data)) {
+          setIsTool(true);
+          setToolSlug(String(data.slug || ''));
+          setToolSlugTouched(true);
+        }
         reset({
           title: data.title || '',
           slug: data.slug || '',
@@ -132,9 +180,9 @@ const PageForm = () => {
           <div className="w-100">
           <Breadcrumb items={[
             { label: 'Pages', link: '/pages' },
-            { label: isHome ? 'Home Page' : isEditing ? 'Edit' : 'New' }
+            { label: isHome ? 'Home Page' : isJourney ? 'Journey Stage' : isTool ? 'Free Tool' : isEditing ? 'Edit' : 'New' }
           ]} />
-          <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>{isHome ? 'Home Page' : isEditing ? 'Edit Page' : 'Create New Page'}</h2>
+          <h2 className="fw-bold mb-0 text-dark fs-5" style={{ letterSpacing: '-0.5px' }}>{isHome ? 'Home Page' : isJourney ? (isEditing ? 'Edit Journey Stage' : 'New Journey Stage') : isTool ? (isEditing ? 'Edit Free Tool Page' : 'New Free Tool Page') : isEditing ? 'Edit Page' : 'Create New Page'}</h2>
           {isHome && (
             <p className="text-muted small mb-0">
               The website homepage. While this page is not published, the website keeps showing its built-in homepage.
@@ -178,7 +226,46 @@ const PageForm = () => {
                   {errors.title && <div className="invalid-feedback">{errors.title.message}</div>}
                 </div>
                 
-                <div className="mb-4">
+                {isTool && (
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold">Page URL <span className="text-danger">*</span></label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light text-muted">/</span>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.slug ? 'is-invalid' : ''}`}
+                        placeholder={`${TOOL_SLUG_PREFIX}gst-calculator`}
+                        value={toolSlug}
+                        onChange={e => { setToolSlugTouched(true); setToolSlug(e.target.value.toLowerCase().replace(/[^a-z0-9/-]+/g, '-').replace(/\/{2,}/g, '/').replace(/^\//, '')); }}
+                      />
+                    </div>
+                    <div className="form-text">
+                      A tool is <code>{TOOL_SLUG_PREFIX}&lt;name&gt;</code> (the homepage Free Tools block links to <code>/tool/gst-calculator</code>, …); the hub listing every tool is <code>{TOOLS_HUB_SLUG}</code>.
+                    </div>
+                    {errors.slug && <div className="text-danger small mt-1">{errors.slug.message}</div>}
+                  </div>
+                )}
+
+                {isJourney && (
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold">Stage URL <span className="text-danger">*</span></label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light text-muted">/{JOURNEY_SLUG_PREFIX}</span>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.slug ? 'is-invalid' : ''}`}
+                        placeholder="idea"
+                        value={stageKey}
+                        onChange={e => { setStageKeyTouched(true); setStageKey(slugify(e.target.value) + (e.target.value.endsWith('-') ? '-' : '')); }}
+                      />
+                    </div>
+                    <div className="form-text">
+                      The homepage "Idea to Revenue" cards link to <code>/journey/idea</code>, <code>/journey/register</code>, … — use the same name for those stages.
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-4" hidden={isJourney || isTool}>
                   <label className="form-label fw-semibold">URL Slug <span className="text-danger">*</span></label>
                   <div className="input-group">
                     <span className="input-group-text bg-light text-muted border-end-0">https://yoursite.com/</span>
@@ -186,7 +273,7 @@ const PageForm = () => {
                       type="text" 
                       className={`form-control border-start-0 ${errors.slug ? 'is-invalid' : ''}`}
                       placeholder="page-slug" 
-                      {...register('slug', { required: 'Slug is required', pattern: { value: /^[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens' } })}
+                      {...register('slug', { required: 'Slug is required', pattern: { value: /^((journey|tool)\/)?[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens (tool pages: tool/<name>)' } })}
                       disabled
                     />
                   </div>
@@ -196,8 +283,8 @@ const PageForm = () => {
               </div>
             </div>
 
-            {/* Content Editor Card (the homepage is built from blocks only) */}
-            <div className="card border-0 shadow-sm mb-4" hidden={isHome}>
+            {/* Content Editor Card (the homepage and journey stages are built from blocks only) */}
+            <div className="card border-0 shadow-sm mb-4" hidden={isHome || isJourney || isTool}>
               <div className="card-header bg-transparent border-bottom-0 pb-0 pt-4 d-flex justify-content-between align-items-center mb-2">
                 <h5 className="fw-bold mb-0">Content</h5>
               </div>
@@ -273,11 +360,15 @@ const PageForm = () => {
             <div className="card border-0 shadow-sm">
               <div className="card-header bg-transparent border-bottom-0 pb-0 pt-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
                 <div>
-                  <h5 className="fw-bold mb-0">{isHome ? 'Home Page Builder' : 'Page Builder'}</h5>
+                  <h5 className="fw-bold mb-0">{isHome ? 'Home Page Builder' : isJourney ? 'Journey Stage Builder' : isTool ? 'Free Tool Builder' : 'Page Builder'}</h5>
                   <p className="text-muted small mb-0">
                     {isHome
                       ? 'Each block is one homepage section, in the same design as the live site. Drag blocks between full-width rows, main content and the right sidebar; empty fields are hidden.'
-                      : 'Add blocks such as Hero Banner, FAQ, a Form or Packages, and drag them into main content or the right sidebar. With blocks, the page uses the service-page layout (the content above becomes its first section).'}
+                      : isJourney
+                        ? 'Each block is one section of the journey stage page, full width, top to bottom. Set the stage in the Stage Hero (number, title, icon, colour): every block uses it. Progress, roadmap, flow and next / previous build themselves from the published journey stages.'
+                        : isTool
+                          ? 'A working calculator page: choose the calculator in the Calculator block (its rates and defaults are editable there), then the texts around it. The Tool Hero\'s icon, title and tag make the card on the tools hub. Try it in Live Preview.'
+                          : 'Add blocks such as Hero Banner, FAQ, a Form or Packages, and drag them into main content or the right sidebar. With blocks, the page uses the service-page layout (the content above becomes its first section).'}
                   </p>
                 </div>
                 <div className="btn-group btn-group-sm">
@@ -293,19 +384,21 @@ const PageForm = () => {
                 {/* Pages use the service-page layout (areas, sidebar and extra blocks); the homepage its own. */}
                 <div className={homeView === 'builder' ? 'd-block' : 'd-none'}>
                   <PageBuilder
-                    key={isHome ? 'home' : 'page'}
+                    key={isHome ? 'home' : isJourney ? 'journey' : isTool ? 'tool' : 'page'}
                     initialSections={pageSections}
-                    onChange={(newSections) => setPageSections(newSections)}
-                    blockSet={isHome ? 'home' : 'default'}
-                    layoutSettings={!isHome}
+                    onChange={onSectionsChange}
+                    blockSet={isHome ? 'home' : isJourney ? 'journey' : isTool ? 'tool' : 'default'}
+                    layoutSettings={!isHome && !isJourney && !isTool}
                   />
                 </div>
                 {/* Mounted on first open, then kept so it follows every edit (unsaved changes included). */}
                 {previewMounted && (
                   <div className={homeView === 'preview' ? 'd-block' : 'd-none'}>
                     <ServicePreviewPane
-                      kind={isHome ? 'home' : 'page'}
-                      draft={isHome ? { sections: pageSections } : { title: watch('title'), content: watch('content'), sections: pageSections }}
+                      kind={isHome ? 'home' : isJourney ? 'journey' : isTool ? 'tool' : 'page'}
+                      draft={isHome ? { sections: pageSections }
+                        : (isJourney || isTool) ? { title: watch('title'), slug: watch('slug'), sections: pageSections }
+                        : { title: watch('title'), content: watch('content'), sections: pageSections }}
                     />
                   </div>
                 )}
@@ -318,5 +411,11 @@ const PageForm = () => {
   );
 };
 
-export default PageForm;
+// A new page starts over when its template changes (e.g. sidebar "New Journey Stage" while on /pages/new).
+const PageFormRoute = () => {
+  const [searchParams] = useSearchParams();
+  return <PageForm key={`${searchParams.get('template') || ''}:${searchParams.get('stage') || ''}:${searchParams.get('tool') || ''}`} />;
+};
+
+export default PageFormRoute;
 

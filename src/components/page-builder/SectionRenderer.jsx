@@ -9,6 +9,10 @@ import { ButtonField, ICON_HINT, RepeaterField, SelectField, TextField } from '.
 import SchemaFields from './SchemaFields';
 import SearchableSelect from '../common/SearchableSelect';
 import { HOME_SCHEMAS } from './homeBlocks';
+import { JOURNEY_SCHEMAS } from './journeyBlocks';
+import { COMMON_SCHEMAS } from './commonBlocks';
+import { TOOL_SCHEMAS, toolSchemaFor } from './toolBlocks';
+import { DEFAULT_SETTINGS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 import { imageHint } from '../../config/imageSizes';
 
 const joditConfig = {
@@ -62,7 +66,20 @@ const HeroBannerForm = ({ data, onChange }) => {
       <TextField label="Highlighted words" value={p.highlight} onChange={set('highlight')} placeholder="e.g. made simple" hint="Must be the end of the heading. Empty = last two words." />
       <TextField className="col-12" label="Heading" value={p.heading} onChange={set('heading')} placeholder="e.g. GST Registration made simple" />
       <TextField className="col-12" label="Sub Heading" value={p.subHeading} onChange={set('subHeading')} textarea />
-      <TextField label="Image" media value={p.backgroundImage} onChange={set('backgroundImage')} placeholder="Choose from Media or paste a URL" hint={`Shown on the right. Empty = the service banner/thumbnail. ${imageHint('serviceHero')}`} />
+      <SelectField
+        label="Right-side image"
+        value={p.imageMode || 'auto'}
+        onChange={set('imageMode')}
+        options={[
+          { value: 'auto', label: 'Automatic (this image, else the service banner/thumbnail)' },
+          { value: 'custom', label: 'Only the image chosen here' },
+          { value: 'none', label: 'No image (text full width)' },
+        ]}
+        hint="With a background (Background panel above), Automatic shows only the image chosen here, not the service thumbnail."
+      />
+      {(p.imageMode || 'auto') !== 'none' && (
+        <TextField label="Image" media value={p.backgroundImage} onChange={set('backgroundImage')} placeholder="Choose from Media or paste a URL" hint={`Shown on the right. ${imageHint('serviceHero')}`} />
+      )}
       <TextField label="Price on main button" value={p.price} onChange={set('price')} placeholder="e.g. 1999" hint="Appended as “— ₹1,999”." />
       <ButtonField label="Main button" value={p.primaryButton} onChange={set('primaryButton')} />
       <ButtonField label="Second button" value={p.secondaryButton} onChange={set('secondaryButton')} />
@@ -625,13 +642,28 @@ const SectionRenderer = ({ section, onChange }) => {
     case 'LocationsServed':
       return <LocationsServedForm data={section.data} onChange={newData => onChange(section.id, newData)} />;
     default:
-      // Home Page Builder blocks are schema-driven (homeBlocks.js).
-      if (HOME_SCHEMAS[section.type]) {
+      // Homepage, Journey Stage and general-purpose blocks are schema-driven (homeBlocks.js, journeyBlocks.js, commonBlocks.js).
+      if (HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type]) {
         return (
           <SchemaFields
-            fields={HOME_SCHEMAS[section.type]}
+            fields={HOME_SCHEMAS[section.type] || JOURNEY_SCHEMAS[section.type] || COMMON_SCHEMAS[section.type]}
             value={section.data?.payload}
             onChange={payload => onChange(section.id, { ...section.data, payload })}
+          />
+        );
+      }
+      // Free tool blocks (toolBlocks.js); the Calculator block's settings follow its calculator.
+      if (TOOL_SCHEMAS[section.type]) {
+        const payload = section.data?.payload || {};
+        return (
+          <SchemaFields
+            fields={toolSchemaFor(section.type, payload)}
+            value={payload}
+            onChange={next => {
+              const changedCalculator = section.type === 'ToolCalculator' && next.calculator !== payload.calculator;
+              const value = changedCalculator ? { ...next, settings: JSON.parse(JSON.stringify(DEFAULT_SETTINGS[next.calculator] || {})) } : next;
+              onChange(section.id, { ...section.data, payload: value });
+            }}
           />
         );
       }

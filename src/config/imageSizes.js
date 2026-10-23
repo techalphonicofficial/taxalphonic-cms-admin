@@ -31,14 +31,23 @@ export const IMAGE_SIZES = {
 
   // Service pages, CMS pages, About page
   serviceHero: { size: '1200 × 1000 px', ratio: '6:5', format: 'JPG or WebP', note: 'Right side of the page hero, cropped to 6:5, up to 400px wide.' },
-  serviceThumb: { size: '1200 × 1000 px', ratio: '6:5', format: 'JPG or WebP', note: 'Used in the page hero when the Hero block has no image.' },
+  serviceThumb: { size: '1200 × 1000 px', ratio: '6:5', format: 'JPG or WebP', note: 'Used in the page hero when the Hero block has no image (Right-side image = Automatic, and no hero background).' },
   aboutImage: { size: '1200 × 1000 px', ratio: '6:5', format: 'JPG or WebP', note: 'About page hero, cropped to 6:5.' },
   aboutHomeImage: { size: '1200 × 900 px', ratio: '4:3', format: 'JPG or WebP' },
+
+  // Journey Stage pages (journey-page.css)
+  journeyHero: { size: '840 × 840 px', ratio: '1:1 (square)', format: 'JPG, WebP or transparent PNG', note: 'Replaces the icon circle on the right of the stage hero, cropped square, up to 420px wide with rounded corners.' },
+  journeyPhoto: { size: '1200 × 900 px', ratio: '4:3', format: 'JPG or WebP', note: '"Real stories" frames crop to 4:3; the tag sits at the bottom.' },
 
   // Blogs and portfolio
   blogFeatured: { size: '1200 × 630 px', ratio: '1.91:1', format: 'JPG or WebP', note: 'Also used when the post is shared.' },
   blogGallery: { size: '1200 × 800 px', ratio: '3:2', format: 'JPG or WebP' },
   portfolio: { size: '1200 × 900 px', ratio: '4:3', format: 'JPG or WebP' },
+
+  // General-purpose blocks (commonBlocks.js) and the Background panel of every block
+  blockImage: { size: '1200 × 900 px', ratio: '4:3 (any works)', format: 'JPG, WebP or transparent PNG', note: 'Image + Text and Image blocks; shown up to 1000px wide.' },
+  galleryImage: { size: '1200 × 900 px', ratio: '4:3', format: 'JPG or WebP', note: 'Thumbnails crop to 4:3; a click shows the whole photo.' },
+  blockBackground: { size: '1920 × 1080 px', ratio: '16:9 (wide)', format: 'JPG or WebP, under 400 KB', note: 'Covers the whole block (cropped to fit); keep the subject in the centre and use the overlay so text stays readable.' },
 };
 
 /** One-line text, e.g. "1920 × 600 px · 16:5 (wide strip) · JPG or WebP, under 400 KB". */

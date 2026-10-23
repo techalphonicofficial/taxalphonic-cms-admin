@@ -7,7 +7,11 @@ import ActionColumn from '../components/datagrid/ActionColumn';
 import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { confirmDelete } from '../components/common/confirm';
+import { confirmDelete, confirmDialog } from '../components/common/confirm';
+import { Dropdown } from 'react-bootstrap';
+import { siteUrl } from '../config/siteUrl';
+import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, journeyReferencePage } from '../components/page-builder/journeyBlocks';
+import { TOOL_REFERENCE, TOOLS_HUB, TOOLS_HUB_SLUG, TOOL_SLUG_PREFIX, toolReferencePage } from '../components/page-builder/toolBlocks';
 
 const PagesList = () => {
   const navigate = useNavigate();
@@ -94,6 +98,92 @@ const PagesList = () => {
     }
   };
 
+  // Creates the reference journey stages (journey/idea … journey/revenue) as drafts; existing ones are skipped.
+  const [creatingStages, setCreatingStages] = useState(false);
+  const createReferenceStages = async () => {
+    let existing = [];
+    try {
+      const res = await api.get('/pages', { params: { slug_like: JOURNEY_SLUG_PREFIX, limit: 100 } });
+      existing = (res.data?.data || []).map(p => p.slug);
+    } catch {
+      toast.error('Could not check the existing journey pages.');
+      return;
+    }
+    const missing = JOURNEY_REFERENCE_STAGES.filter(s => !existing.includes(`${JOURNEY_SLUG_PREFIX}${s.key}`));
+    if (!missing.length) {
+      toast.info(`All ${JOURNEY_REFERENCE_STAGES.length} reference stages already exist.`);
+      return;
+    }
+    const ok = await confirmDialog({
+      title: `Create ${missing.length} journey stage page${missing.length > 1 ? 's' : ''}?`,
+      message: 'Each one is created as a Draft with the reference content (Idea → Revenue). Check the texts, then publish them one by one.',
+      items: missing.map(s => `${s.number} · ${s.title}  —  /${JOURNEY_SLUG_PREFIX}${s.key}`),
+      note: existing.length ? `${JOURNEY_REFERENCE_STAGES.length - missing.length} already exist and are left as they are.` : undefined,
+      tone: 'warning',
+      confirmText: 'Create drafts',
+    });
+    if (!ok) return;
+    setCreatingStages(true);
+    let created = 0;
+    const failed = [];
+    for (const stage of missing) {
+      try {
+        await api.post('/pages', journeyReferencePage(stage));
+        created += 1;
+      } catch (err) {
+        failed.push(`${stage.title} (${err.response?.data?.message || err.message})`);
+      }
+    }
+    setCreatingStages(false);
+    if (created) toast.success(`Created ${created} journey stage draft${created > 1 ? 's' : ''}.`);
+    if (failed.length) toast.error(`Failed: ${failed.join(', ')}`, { autoClose: 10000 });
+    fetchData({ pageIndex: 0, pageSize: 50, sorting: [] });
+  };
+
+  // Creates the tools hub (/tools) and the reference tool pages (/tool/<key>) as drafts; existing slugs are skipped.
+  const [creatingTools, setCreatingTools] = useState(false);
+  const createReferenceTools = async () => {
+    let existing = [];
+    try {
+      const res = await api.get('/pages', { params: { slug_like: 'tool', limit: 200 } });
+      existing = (res.data?.data || []).map(p => p.slug);
+    } catch {
+      toast.error('Could not check the existing tool pages.');
+      return;
+    }
+    const all = [TOOLS_HUB, ...TOOL_REFERENCE];
+    const slugOf = (t) => (t === TOOLS_HUB ? TOOLS_HUB_SLUG : `${TOOL_SLUG_PREFIX}${t.key}`);
+    const missing = all.filter(t => !existing.includes(slugOf(t)));
+    if (!missing.length) {
+      toast.info('The tools hub and all reference tools already exist.');
+      return;
+    }
+    const ok = await confirmDialog({
+      title: `Create ${missing.length} free tool page${missing.length > 1 ? 's' : ''}?`,
+      message: 'Each one is created as a Draft with a working calculator, its default rates and the reference texts. Check the rates (e.g. GST and HSN), then publish.',
+      items: missing.map(t => `${t === TOOLS_HUB ? '🧰 Tools hub' : `${t.icon} ${t.title}`}  —  /${slugOf(t)}`),
+      note: existing.length ? 'Pages that already exist are left as they are.' : undefined,
+      tone: 'warning',
+      confirmText: 'Create drafts',
+    });
+    if (!ok) return;
+    setCreatingTools(true);
+    let created = 0;
+    const failed = [];
+    for (const tool of missing) {
+      try {
+        await api.post('/pages', toolReferencePage(tool));
+        created += 1;
+      } catch (err) {
+        failed.push(`${tool.title} (${err.response?.data?.message || err.message})`);
+      }
+    }
+    setCreatingTools(false);
+    if (created) toast.success(`Created ${created} free tool draft${created > 1 ? 's' : ''}.`);
+    if (failed.length) toast.error(`Failed: ${failed.join(', ')}`, { autoClose: 10000 });
+    fetchData({ pageIndex: 0, pageSize: 50, sorting: [] });
+  };
+
   const columns = useMemo(() => [
     {
       id: 'select',
@@ -120,6 +210,14 @@ const PagesList = () => {
     {
       accessorKey: 'title',
       header: 'Title',
+      cell: ({ row }) => (
+        <span>
+          {row.original.title}
+          {String(row.original.slug || '').startsWith(JOURNEY_SLUG_PREFIX) && <span className="badge rounded-pill bg-info-subtle text-info-emphasis ms-2">Journey</span>}
+          {(String(row.original.slug || '').startsWith(TOOL_SLUG_PREFIX) || row.original.slug === TOOLS_HUB_SLUG) && <span className="badge rounded-pill bg-success-subtle text-success-emphasis ms-2">{row.original.slug === TOOLS_HUB_SLUG ? 'Tools hub' : 'Tool'}</span>}
+          {row.original.slug === 'home' && <span className="badge rounded-pill bg-primary-subtle text-primary-emphasis ms-2">Homepage</span>}
+        </span>
+      ),
       size: 250,
     },
     {
@@ -143,14 +241,34 @@ const PagesList = () => {
     {
       id: 'actions',
       header: 'Actions',
-      cell: ({ row }) => (
-        <ActionColumn
-          row={row.original}
-          onEdit={(r) => navigate(`/pages/edit/${r.id}`)}
-          onDelete={handleDelete}
-        />
-      ),
-      size: 120,
+      cell: ({ row }) => {
+        const page = row.original;
+        const live = page.status === 'published';
+        const url = siteUrl(page.slug === 'home' ? '' : page.slug);
+        return (
+          <div className="d-flex align-items-center justify-content-end gap-1">
+            {/* Opens the page on the website (VITE_SITE_URL); only published pages are visible there. */}
+            <a
+              href={live ? url : undefined}
+              target="_blank"
+              rel="noreferrer"
+              className={`btn btn-sm ${live ? 'text-success' : 'text-muted opacity-50'}`}
+              style={live ? undefined : { cursor: 'not-allowed' }}
+              title={live ? `View on website: ${url}` : `Not on the website yet (${page.status}). Publish it to view it.`}
+              onClick={(e) => { e.stopPropagation(); if (!live) e.preventDefault(); }}
+              aria-disabled={!live}
+            >
+              <i className="bi bi-box-arrow-up-right"></i>
+            </a>
+            <ActionColumn
+              row={page}
+              onEdit={(r) => navigate(`/pages/edit/${r.id}`)}
+              onDelete={handleDelete}
+            />
+          </div>
+        );
+      },
+      size: 150,
       enableSorting: false,
       pinned: 'right', // Handled custom in our CSS
     }
@@ -172,6 +290,41 @@ const PagesList = () => {
           <Link to="/pages/home" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold">
             <i className="bi bi-house-door me-2"></i> Home Page Builder
           </Link>
+          <Dropdown align="end">
+            <Dropdown.Toggle as="button" type="button" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold h-100" disabled={creatingStages}>
+              {creatingStages ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-signpost-split me-2"></i>}
+              Journey Stages
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="shadow-sm" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <Dropdown.Item as={Link} to="/pages/new?template=journey"><i className="bi bi-plus-circle me-2"></i>New Journey Stage (template)</Dropdown.Item>
+              <Dropdown.Item as="button" type="button" onClick={createReferenceStages}>
+                <i className="bi bi-magic me-2"></i>Create the {JOURNEY_REFERENCE_STAGES.length} reference stages (drafts)
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Header>New stage from a reference stage</Dropdown.Header>
+              {JOURNEY_REFERENCE_STAGES.map(s => (
+                <Dropdown.Item key={s.key} as={Link} to={`/pages/new?template=journey&stage=${s.key}`}>{s.icon} {s.number} · {s.title}</Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown align="end">
+            <Dropdown.Toggle as="button" type="button" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold h-100" disabled={creatingTools}>
+              {creatingTools ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-calculator me-2"></i>}
+              Free Tools
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="shadow-sm" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <Dropdown.Item as={Link} to="/pages/new?template=tool"><i className="bi bi-plus-circle me-2"></i>New tool page (template)</Dropdown.Item>
+              <Dropdown.Item as={Link} to="/pages/new?template=tool&tool=hub"><i className="bi bi-grid-3x3-gap me-2"></i>New tools hub (/tools)</Dropdown.Item>
+              <Dropdown.Item as="button" type="button" onClick={createReferenceTools}>
+                <i className="bi bi-magic me-2"></i>Create the hub + {TOOL_REFERENCE.length} tools (drafts)
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Header>New tool page from</Dropdown.Header>
+              {TOOL_REFERENCE.map(t => (
+                <Dropdown.Item key={t.key} as={Link} to={`/pages/new?template=tool&tool=${t.key}`}>{t.icon} {t.title}</Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
           <Link to="/pages/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Page
           </Link>

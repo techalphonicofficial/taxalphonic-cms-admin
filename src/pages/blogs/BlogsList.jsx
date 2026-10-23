@@ -125,7 +125,7 @@ const BlogsList = () => {
       cell: info => (
         info.getValue() ? (
           <img 
-            src={info.getValue().startsWith('http') ? info.getValue() : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${info.getValue()}`} 
+            src={info.getValue().startsWith('http') ? info.getValue() : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${info.getValue()}`} 
             alt="thumbnail" 
             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} 
           />

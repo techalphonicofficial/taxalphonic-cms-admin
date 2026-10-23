@@ -35,7 +35,8 @@ const SERVICE_PLACEMENTS = ['top', 'main', 'sidebar', 'bottom'];
 export const servicePlacementOf = (section) => {
   if (section.type === 'HeroBanner') return 'hero';
   const placement = section.config?.placement;
-  return SERVICE_PLACEMENTS.includes(placement) ? placement : DEFAULT_PLACEMENT[section.type] || 'main';
+  // Homepage blocks are full-width designs: the Bottom area unless placed elsewhere (website: same rule).
+  return SERVICE_PLACEMENTS.includes(placement) ? placement : DEFAULT_PLACEMENT[section.type] || (/^Home[A-Z]/.test(section.type) ? 'bottom' : 'main');
 };
 
 /** Why `type` can't go in `zone`, or '' when it can. */

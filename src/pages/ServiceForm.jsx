@@ -660,7 +660,7 @@ const ServiceForm = () => {
                             style={{ width: '120px', height: '120px', flexShrink: 0 }}
                           >
                             {thumbImage ? (
-                              <img src={thumbImage.startsWith('http') ? thumbImage : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${thumbImage}`} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={thumbImage.startsWith('http') ? thumbImage : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${thumbImage}`} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <i className="bi bi-image text-muted fs-1"></i>
                             )}
