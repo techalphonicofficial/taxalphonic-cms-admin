@@ -8,6 +8,7 @@ import { JOURNEY_BLOCKS, JOURNEY_REFERENCE_STAGES, journeyDefaultPayload, journe
 import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, toolsHubSections } from './toolBlocks';
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
 import BackgroundSettings from './BackgroundSettings';
+import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
   SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
@@ -548,6 +549,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   );
 
   return (
+    <LinkPolicyContext.Provider value={isLanding ? 'landing' : 'any'}>
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="d-flex flex-column flex-md-row gap-4">
         {/* Canvas */}
@@ -713,6 +715,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         </div>
       </div>
     </DragDropContext>
+    </LinkPolicyContext.Provider>
   );
 };
 

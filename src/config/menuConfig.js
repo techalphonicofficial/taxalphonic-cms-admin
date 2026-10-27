@@ -75,7 +75,7 @@ export const secondaryMenuData = {
       ]
     }
   ],
-  // Service landing pages on subdomains (cbdt.taxalphonic.com), pages/landing.
+  // Service landing pages at services.taxalphonic.com/lp/<name>, pages/landing.
   landing: [
     {
       group: 'Landing Pages',
@@ -171,6 +171,7 @@ export const secondaryMenuData = {
       items: [
         { label: 'SEO Configs', path: '/cms/seo', icon: 'bi-search', permission: { action: 'read', module: 'SEO' } },
         { label: 'Add SEO Config', path: '/cms/seo/new', icon: 'bi-plus-circle', permission: { action: 'create', module: 'SEO' } },
+        { label: 'Robots.txt', path: '/seo/robots', icon: 'bi-file-earmark-text', permission: { action: 'read', module: 'SEO' } },
       ]
     },
     {

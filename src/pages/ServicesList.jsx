@@ -9,6 +9,7 @@ import api from '../services/api';
 import { toast } from 'react-toastify';
 import { AuthService } from '../services/auth.service';
 import { confirmDelete } from '../components/common/confirm';
+import { canDo, runBulk } from '../components/datagrid/bulkStatus';
 
 const ServicesList = () => {
   const navigate = useNavigate();
@@ -135,6 +136,29 @@ const ServicesList = () => {
     }
   }, [fetchData]);
 
+
+  // Bulk bar: publish / move to draft the selected services (PUT /services/:id { status }).
+  const bulkActions = !canDo('update', 'Services') ? [] : ['published', 'draft'].map((status) => {
+    const publish = status === 'published';
+    return {
+      label: publish ? 'Publish' : 'Move to draft',
+      icon: publish ? 'bi-globe2' : 'bi-eye-slash',
+      variant: publish ? 'success' : 'light',
+      onClick: async (rows, clear) => {
+        const ran = await runBulk(rows, {
+          title: (n) => `${publish ? 'Publish' : 'Move to draft'} ${n} service${n > 1 ? 's' : ''}?`,
+          message: publish ? 'They go live on the website at their own URLs.' : 'They are taken off the website (the content is kept).',
+          confirmText: publish ? 'Publish' : 'Move to draft',
+          tone: publish ? 'warning' : 'danger',
+          skip: (r) => (r.status === status ? `already ${status}` : ''),
+          run: (r) => api.put(`/services/${r.id}`, { status }),
+          done: publish ? 'published' : 'moved to draft',
+        });
+        if (ran) { clear(); fetchData({ pageIndex: 0, pageSize: 50, sorting: [] }); }
+      },
+    };
+  });
+
   const columns = useMemo(() => {
     const user = AuthService.getCurrentUser();
     const isAdmin = user?.role?.name === 'Admin';
@@ -238,6 +262,7 @@ const ServicesList = () => {
         deleteUrl={AuthService.getCurrentUser()?.role?.name === 'Admin' || AuthService.getCurrentUser()?.role?.permissions?.some(p => p.module === 'Services' && p.action === 'delete') ? '/services' : undefined}
         deleteMode="trash"
         itemLabel="service"
+        bulkActions={bulkActions}
       />
 
       <GridFilterDrawer 

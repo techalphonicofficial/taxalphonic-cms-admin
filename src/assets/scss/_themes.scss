@@ -73,3 +73,33 @@ body {
   border-color: var(--cms-card-border) var(--cms-card-border) var(--cms-input-bg) !important;
   color: #fff !important;
 }
+/* Light buttons (.btn-light, used across the admin) stay white in Bootstrap's dark mode:
+   give them the dark input colours instead. */
+[data-bs-theme='dark'] .btn-light {
+  --bs-btn-color: #f7f9fc;
+  --bs-btn-bg: var(--cms-input-bg);
+  --bs-btn-border-color: var(--cms-input-border);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #26303a;
+  --bs-btn-hover-border-color: var(--cms-input-border);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #2c3742;
+  --bs-btn-active-border-color: var(--cms-input-border);
+  --bs-btn-disabled-color: #a1aab5;
+  --bs-btn-disabled-bg: var(--cms-input-bg);
+  --bs-btn-disabled-border-color: var(--cms-input-border);
+}
+
+/* Dark outline buttons (.btn-outline-dark) disappear on a dark page: light outline instead. */
+[data-bs-theme='dark'] .btn-outline-dark {
+  --bs-btn-color: #e2e8f0;
+  --bs-btn-border-color: rgba(255, 255, 255, 0.35);
+  --bs-btn-hover-color: #0a111a;
+  --bs-btn-hover-bg: #e2e8f0;
+  --bs-btn-hover-border-color: #e2e8f0;
+  --bs-btn-active-color: #0a111a;
+  --bs-btn-active-bg: #f7f9fc;
+  --bs-btn-active-border-color: #f7f9fc;
+  --bs-btn-disabled-color: #a1aab5;
+  --bs-btn-disabled-border-color: rgba(255, 255, 255, 0.2);
+}

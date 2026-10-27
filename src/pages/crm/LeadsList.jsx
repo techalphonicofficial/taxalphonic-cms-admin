@@ -103,6 +103,34 @@ const LeadsList = () => {
     fetchLeads(1);
   }, [fetchStats, fetchLeads]);
 
+  // A new lead arrived (LeadNotificationsContext): reload the counts and the first page.
+  useEffect(() => {
+    const onNewLeads = () => {
+      fetchStats();
+      if ((pagination.currentPage || 1) === 1) fetchLeads(1);
+    };
+    window.addEventListener('ta:new-leads', onNewLeads);
+    return () => window.removeEventListener('ta:new-leads', onNewLeads);
+  }, [fetchStats, fetchLeads, pagination.currentPage]);
+
+  // ?lead=<id> (from the bell, a toast or a desktop notification) opens that lead.
+  const leadParam = searchParams.get('lead');
+  useEffect(() => {
+    if (!leadParam) return;
+    let cancelled = false;
+    InquiryService.getById(leadParam)
+      .then((res) => { if (!cancelled && res?.data) handleOpenModal(res.data); })
+      .catch(() => { if (!cancelled) toast.error('That lead could not be opened (deleted, or no access).'); })
+      .finally(() => {
+        if (cancelled) return;
+        const next = new URLSearchParams(searchParams);
+        next.delete('lead');
+        setSearchParams(next, { replace: true });
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadParam]);
+
   const handleStatusTabChange = (status) => {
     if (status === 'ALL') {
       searchParams.delete('status');

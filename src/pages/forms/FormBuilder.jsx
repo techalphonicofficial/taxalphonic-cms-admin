@@ -5,6 +5,7 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 import FormPreview from '../../components/forms/FormPreview';
 import { publicFormEndpoints } from '../../components/forms/formEmbed';
 import { FormService } from '../../services/form.service';
+import { useOptionSources, useServiceCategories, useSourceOptions } from '../../components/forms/optionSources';
 import { toast } from 'react-toastify';
 
 const FIELD_TYPES = [
@@ -86,6 +87,71 @@ const DEFAULT_SETTINGS = {
   redirectUrl: '',
   source: '',
   sendEmailNotification: true,
+};
+
+// ---------------------------------------------------------------------------
+// "Options from": typed options, or a live list from the site (services, landing pages, ...)
+// ---------------------------------------------------------------------------
+
+const isPlaceholderOptions = (options = []) => options.every((o, i) => o.label === `Option ${i + 1}` && o.value === `option_${i + 1}`);
+
+const OptionsFromSite = ({ field, set }) => {
+  const sources = useOptionSources();
+  const source = sources?.find(s => s.key === field.optionsSource);
+  const categories = useServiceCategories(field.optionsSource === 'services');
+  const { options, loading } = useSourceOptions(field);
+  const [showAll, setShowAll] = useState(false);
+
+  const pick = (key) => {
+    if (key) {
+      // The starter "Option 1 / Option 2" make no sense next to a site list.
+      set({ optionsSource: key, optionsFilter: {}, ...(isPlaceholderOptions(field.options) ? { options: [] } : {}) });
+    } else {
+      set({ optionsSource: '', optionsFilter: {}, ...(field.type !== 'checkbox' && !field.options.length ? { options: [{ label: 'Option 1', value: 'option_1' }, { label: 'Option 2', value: 'option_2' }] } : {}) });
+    }
+  };
+
+  return (
+    <div className="col-12">
+      <div className="row g-2 align-items-end">
+        <div className="col-md-6">
+          <label className="form-label small fw-semibold">Options from</label>
+          <select className="form-select" value={field.optionsSource || ''} onChange={e => pick(e.target.value)} disabled={!sources}>
+            <option value="">Typed by hand (below)</option>
+            {(sources || []).map(s => <option key={s.key} value={s.key}>{s.label} ({s.count})</option>)}
+          </select>
+        </div>
+        {source?.filter === 'categoryId' && (
+          <div className="col-md-6">
+            <label className="form-label small fw-semibold">Only one category</label>
+            <select className="form-select" value={field.optionsFilter?.categoryId || ''} onChange={e => set({ optionsFilter: e.target.value ? { categoryId: e.target.value } : {} })}>
+              <option value="">All published services</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+      {field.optionsSource && (
+        <div className="mt-2 p-2 px-3 rounded-3 bg-body-tertiary small">
+          <div className="mb-1">
+            <i className="bi bi-arrow-repeat text-primary me-1"></i>
+            {loading ? 'Loading…' : <><b>{options.length}</b> {source?.label?.toLowerCase() || 'items'} right now.</>} The list updates by itself: anything published later appears in the form, anything removed disappears.
+          </div>
+          {!loading && options.length > 0 && (
+            <div className="d-flex flex-wrap gap-1">
+              {(showAll ? options : options.slice(0, 12)).map(o => <span key={o.value} className="badge bg-body border text-body fw-normal">{o.label}</span>)}
+              {options.length > 12 && (
+                <button type="button" className="btn btn-link btn-sm p-0 ms-1" onClick={() => setShowAll(v => !v)}>
+                  {showAll ? 'Show less' : `+${options.length - 12} more`}
+                </button>
+              )}
+            </div>
+          )}
+          {!loading && options.length === 0 && <div className="text-warning-emphasis">Nothing published here yet: the field shows only the extra options below.</div>}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // ---------------------------------------------------------------------------
@@ -189,11 +255,15 @@ const FieldEditor = ({ field, fields, onChange }) => {
         </>
       )}
 
+      {OPTION_TYPES.includes(field.type) && <OptionsFromSite field={field} set={set} />}
+
       {OPTION_TYPES.includes(field.type) && (
         <div className="col-12">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <label className="form-label small fw-semibold mb-0">
-              Options {field.type === 'checkbox' && <span className="text-muted fw-normal">(leave empty for a single "I agree" checkbox)</span>}
+              {field.optionsSource
+                ? <>Extra options <span className="text-muted fw-normal">(optional, shown after the list, e.g. "Other")</span></>
+                : <>Options {field.type === 'checkbox' && <span className="text-muted fw-normal">(leave empty for a single "I agree" checkbox)</span>}</>}
             </label>
             <button
               type="button"

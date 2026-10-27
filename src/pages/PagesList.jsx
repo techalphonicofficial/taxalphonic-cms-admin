@@ -8,6 +8,7 @@ import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import { confirmDelete, confirmDialog } from '../components/common/confirm';
+import { canDo, runBulk } from '../components/datagrid/bulkStatus';
 import { Dropdown } from 'react-bootstrap';
 import { siteUrl } from '../config/siteUrl';
 import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, journeyReferencePage } from '../components/page-builder/journeyBlocks';
@@ -274,6 +275,28 @@ const PagesList = () => {
     }
   ], [navigate]);
 
+  // Bulk bar: publish / move to draft the selected pages (PUT /pages/:id { status }).
+  const bulkActions = !canDo('update', 'Pages') ? [] : ['published', 'draft'].map((status) => {
+    const publish = status === 'published';
+    return {
+      label: publish ? 'Publish' : 'Move to draft',
+      icon: publish ? 'bi-globe2' : 'bi-eye-slash',
+      variant: publish ? 'success' : 'light',
+      onClick: async (rows, clear) => {
+        const ran = await runBulk(rows, {
+          title: (n) => `${publish ? 'Publish' : 'Move to draft'} ${n} page${n > 1 ? 's' : ''}?`,
+          message: publish ? 'They go live on the website at their own URLs.' : 'They are taken off the website (the content is kept).',
+          confirmText: publish ? 'Publish' : 'Move to draft',
+          tone: publish ? 'warning' : 'danger',
+          skip: (r) => (r.status === status ? `already ${status}` : ''),
+          run: (r) => api.put(`/pages/${r.id}`, { status }),
+          done: publish ? 'published' : 'moved to draft',
+        });
+        if (ran) { clear(); fetchData({ pageIndex: 0, pageSize: 50, sorting: [] }); }
+      },
+    };
+  });
+
   return (
     <div>
       {/* Page Header */}
@@ -335,6 +358,7 @@ const PagesList = () => {
         deleteUrl="/pages"
         deleteMode="trash"
         itemLabel="page"
+        bulkActions={bulkActions}
         columns={columns}
         data={data}
         totalRows={totalRows}

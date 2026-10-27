@@ -19,6 +19,10 @@ const RoleForm = () => {
   const [permissionsData, setPermissionsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditMode);
+  const [permSearch, setPermSearch] = useState('');
+  // An older backend sends GET /roles/:id without the role's permissions: the boxes would all be
+  // unticked and saving would remove every permission of the role, so saving is blocked then.
+  const [permissionsMissing, setPermissionsMissing] = useState(false);
 
   useEffect(() => {
     fetchPermissions();
@@ -29,7 +33,8 @@ const RoleForm = () => {
 
   const fetchPermissions = async () => {
     try {
-      const res = await PermissionService.getAll();
+      // The list API returns 10 rows by default: ask for all of them.
+      const res = await PermissionService.getAll({ limit: 1000, sortBy: 'module', sortOrder: 'ASC' });
       setPermissionsData(Array.isArray(res.data) ? res.data : (res.data?.data || []));
     } catch (error) {
       toast.error('Failed to fetch permissions');
@@ -40,6 +45,7 @@ const RoleForm = () => {
     try {
       const res = await RoleService.getById(id);
       const data = res.data;
+      setPermissionsMissing(!Array.isArray(data.permissions));
       setFormData({
         name: data.name || '',
         description: data.description || '',
@@ -71,12 +77,25 @@ const RoleForm = () => {
     });
   };
 
-  // Group permissions by module
-  const groupedPermissions = permissionsData.reduce((acc, curr) => {
-    acc[curr.module] = acc[curr.module] || [];
-    acc[curr.module].push(curr);
-    return acc;
-  }, {});
+  // Group permissions by module (A–Z), actions in a fixed order: read, create, update, delete, others.
+  const ACTION_ORDER = ['read', 'create', 'update', 'delete'];
+  const actionRank = (a) => (ACTION_ORDER.includes(a) ? ACTION_ORDER.indexOf(a) : ACTION_ORDER.length);
+  const groupedPermissions = [...permissionsData]
+    .sort((a, b) => a.module.localeCompare(b.module) || actionRank(a.action) - actionRank(b.action) || a.action.localeCompare(b.action))
+    .reduce((acc, curr) => {
+      acc[curr.module] = acc[curr.module] || [];
+      acc[curr.module].push(curr);
+      return acc;
+    }, {});
+  const term = permSearch.trim().toLowerCase();
+  const visibleModules = Object.entries(groupedPermissions).filter(([moduleName, perms]) => !term
+    || moduleName.toLowerCase().includes(term)
+    || perms.some((p) => `${p.action} ${p.description || ''}`.toLowerCase().includes(term)));
+  const setAllPermissions = (ids, isChecked) => setFormData((prev) => {
+    const next = new Set(prev.permissions);
+    ids.forEach((pid) => (isChecked ? next.add(pid) : next.delete(pid)));
+    return { ...prev, permissions: Array.from(next) };
+  });
 
   const handleModuleSelectAll = (moduleName, isChecked) => {
     const modulePermIds = groupedPermissions[moduleName].map(p => p.id);
@@ -93,6 +112,10 @@ const RoleForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (permissionsMissing) {
+      toast.error("Not saved: the server did not send this role's current permissions. Deploy the latest backend first.");
+      return;
+    }
     setLoading(true);
     try {
       if (isEditMode) {
@@ -121,7 +144,7 @@ const RoleForm = () => {
         </div>
         <div className="d-flex gap-2">
           <Link to="/roles" className="btn btn-light border rounded-pill px-4">Cancel</Link>
-          <button type="submit" form="role-form" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading}>
+          <button type="submit" form="role-form" className="btn btn-primary rounded-pill px-5 fw-medium" disabled={loading || permissionsMissing}>
             {loading ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
             {isEditMode ? 'Update Role' : 'Create Role'}
           </button>
@@ -148,12 +171,44 @@ const RoleForm = () => {
               </div>
             </div>
 
-            <h5 className="fw-bold mb-4 border-bottom pb-3">Assign Permissions</h5>
+            {permissionsMissing && (
+              <div className="alert alert-warning d-flex gap-2 align-items-start" role="alert">
+                <i className="bi bi-exclamation-triangle-fill mt-1"></i>
+                <div>
+                  <b>This role's permissions could not be loaded.</b> The API server is running an older backend that does not send them
+                  (GET /roles/:id), so the boxes below show nothing ticked even though the role has permissions. Saving is turned off
+                  so the role keeps its permissions. Deploy the latest backend, then reload this page.
+                </div>
+              </div>
+            )}
+            <div className="d-flex flex-wrap align-items-center gap-2 mb-4 border-bottom pb-3">
+              <h5 className="fw-bold mb-0 me-auto">
+                Assign Permissions
+                <span className="badge bg-primary-subtle text-primary-emphasis ms-2 align-middle" style={{ fontSize: '0.75rem' }}>
+                  {formData.permissions.filter((pid) => permissionsData.some((p) => p.id === pid)).length} / {permissionsData.length} selected
+                </span>
+              </h5>
+              <input
+                type="search"
+                className="form-control form-control-sm"
+                style={{ maxWidth: 240 }}
+                placeholder="Search module or action..."
+                value={permSearch}
+                onChange={(e) => setPermSearch(e.target.value)}
+              />
+              <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setAllPermissions(visibleModules.flatMap(([, perms]) => perms.map((p) => p.id)), true)}>
+                Select all{term ? ' shown' : ''}
+              </button>
+              <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setAllPermissions(visibleModules.flatMap(([, perms]) => perms.map((p) => p.id)), false)}>
+                Clear{term ? ' shown' : ' all'}
+              </button>
+            </div>
+            {visibleModules.length === 0 && <p className="text-muted">No permission matches "{permSearch}".</p>}
             <div className="row g-4">
-              {Object.entries(groupedPermissions).map(([moduleName, perms]) => {
+              {visibleModules.map(([moduleName, perms]) => {
                 const allSelected = perms.every(p => formData.permissions.includes(p.id));
                 return (
-                  <div key={moduleName} className="col-md-4">
+                  <div key={moduleName} className="col-md-6 col-xl-4">
                     <div className="card h-100 bg-light border-0 rounded-3">
                       <div className="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center mb-2 py-3">
                         <h6 className="mb-0 fw-bold">{moduleName}</h6>

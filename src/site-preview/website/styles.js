@@ -2,9 +2,11 @@
 import css0 from './app/globals.css?inline';
 import css1 from './components/tax-alphonic/home/home-page.css?inline';
 import css2 from './components/tax-alphonic/blocks/blocks.css?inline';
-import css3 from './components/tax-alphonic/service-page.css?inline';
-import css4 from './components/tax-alphonic/journey/journey-page.css?inline';
-import css5 from './components/tax-alphonic/tools/tools-page.css?inline';
-import css6 from './components/tax-alphonic/landing/landing.css?inline';
+import css3 from './components/tax-alphonic/tools/tools-page.css?inline';
+import css4 from './components/tax-alphonic/service-page.css?inline';
+import css5 from './components/tax-alphonic/journey/journey-page.css?inline';
+import css6 from './components/tax-alphonic/forms/form-popup.css?inline';
+import css7 from './components/tax-alphonic/landing/landing.css?inline';
+import css8 from './components/tax-alphonic/landing/landing-themes.css?inline';
 
-export default [css0, css1, css2, css3, css4, css5, css6];
+export default [css0, css1, css2, css3, css4, css5, css6, css7, css8];

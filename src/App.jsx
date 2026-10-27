@@ -39,6 +39,7 @@ import BannersList from './pages/BannersList';
 import BannerForm from './pages/BannerForm';
 import MediaList from './pages/MediaList';
 import SeoList from './pages/SeoList';
+import RobotsTxt from './pages/RobotsTxt';
 import SeoForm from './pages/SeoForm';
 import SettingsView from './pages/Settings/SettingsView';
 import AboutView from './pages/About/AboutView';
@@ -203,6 +204,7 @@ function App() {
             <Route path="cms/countries/edit/:id" element={<CountryForm key="edit" />} />
 
             <Route path="cms/seo" element={<SeoList />} />
+            <Route path="seo/robots" element={<RoutePermission action="read" module="SEO"><RobotsTxt /></RoutePermission>} />
             <Route path="cms/seo/new" element={<SeoForm key="new" />} />
             <Route path="cms/seo/edit/:id" element={<SeoForm key="edit" />} />
 

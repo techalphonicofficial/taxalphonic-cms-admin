@@ -93,6 +93,33 @@ const FormPicker = ({ label, hint, value, onChange, className = 'col-md-6' }) =>
   );
 };
 
+// Picks a published free-tool page (GET /pages/tools-list); stores its slug ("tool/gst-calculator").
+const ToolPagePicker = ({ label, hint, value, onChange, className = 'col-md-6' }) => {
+  const { data: tools = [], isLoading } = useQuery({
+    queryKey: ['pages', 'tools-list'],
+    queryFn: async () => (await api.get('/pages/tools-list')).data?.data || [],
+  });
+  return (
+    <div className={className}>
+      <label className="form-label">{label}</label>
+      <SearchableSelect
+        value={value || ''}
+        onChange={(v) => onChange(v || '')}
+        loading={isLoading}
+        spaced={false}
+        placeholder="— choose a tool —"
+        emptyLabel="— choose a tool —"
+        searchPlaceholder="Search tools..."
+        options={[
+          ...tools.map(t => ({ value: t.slug, label: `${t.icon ? `${t.icon} ` : ''}${t.title}`, sub: `/${t.slug}` })),
+          ...(value && !isLoading && !tools.some(t => t.slug === value) ? [{ value, label: 'Not published (shows nothing on the website)' }] : []),
+        ]}
+      />
+      {hint && <div className="form-text">{hint}</div>}
+    </div>
+  );
+};
+
 /**
  * Renders a block editor from a field schema (see HOME_SCHEMAS in homeBlocks.js).
  * Field types: text, textarea, button, list, group, form, select, note, image, color; any field may set showIf(data).
@@ -134,6 +161,8 @@ const SchemaFields = ({ fields, value, onChange }) => {
             return <ButtonField key={field.key} className={field.width || 'col-md-6'} label={field.label} value={data[field.key]} onChange={set(field.key)} />;
           case 'portfolioCategory':
             return <PortfolioCategoryPicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
+          case 'toolPage':
+            return <ToolPagePicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
           case 'form':
             return <FormPicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
           case 'list':

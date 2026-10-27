@@ -93,7 +93,7 @@ const AgGridFilterPopover = ({ column, table, close, originalData }) => {
         left: 'auto',
         right: 0,
         zIndex: 1000,
-        background: 'white',
+        background: 'var(--bs-body-bg)',
         minWidth: '220px',
         borderRadius: '6px',
         padding: '8px',

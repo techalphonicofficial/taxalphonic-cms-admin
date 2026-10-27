@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { createContext, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import MediaPickButton from '../media/MediaPickButton';
+import SearchableSelect from '../common/SearchableSelect';
+import { FormService } from '../../services/form.service';
 import { mediaUrl } from '../../utils/mediaUrl';
 
 // Small building blocks for Page Builder block editors (SectionRenderer.jsx).
@@ -45,18 +48,138 @@ export const TextField = ({ label, value, onChange, placeholder, textarea = fals
 );
 
 // A link button: { text, url }. Leave the text empty to hide the button on the website.
+// Button / link URLs that open a CMS form in a popup on the website (lib/formPopup.js there):
+// "#form-<form id>" = that form, "#form" = the page's own form (first Form block).
+const POPUP_URL = /^#form(?:-([A-Za-z0-9_-]{1,64}))?$/;
+const popupFormOf = (url) => {
+  const match = POPUP_URL.exec(String(url || '').trim());
+  return match ? match[1] || '' : null;
+};
+
+/** Active CMS forms for a popup button; "" = the page's own form. */
+const PopupFormSelect = ({ value, onChange }) => {
+  const { data: forms = [], isLoading } = useQuery({
+    queryKey: ['forms', 'active'],
+    queryFn: async () => (await FormService.getAll({ status: 'active', limit: 1000, sortBy: 'name', sortOrder: 'ASC' })).data || [],
+  });
+  return (
+    <SearchableSelect
+      value={value}
+      onChange={(v) => onChange(v || '')}
+      loading={isLoading}
+      spaced={false}
+      placeholder="The form on this page"
+      emptyLabel="The form on this page (first Form block)"
+      searchPlaceholder="Search forms..."
+      options={[
+        ...forms.map(f => ({ value: String(f.id), label: f.name, sub: `${(f.fields || []).length} fields · ${f.slug}` })),
+        ...(value && !isLoading && !forms.some(f => String(f.id) === value) ? [{ value, label: 'Unknown or inactive form' }] : []),
+      ]}
+    />
+  );
+};
+
+// Landing pages never navigate away (website lib/landingLinks.js): PageBuilder blockSet="landing"
+// provides "landing", and buttons then offer only a form popup, a section of this page, a phone
+// call or an email. Any other link is turned into the form popup by the website.
+export const LinkPolicyContext = createContext('any');
+export const isInPageLink = (url) => {
+  const value = String(url || '').trim();
+  return !value || value.startsWith('#') || /^\/#/.test(value) || /^(tel|mailto|sms):/i.test(value);
+};
+
+const LANDING_ACTIONS = [
+  { value: 'popup', label: 'Opens a form popup' },
+  { value: 'section', label: 'Goes to a section of this page' },
+  { value: 'phone', label: 'Calls a phone number' },
+  { value: 'email', label: 'Sends an email' },
+];
+const landingActionOf = (url) => {
+  const value = String(url || '').trim();
+  if (popupFormOf(value) !== null) return 'popup';
+  if (/^tel:/i.test(value)) return 'phone';
+  if (/^mailto:/i.test(value)) return 'email';
+  return 'section';
+};
+
+/** ButtonField on a landing page: only actions that keep the visitor on the page. */
+const LandingButtonField = ({ label, button, set, className }) => {
+  const action = landingActionOf(button.url);
+  const url = String(button.url || '').trim();
+  const outbound = !isInPageLink(url);
+  const switchTo = (next) => set({ url: next === 'popup' ? '#form' : next === 'phone' ? 'tel:' : next === 'email' ? 'mailto:' : '#' });
+  const prefix = { phone: 'tel:', email: 'mailto:', section: '#' }[action];
+  const rest = action === 'section' ? url.replace(/^\/?#/, '') : url.replace(/^(tel|mailto):/i, '');
+  return (
+    <div className={className}>
+      <label className="form-label">{label}</label>
+      <div className="input-group">
+        <input type="text" className="form-control" placeholder="Button text" value={button.text || ''} onChange={e => set({ text: e.target.value })} />
+        <select className="form-select flex-grow-0" style={{ width: 'auto' }} value={action} onChange={e => switchTo(e.target.value)} title="What a click on the button does">
+          {LANDING_ACTIONS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+        </select>
+        {action !== 'popup' && (
+          <>
+            <span className="input-group-text font-monospace">{prefix}</span>
+            <input
+              type="text"
+              className={`form-control ${outbound ? 'is-invalid' : ''}`}
+              placeholder={{ section: 'process, faq, enquiry (block anchor id)', phone: '+919876543210', email: 'hello@taxalphonic.com' }[action]}
+              value={outbound ? url : rest}
+              onChange={e => set({ url: `${prefix}${e.target.value.trim().replace(/^#/, '')}` })}
+            />
+          </>
+        )}
+      </div>
+      {action === 'popup' && (
+        <div className="mt-2">
+          <PopupFormSelect value={popupFormOf(url)} onChange={(id) => set({ url: id ? `#form-${id}` : '#form' })} />
+        </div>
+      )}
+      <div className={`form-text ${outbound ? 'text-danger' : ''}`}>
+        {outbound
+          ? 'This link leaves the landing page, which is not allowed (ads): on the website it opens the form popup instead. Pick one of the actions above.'
+          : 'Landing pages never send visitors to another page. Leave the text empty to hide this button.'}
+      </div>
+    </div>
+  );
+};
+
+/** A CMS button { text, url }: opens a link, or (on the website) a CMS form in a popup. */
 export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) => {
+  const policy = useContext(LinkPolicyContext);
   const button = value || {};
   const set = (patch) => onChange({ ...button, ...patch });
+  const popupForm = popupFormOf(button.url);
+  const popup = popupForm !== null;
+
+  if (policy === 'landing') return <LandingButtonField label={label} button={button} set={set} className={className} />;
 
   return (
     <div className={className}>
       <label className="form-label">{label}</label>
       <div className="input-group">
         <input type="text" className="form-control" placeholder="Button text" value={button.text || ''} onChange={e => set({ text: e.target.value })} />
-        <input type="text" className="form-control" placeholder="Link (/talk-to-expert, #pricing, https://…)" value={button.url || ''} onChange={e => set({ url: e.target.value })} />
+        <select
+          className="form-select flex-grow-0"
+          style={{ width: 'auto' }}
+          value={popup ? 'popup' : 'link'}
+          onChange={e => set({ url: e.target.value === 'popup' ? '#form' : '' })}
+          title="What a click on the button does"
+        >
+          <option value="link">Opens a link</option>
+          <option value="popup">Opens a form popup</option>
+        </select>
+        {!popup && <input type="text" className="form-control" placeholder="Link (/talk-to-expert, #pricing, https://…)" value={button.url || ''} onChange={e => set({ url: e.target.value })} />}
       </div>
-      <div className="form-text">Leave the text empty to hide this button.</div>
+      {popup && (
+        <div className="mt-2">
+          <PopupFormSelect value={popupForm} onChange={(id) => set({ url: id ? `#form-${id}` : '#form' })} />
+        </div>
+      )}
+      <div className="form-text">
+        {popup ? 'A click opens the chosen form in a popup (submissions go to CRM Leads). ' : ''}Leave the text empty to hide this button.
+      </div>
     </div>
   );
 };

@@ -9,14 +9,18 @@ import MediaPickButton from '../../components/media/MediaPickButton';
 import { confirmDelete, confirmDialog } from '../../components/common/confirm';
 import PageBuilder from '../../components/page-builder/PageBuilder';
 import ServicePreviewPane from '../../components/page-builder/ServicePreviewPane';
-import { landingTemplate } from '../../components/page-builder/landingBlocks';
+import { applyLayout, landingTemplate } from '../../components/page-builder/landingLayouts';
+import { ChangeLayoutModal, LayoutPicker } from './LandingLayoutPicker';
+import { pageThemeOfSections, withTheme } from '../../components/page-builder/landingThemes';
+import { ThemeDots, ThemePicker, themeName } from './CustomThemes';
 import { LandingPageService, apiErrorText, canLanding } from '../../services/landingPage.service';
+import { FormService } from '../../services/form.service';
 import { StatusPill } from './LandingPagesList';
 import './landing.css';
 
 /*
  * Landing page editor (/landing-pages/new, /landing-pages/edit/:id).
- * - New: service, title, subdomain (checked live against GET /landing-pages/check-slug), SEO,
+ * - New: service, title, URL name /lp/<name> (checked live against GET /landing-pages/check-slug), SEO,
  *   start from the template or the service's own blocks → POST /landing-pages.
  * - Edit: the existing Page Builder (blockSet="landing": Header area, the service-page body areas,
  *   Footer area) and Live Preview (same website components, unsaved changes included);
@@ -31,8 +35,32 @@ const slugify = (value) => String(value || '').toLowerCase().normalize('NFKD').r
 
 const fieldErrors = (error) => Object.fromEntries((error?.response?.data?.errors || []).filter((e) => e.field).map((e) => [e.field, e.message || e.msg]));
 
+/** The form "Enquire Now" and the other "#form" buttons open in a popup (the template's Form block). */
+const EnquiryFormPicker = ({ value, onChange }) => {
+  const { data: forms = [], isLoading } = useQuery({
+    queryKey: ['forms', 'active'],
+    queryFn: async () => (await FormService.getAll({ status: 'active', limit: 1000, sortBy: 'name', sortOrder: 'ASC' })).data || [],
+  });
+  return (
+    <div className="col-md-6">
+      <label className="form-label fw-semibold">Enquiry form</label>
+      <SearchableSelect
+        value={value}
+        onChange={(v) => onChange(v || '')}
+        loading={isLoading}
+        spaced={false}
+        placeholder="Pick a form"
+        emptyLabel="— Choose later —"
+        searchPlaceholder="Search forms..."
+        options={forms.map((f) => ({ value: f.id, label: f.name, sub: `${(f.fields || []).length} fields · ${f.slug}` }))}
+      />
+      <div className="form-text">Shown in the sidebar and opened in a popup by "Enquire Now" (header, hero, process). Leads go to CRM. Any button can open another form.</div>
+    </div>
+  );
+};
+
 /** Settings fields shared by the create form and the Settings tab. */
-const SettingsFields = ({ value, onChange, errors, services, slugState, slugLocked, showStart, start, setStart }) => {
+const SettingsFields = ({ value, onChange, errors, services, slugState, slugLocked, showStart, start, setStart, formId, setFormId }) => {
   const set = (key) => (e) => onChange({ ...value, [key]: e?.target ? e.target.value : e });
   const service = services.find((s) => s.id === value.serviceId);
   return (
@@ -44,7 +72,7 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
           onChange={(id) => {
             const picked = services.find((s) => s.id === id);
             const next = { ...value, serviceId: id || '' };
-            // Suggest the title and subdomain from the service until the editor types their own.
+            // Suggest the title and URL name from the service until the editor types their own.
             if (picked && !value.title) next.title = `${picked.title}`;
             if (picked && !value.slug && !slugLocked) next.slug = slugify(picked.slug || picked.title);
             onChange(next);
@@ -63,9 +91,10 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
         {errors.title && <div className="invalid-feedback">{errors.title}</div>}
       </div>
       <div className="col-md-6">
-        <label className="form-label fw-semibold">Subdomain <span className="text-danger">*</span></label>
+        <label className="form-label fw-semibold">Page URL <span className="text-danger">*</span></label>
         <div className="input-group">
-          <span className="input-group-text">https://</span>
+          {/* Landing pages live at <main site>/lp/<name> (backend landingUrl). */}
+          <span className="input-group-text">{(slugState?.url || 'https://services.taxalphonic.com/lp/x').replace(/[^/]*$/, '')}</span>
           <input
             className={`form-control ${errors.slug || slugState?.available === false ? 'is-invalid' : slugState?.available ? 'is-valid' : ''}`}
             value={value.slug}
@@ -75,10 +104,9 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
             maxLength={63}
             disabled={slugLocked}
           />
-          <span className="input-group-text">.{(slugState?.url || 'https://x.taxalphonic.com/').replace(/^https?:\/\/[^.]+\./, '').replace(/\/$/, '')}</span>
         </div>
         {slugLocked
-          ? <div className="form-text">Unpublish the page to change its subdomain (the live address would break).</div>
+          ? <div className="form-text">Unpublish the page to change its URL (the live address would break).</div>
           : <div className={`small mt-1 ${slugState?.available === false || errors.slug ? 'text-danger' : slugState?.available ? 'text-success' : 'text-muted'}`}>
             {errors.slug || slugState?.message || 'Lowercase letters, digits and hyphens. Reserved: www, admin, api, mail and other system names.'}
           </div>}
@@ -89,7 +117,7 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
           <div className="d-flex flex-column gap-1">
             <label className="form-check">
               <input type="radio" className="form-check-input" checked={start === 'template'} onChange={() => setStart('template')} />
-              <span className="form-check-label">Landing template (header, hero, overview, enquiry form, footer)</span>
+              <span className="form-check-label">A ready-made layout (pick it below)</span>
             </label>
             <label className={`form-check ${service ? '' : 'text-muted'}`}>
               <input type="radio" className="form-check-input" checked={start === 'service'} disabled={!service} onChange={() => setStart('service')} />
@@ -98,10 +126,15 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
           </div>
         </div>
       )}
+      {showStart && <EnquiryFormPicker value={formId} onChange={setFormId} />}
 
       <div className="col-12">
         <details className="lp-seo" open={Boolean(value.metaTitle || value.metaDescription)}>
           <summary className="fw-semibold">SEO (optional)</summary>
+          <div className="form-text mt-2">
+            <i className="bi bi-info-circle me-1"></i>
+            If this landing page has an SEO Config (SEO Management → SEO Configs → Landing Page), every field filled there replaces the one here; empty fields keep these values.
+          </div>
           <div className="row g-3 mt-1">
             <div className="col-md-6">
               <label className="form-label">Meta title</label>
@@ -141,7 +174,7 @@ const SettingsFields = ({ value, onChange, errors, services, slugState, slugLock
   );
 };
 
-/** Live subdomain check (debounced). */
+/** Live URL name check (debounced). */
 function useSlugCheck(slug, exceptId) {
   const [state, setState] = useState(null);
   useEffect(() => {
@@ -169,6 +202,10 @@ const LandingPageForm = () => {
   const [settings, setSettings] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [start, setStart] = useState('template');
+  const [formId, setFormId] = useState('');
+  const [newTheme, setNewTheme] = useState({ key: 'default', custom: null });
+  const [newLayout, setNewLayout] = useState('classic');
+  const [layoutModal, setLayoutModal] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState('');
@@ -180,6 +217,7 @@ const LandingPageForm = () => {
   const [sectionsVersion, setSectionsVersion] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [publishErrors, setPublishErrors] = useState([]);
+  const [pickedVersions, setPickedVersions] = useState(() => new Set());
 
   const { data: services = [] } = useQuery({ queryKey: ['landing-service-options'], queryFn: LandingPageService.serviceOptions, staleTime: 5 * 60 * 1000 });
   const { data: versions = [], refetch: refetchVersions } = useQuery({
@@ -229,6 +267,37 @@ const LandingPageForm = () => {
     setDirty(true);
   }, []);
 
+  // The theme lives on the Header block (payload.pageTheme): the builder is reloaded with it.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const pageTheme = useMemo(() => pageThemeOfSections(sectionsRef.current), [sectionsVersion, initialSections]);
+  // value: { key, custom } (custom = the colours of a "Create your own" theme, CustomThemes.jsx).
+  const changeTheme = useCallback((value) => {
+    const next = withTheme(sectionsRef.current, value.key, value.custom);
+    sectionsRef.current = next;
+    setInitialSections(next);
+    setSectionsVersion((v) => v + 1);
+    setDirty(true);
+  }, []);
+
+  const pickLayout = useCallback(async (layout, alsoTheme) => {
+    setLayoutModal(false);
+    const ok = await confirmDialog({
+      title: `Use the "${layout.name}" layout?`,
+      message: 'The blocks between the Header and the Footer are replaced by this layout. Header, Footer and the enquiry form are kept.',
+      note: 'Nothing is saved until you click Save draft; leaving without saving keeps the current draft.',
+      tone: 'warning',
+      confirmText: 'Use layout',
+    });
+    if (!ok) return;
+    const service = services.find((sv) => sv.id === settings.serviceId);
+    let next = applyLayout(sectionsRef.current, layout.key, { title: settings.title, serviceTitle: service?.title });
+    if (alsoTheme) next = withTheme(next, layout.theme);
+    sectionsRef.current = next;
+    setInitialSections(next);
+    setSectionsVersion((v) => v + 1);
+    setDirty(true);
+  }, [services, settings.serviceId, settings.title]);
+
   const previewDraft = useMemo(() => ({ title: settings.title, sections: sectionsRef.current }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [settings.title, sectionsVersion, initialSections]);
@@ -247,7 +316,7 @@ const LandingPageForm = () => {
         slug: slugify(settings.slug),
         serviceId: settings.serviceId || null,
         copyServiceBlocks: start === 'service',
-        sections: landingTemplate({ title: settings.title, serviceTitle: service?.title }),
+        sections: landingTemplate({ layout: newLayout, title: settings.title, serviceTitle: service?.title, formId, theme: newTheme.key, customTheme: newTheme.custom }),
       });
       toast.success('Landing page created as a draft. Build it, then publish.');
       navigate(`/landing-pages/edit/${created.id}`, { replace: true });
@@ -326,7 +395,7 @@ const LandingPageForm = () => {
   const lifecycle = async (action) => {
     const steps = {
       unpublish: { title: 'Unpublish this landing page?', message: `${record.url} will show "page not found" until it is published again. The draft and versions are kept.`, confirmText: 'Unpublish', done: 'Unpublished' },
-      archive: { title: 'Archive this landing page?', message: 'It goes offline (if live) and leaves the active list. Its subdomain stays reserved for it.', confirmText: 'Archive', tone: 'danger', done: 'Archived' },
+      archive: { title: 'Archive this landing page?', message: 'It goes offline (if live) and leaves the active list. Its URL stays reserved for it.', confirmText: 'Archive', tone: 'danger', done: 'Archived' },
       unarchive: { title: 'Restore as a draft?', message: 'You can edit and publish it again.', confirmText: 'Restore', done: 'Restored as a draft' },
     }[action];
     if (dirty && action !== 'unarchive') {
@@ -388,13 +457,46 @@ const LandingPageForm = () => {
     }
   };
 
+  // Several old versions at once (the live one can't be picked). One DELETE per version.
+  const deleteVersions = async () => {
+    const chosen = versions.filter((v) => pickedVersions.has(v.id) && record.publishedVersion?.id !== v.id);
+    if (!chosen.length) return;
+    const ok = await confirmDialog({
+      title: `Delete ${chosen.length} version${chosen.length > 1 ? 's' : ''}?`,
+      message: 'These published snapshots are removed for good. The live page and the draft do not change.',
+      items: chosen.map((v) => `v${v.version} · ${v.title} · ${new Date(v.createdAt).toLocaleString('en-IN')}`),
+      tone: 'danger',
+      confirmText: 'Delete',
+    });
+    if (!ok) return;
+    setBusy('delete:bulk');
+    let done = 0;
+    const failed = [];
+    for (const v of chosen) {
+      try {
+        await LandingPageService.deleteVersion(id, v.id);
+        done += 1;
+      } catch (error) {
+        failed.push(`v${v.version}: ${apiErrorText(error)}`);
+      }
+    }
+    setBusy('');
+    setPickedVersions(new Set());
+    if (done) {
+      toast.success(`${done} version${done > 1 ? 's' : ''} deleted.`);
+      setRecord((r) => ({ ...r, versionCount: Math.max(0, (r.versionCount || done) - done) }));
+    }
+    if (failed.length) toast.error(`Not deleted: ${failed.join('; ')}`);
+    refetchVersions();
+  };
+
   const spinner = (name) => (busy === name ? <span className="spinner-border spinner-border-sm me-1"></span> : null);
   const breadcrumb = [{ label: 'Landing Pages', link: '/landing-pages' }, { label: isNew ? 'New' : settings.title || 'Edit' }];
 
   if (isNew) {
     return (
       <div className="container-fluid p-0">
-        <EditorBar title="New Landing Page" breadcrumb={breadcrumb} subtitle="Pick the service and its subdomain. You build the page next.">
+        <EditorBar title="New Landing Page" breadcrumb={breadcrumb} subtitle="Pick the service and its page URL. You build the page next.">
           <Link to="/landing-pages" className="btn btn-light border">Cancel</Link>
           <button type="button" className="btn btn-primary" onClick={create} disabled={Boolean(busy) || !settings.title.trim() || !slugify(settings.slug) || slugState?.available === false}>
             {spinner('create')}Create &amp; open builder
@@ -402,12 +504,24 @@ const LandingPageForm = () => {
         </EditorBar>
         <div className="card border-0 shadow-sm rounded-4">
           <div className="card-body p-4">
-            <SettingsFields value={settings} onChange={setSettings} errors={errors} services={services} slugState={slugState} showStart start={start} setStart={setStart} />
+            <SettingsFields value={settings} onChange={setSettings} errors={errors} services={services} slugState={slugState} showStart start={start} setStart={setStart} formId={formId} setFormId={setFormId} />
+            {start === 'template' && (
+              <div className="mt-3">
+                <label className="form-label fw-semibold mb-1">Layout</label>
+                <div className="form-text mt-0 mb-2">Blocks, order and placement ready to fill in. Every block can still be edited, moved, removed or added later; "Change layout" in the Builder switches it.</div>
+                <LayoutPicker value={newLayout} onChange={(layout) => { setNewLayout(layout.key); setNewTheme({ key: layout.theme, custom: null }); }} />
+              </div>
+            )}
+            <div className="mt-3">
+              <label className="form-label fw-semibold mb-1">Colour theme</label>
+              <div className="form-text mt-0 mb-2">Colours of every block on the page. You can change it any time in the Builder.</div>
+              <ThemePicker value={newTheme} onChange={setNewTheme} />
+            </div>
           </div>
         </div>
         <p className="small text-muted mt-3">
           <i className="bi bi-info-circle me-1"></i>
-          The subdomain works once the wildcard DNS record (*.taxalphonic.com) and certificate are set up on the server; creating pages never changes DNS.
+          The page opens at services.taxalphonic.com/lp/&lt;URL name&gt; once it is published. Old links (cbdt.taxalphonic.com, taxalphonic.com/lp/cbdt) redirect there.
         </p>
       </div>
     );
@@ -489,13 +603,38 @@ const LandingPageForm = () => {
           Header and Footer have their own areas: choose the website header / footer, a landing-page one, or none. The body works like a service page: hero, main content, right sidebar (forms), full-width blocks.
           {record.isLive && ' Changes stay in the draft until you publish.'}
         </div>
+        <div className="lp-theme-bar">
+          <div className="d-flex align-items-baseline gap-2 flex-wrap mb-2">
+            <span className="fw-semibold"><i className="bi bi-palette me-1 text-primary"></i>Page theme</span>
+            <span className="small text-muted">Changes the colours of every block (buttons, headings, icons, cards, form, popup, header and footer). Block backgrounds you set stay as they are. See it in Live Preview.</span>
+          </div>
+          <ThemePicker value={pageTheme} onChange={changeTheme} disabled={!canUpdate} canManage={canUpdate} />
+          <div className="d-flex align-items-center gap-2 flex-wrap mt-3 pt-3 border-top">
+            <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setLayoutModal(true)} disabled={!canUpdate}>
+              <i className="bi bi-layout-text-window-reverse me-1"></i>Change layout
+            </button>
+            <span className="small text-muted">7 ready-made layouts: the page body is rebuilt in one click, Header, Footer and the enquiry form stay.</span>
+          </div>
+        </div>
         <fieldset disabled={!canUpdate} className={canUpdate ? '' : 'opacity-75'}>
           <PageBuilder key={record.id} initialSections={initialSections} onChange={onSectionsChange} blockSet="landing" layoutSettings />
         </fieldset>
       </div>
 
+      <ChangeLayoutModal show={layoutModal} onHide={() => setLayoutModal(false)} onApply={pickLayout} />
+
       {previewMounted && (
         <div className={tab === 'preview' ? 'd-block' : 'd-none'}>
+          {/* Theme and layout here too, so the change shows in the preview straight away. */}
+          <div className="lp-preview-design">
+            <span className="fw-semibold small text-nowrap"><i className="bi bi-palette me-1 text-primary"></i>Theme</span>
+            <ThemeDots value={pageTheme} onChange={changeTheme} disabled={!canUpdate} canManage={canUpdate} />
+            <span className="small text-muted text-nowrap lp-preview-theme-name">{themeName(pageTheme)}</span>
+            <button type="button" className="btn btn-sm btn-outline-primary ms-md-auto text-nowrap" onClick={() => setLayoutModal(true)} disabled={!canUpdate}>
+              <i className="bi bi-layout-text-window-reverse me-1"></i>Change layout
+            </button>
+            {dirty && <span className="small text-warning-emphasis text-nowrap"><i className="bi bi-dot"></i>Unsaved: Save draft keeps it</span>}
+          </div>
           <ServicePreviewPane kind="landing" draft={previewDraft} />
         </div>
       )}
@@ -522,11 +661,54 @@ const LandingPageForm = () => {
             {versions.length === 0 ? (
               <div className="text-center text-muted py-5"><i className="bi bi-clock-history fs-3 d-block mb-2"></i>Nothing published yet. Each publish keeps a version here.</div>
             ) : (
+              <>
+              {canLanding('publish') && pickedVersions.size > 0 && (
+                <div className="d-flex align-items-center gap-2 flex-wrap px-3 py-2 border-bottom bg-body-tertiary">
+                  <span className="small fw-semibold">{pickedVersions.size} selected</span>
+                  <button type="button" className="btn btn-sm btn-danger" onClick={deleteVersions} disabled={Boolean(busy)}>
+                    {busy === 'delete:bulk' ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="bi bi-trash me-1"></i>}Delete selected
+                  </button>
+                  <button type="button" className="btn btn-sm btn-light" onClick={() => setPickedVersions(new Set())} disabled={Boolean(busy)}>Clear</button>
+                </div>
+              )}
               <table className="table align-middle mb-0">
-                <thead><tr><th>Version</th><th>Title</th><th>Published</th><th>By</th><th className="text-end sticky-actions">Actions</th></tr></thead>
+                <thead><tr>{canLanding('publish') && (() => {
+                  const deletable = versions.filter((v) => record.publishedVersion?.id !== v.id);
+                  const all = deletable.length > 0 && deletable.every((v) => pickedVersions.has(v.id));
+                  return (
+                    <th style={{ width: 40 }}>
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        aria-label="Select all old versions"
+                        title="Select all versions except the live one"
+                        checked={all}
+                        disabled={!deletable.length || Boolean(busy)}
+                        onChange={() => setPickedVersions(all ? new Set() : new Set(deletable.map((v) => v.id)))}
+                      />
+                    </th>
+                  );
+                })()}<th>Version</th><th>Title</th><th>Published</th><th>By</th><th className="text-end sticky-actions">Actions</th></tr></thead>
                 <tbody>
                   {versions.map((v) => (
-                    <tr key={v.id}>
+                    <tr key={v.id} className={pickedVersions.has(v.id) ? 'table-active' : undefined}>
+                      {canLanding('publish') && (
+                        <td>
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            aria-label={`Select version ${v.version}`}
+                            checked={pickedVersions.has(v.id)}
+                            disabled={record.publishedVersion?.id === v.id || Boolean(busy)}
+                            title={record.publishedVersion?.id === v.id ? 'The live version cannot be deleted' : undefined}
+                            onChange={() => setPickedVersions((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(v.id)) next.delete(v.id); else next.add(v.id);
+                              return next;
+                            })}
+                          />
+                        </td>
+                      )}
                       <td>
                         <b>v{v.version}</b>
                         {record.publishedVersion?.id === v.id && <span className="lp-pill live ms-2"><i className="bi bi-broadcast"></i>Live</span>}
@@ -558,6 +740,7 @@ const LandingPageForm = () => {
                   ))}
                 </tbody>
               </table>
+              </>
             )}
           </div>
         </div>

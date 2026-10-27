@@ -71,6 +71,7 @@ export const HOME_PLACEMENT_RULES = {
   HomeComparison: { default: 'main', options: WIDE },
   HomeIndustries: { default: 'main', options: WIDE },
   HomePortfolio: { default: 'main', options: WIDE },
+  CommonTool: { default: 'main', options: ANY }, // Free Tool / Calculator (commonBlocks.js)
 };
 
 // Blocks that read a CMS module, with the admin page that manages it.

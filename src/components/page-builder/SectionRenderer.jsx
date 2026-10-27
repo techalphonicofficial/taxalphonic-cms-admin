@@ -15,6 +15,7 @@ import { LANDING_SCHEMAS } from './landingBlocks';
 import { TOOL_SCHEMAS, toolSchemaFor } from './toolBlocks';
 import { DEFAULT_SETTINGS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 import { imageHint } from '../../config/imageSizes';
+import { JODIT_CLEAN_PASTE } from './cleanPastedHtml';
 
 const joditConfig = {
   enter: 'P',
@@ -60,12 +61,54 @@ const usePayload = (data, onChange) => {
 const HeroBannerForm = ({ data, onChange }) => {
   const [p, set] = usePayload(data, onChange);
   const metaId = React.useId();
+  // "Text on the hero" (website ApiServicePage Hero): with a background image that has its own
+  // text, the hero can show only the image, or only the buttons on it.
+  const textMode = p.textMode || 'show';
+  const bare = textMode !== 'show';
 
   return (
     <div className="row g-3">
+      <SelectField
+        label="Text on the hero"
+        value={textMode}
+        onChange={set('textMode')}
+        options={[
+          { value: 'show', label: 'Show text (heading, text, buttons…)' },
+          { value: 'buttons', label: 'Only the buttons (no text)' },
+          { value: 'hide', label: 'Hide everything (only the background image)' },
+        ]}
+        hint="For a background image that already has its text on it (Background panel above). The heading stays hidden in the page for Google."
+      />
+      {bare && (
+        <SelectField
+          label="Hero height"
+          value={p.height || 'md'}
+          onChange={set('height')}
+          options={[
+            { value: 'sm', label: 'Small (280 px)' },
+            { value: 'md', label: 'Medium (400 px)' },
+            { value: 'lg', label: 'Large (520 px)' },
+            { value: 'xl', label: 'Extra large (640 px)' },
+            { value: 'r31', label: 'Image shape 3:1 (wide banner, e.g. 1920 × 640)' },
+            { value: 'r169', label: 'Image shape 16:9 (e.g. 1920 × 1080)' },
+          ]}
+          hint="Image with text on it: pick the shape of your image, so phones show the whole image. Fixed heights crop the sides on phones. Background size: “cover”."
+        />
+      )}
+      {textMode === 'buttons' && (
+        <SelectField
+          label="Buttons position"
+          value={p.buttonsAlign || 'center'}
+          onChange={set('buttonsAlign')}
+          options={[{ value: 'left', label: 'Bottom left' }, { value: 'center', label: 'Bottom centre' }, { value: 'right', label: 'Bottom right' }]}
+        />
+      )}
+      {!bare && <>
       <TextField label="Eyebrow" value={p.eyebrow} onChange={set('eyebrow')} placeholder="e.g. 📑 GST" hint="Small label above the heading. Empty = service category name." />
       <TextField label="Highlighted words" value={p.highlight} onChange={set('highlight')} placeholder="e.g. made simple" hint="Must be the end of the heading. Empty = last two words." />
-      <TextField className="col-12" label="Heading" value={p.heading} onChange={set('heading')} placeholder="e.g. GST Registration made simple" />
+      </>}
+      <TextField className="col-12" label={bare ? 'Heading (hidden, for Google)' : 'Heading'} value={p.heading} onChange={set('heading')} placeholder="e.g. GST Registration made simple" />
+      {!bare && <>
       <TextField className="col-12" label="Sub Heading" value={p.subHeading} onChange={set('subHeading')} textarea />
       <SelectField
         label="Right-side image"
@@ -81,9 +124,13 @@ const HeroBannerForm = ({ data, onChange }) => {
       {(p.imageMode || 'auto') !== 'none' && (
         <TextField label="Image" media value={p.backgroundImage} onChange={set('backgroundImage')} placeholder="Choose from Media or paste a URL" hint={`Shown on the right. ${imageHint('serviceHero')}`} />
       )}
+      </>}
+      {textMode !== 'hide' && <>
       <TextField label="Price on main button" value={p.price} onChange={set('price')} placeholder="e.g. 1999" hint="Appended as “— ₹1,999”." />
       <ButtonField label="Main button" value={p.primaryButton} onChange={set('primaryButton')} />
       <ButtonField label="Second button" value={p.secondaryButton} onChange={set('secondaryButton')} />
+      </>}
+      {!bare && <>
       <div className="col-12">
         <div className="form-check">
           <input className="form-check-input" type="checkbox" id={metaId} checked={p.showMeta !== false} onChange={e => set('showMeta')(e.target.checked)} />
@@ -96,6 +143,7 @@ const HeroBannerForm = ({ data, onChange }) => {
         fields={[{ key: 'value', placeholder: 'e.g. 12,400+', width: 'col-4' }, { key: 'label', placeholder: 'e.g. businesses served', width: 'col-8' }]} />
       <RepeaterField label="Floating chips around the image" items={p.chips} onChange={set('chips')} addLabel="Add chip"
         fields={[{ key: 'icon', placeholder: ICON_HINT }]} />
+      </>}
     </div>
   );
 };
@@ -184,6 +232,7 @@ const OverviewForm = ({ data, onChange }) => {
   const { theme } = useTheme();
   const editorConfig = useMemo(() => ({
     ...joditConfig,
+    ...JODIT_CLEAN_PASTE,
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
 

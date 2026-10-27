@@ -141,7 +141,7 @@ const MediaGrid = () => {
                 )}
 
                 {/* Preview Area */}
-                <div style={{ height: '160px', backgroundColor: '#f9fafb' }} className="d-flex align-items-center justify-content-center">
+                <div style={{ height: '160px', backgroundColor: 'var(--bs-tertiary-bg)' }} className="d-flex align-items-center justify-content-center">
                   {isImage ? (
                     <img 
                       src={mediaUrl(item.url)} 

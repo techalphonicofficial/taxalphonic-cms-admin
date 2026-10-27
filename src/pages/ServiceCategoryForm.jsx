@@ -5,6 +5,7 @@ import Breadcrumb from '../components/common/Breadcrumb';
 import { ServiceCategoryService } from '../services/serviceCategory.service';
 import JoditEditor from 'jodit-react';
 import { useTheme } from '../context/ThemeContext';
+import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const simpleJoditConfig = {
   toolbarAdaptive: false,
@@ -28,6 +29,7 @@ const ServiceCategoryForm = () => {
 
   const editorConfig = useMemo(() => ({
     ...simpleJoditConfig,
+    ...JODIT_CLEAN_PASTE,
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
 

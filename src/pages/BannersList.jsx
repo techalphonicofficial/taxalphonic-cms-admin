@@ -115,7 +115,7 @@ const BannersList = () => {
       accessorKey: 'imageUrl',
       header: 'Image',
       cell: info => (
-        <div style={{ width: '80px', height: '40px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#f3f4f6', border: '1px solid #000' }}>
+        <div style={{ width: '80px', height: '40px', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--bs-tertiary-bg)', border: '1px solid var(--bs-border-color)' }}>
           {info.getValue() ? (
             <img src={mediaUrl(info.getValue())} alt="Banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (

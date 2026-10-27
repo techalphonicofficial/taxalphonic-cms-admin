@@ -89,3 +89,422 @@
 .lp-seo summary {
   cursor: pointer;
 }
+
+/* Page theme picker (Builder tab and the create form) */
+.lp-theme-bar {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.lp-themes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 0.6rem;
+}
+
+.lp-theme {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.45rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.lp-theme:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--bs-primary);
+}
+
+.lp-theme.active {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.18);
+}
+
+.lp-theme-swatch {
+  display: block;
+  height: 34px;
+  border-radius: 0.5rem;
+}
+
+.lp-theme-name {
+  padding: 0 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-theme-check {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.35rem;
+  color: #fff;
+  font-size: 1rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Ready-made layouts (LandingLayoutPicker.jsx) */
+.lp-layouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.85rem;
+}
+
+.lp-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.9rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.lp-layout:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--bs-primary);
+}
+
+.lp-layout.active {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.18);
+}
+
+.lp-layout-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.lp-layout-desc {
+  font-size: 0.76rem;
+  color: var(--bs-secondary-color);
+  line-height: 1.35;
+}
+
+.lp-layout-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color);
+  margin-top: auto;
+}
+
+.lp-layout-theme i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Wireframe */
+.lp-sk {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  min-height: 168px;
+  border-radius: 0.6rem;
+  background: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-border-color);
+}
+
+.lp-sk-bar {
+  display: block;
+  flex: 0 0 7px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--sk-brand) 25%, #fff);
+}
+
+.lp-sk-bar.is-footer {
+  margin-top: auto;
+  flex-basis: 10px;
+  background: var(--sk-deep);
+}
+
+.lp-sk-box {
+  display: block;
+  flex-shrink: 0;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bs-body-bg);
+  border: 1px solid #e3e7ef;
+  color: #5b6478;
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-sk-box.is-strong {
+  padding: 7px 5px;
+  color: #fff;
+  border: 0;
+  background: linear-gradient(120deg, var(--sk-brand), var(--sk-accent));
+}
+
+.lp-sk-box.is-form {
+  color: #fff;
+  border: 0;
+  background: var(--sk-brand);
+}
+
+.lp-sk-cols {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 3px;
+}
+
+.lp-sk-cols.is-full {
+  grid-template-columns: 1fr;
+}
+
+.lp-sk-cols > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+[data-bs-theme="dark"] .lp-sk {
+  background: #1d2433;
+}
+
+[data-bs-theme="dark"] .lp-sk-box:not(.is-strong):not(.is-form) {
+  background: #273047;
+  border-color: #33405c;
+  color: #c3cad8;
+}
+
+/* Live Preview: theme dots + Change layout above the preview */
+.lp-preview-design {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.9rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.75rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.9rem;
+}
+
+.lp-theme-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.lp-theme-dot {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--bs-body-bg);
+  box-shadow: 0 0 0 1px var(--bs-border-color);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.lp-theme-dot:hover:not(:disabled) {
+  transform: scale(1.12);
+}
+
+.lp-theme-dot.active {
+  box-shadow: 0 0 0 2px var(--bs-primary);
+  transform: scale(1.12);
+}
+
+.lp-preview-theme-name {
+  min-width: 90px;
+}
+
+/* Custom themes (CustomThemes.jsx): My themes cards, "Create your own", modal preview */
+.lp-theme-custom {
+  padding: 0;
+}
+
+.lp-theme-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.45rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.lp-theme-tools {
+  position: absolute;
+  bottom: 0.3rem;
+  right: 0.3rem;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.lp-theme-tools button {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 0.4rem;
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-secondary-color);
+  font-size: 0.7rem;
+  line-height: 22px;
+}
+
+.lp-theme-tools button:hover {
+  color: var(--bs-primary);
+}
+
+.lp-theme-custom .lp-theme-name {
+  padding-right: 3rem;
+}
+
+.lp-theme-new .lp-theme-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--bs-border-color);
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+}
+
+.lp-theme-dot-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bs-body-bg);
+  color: var(--bs-primary);
+  font-size: 0.8rem;
+  border-style: dashed;
+}
+
+.lp-ct-preview {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--b) 4%, #fff);
+  font-size: 0.75rem;
+  color: #1f2937;
+}
+
+.lp-ct-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.lp-ct-logo {
+  width: 54px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--b);
+}
+
+.lp-ct-btn {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--b);
+  color: #fff;
+  font-weight: 600;
+}
+
+.lp-ct-btn.ghost {
+  background: transparent;
+  color: var(--b);
+  border: 1px solid var(--b);
+}
+
+.lp-ct-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 0.75rem;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--b) 10%, #fff), color-mix(in srgb, var(--a) 10%, #fff));
+}
+
+.lp-ct-hero strong {
+  font-size: 1rem;
+  color: var(--d);
+}
+
+.lp-ct-chip {
+  align-self: flex-start;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--a) 15%, #fff);
+  color: color-mix(in srgb, var(--a) 75%, #000);
+  font-weight: 600;
+}
+
+.lp-ct-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.lp-ct-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.lp-ct-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid #eef0f3;
+}
+
+.lp-ct-card i {
+  width: 18px;
+  height: 18px;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--b) 15%, #fff);
+}
+
+.lp-ct-card b {
+  height: 6px;
+  width: 70%;
+  border-radius: 3px;
+  background: var(--d);
+  opacity: 0.8;
+}
+
+.lp-ct-card em {
+  height: 5px;
+  width: 90%;
+  border-radius: 3px;
+  background: #d8dce2;
+}
+
+.lp-ct-foot {
+  padding: 0.5rem 0.75rem;
+  background: var(--d);
+  color: rgba(255, 255, 255, 0.8);
+}

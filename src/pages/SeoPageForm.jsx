@@ -98,7 +98,7 @@ function PickerPanel({ panel, items, selected, onChange, disabled, isExisting, h
         <>
           <div className="mx-tools">
             <div className="input-group input-group-sm">
-              <span className="input-group-text bg-white"><i className="bi bi-search"></i></span>
+              <span className="input-group-text bg-body"><i className="bi bi-search"></i></span>
               <input type="search" className="form-control" placeholder={`Search ${items.length} ${panel.title.toLowerCase()}…`} value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             {panel.group && (

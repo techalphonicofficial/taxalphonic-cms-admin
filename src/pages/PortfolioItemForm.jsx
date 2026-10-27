@@ -10,6 +10,7 @@ import JoditEditor from 'jodit-react';
 import { useTheme } from '../context/ThemeContext';
 import SearchableSelect from '../components/common/SearchableSelect';
 import { mediaUrl } from '../utils/mediaUrl';
+import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const joditConfig = {
   toolbarAdaptive: false,
@@ -47,6 +48,7 @@ const PortfolioItemForm = () => {
 
   const editorConfig = useMemo(() => ({
     ...joditConfig,
+    ...JODIT_CLEAN_PASTE,
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
 
@@ -430,7 +432,7 @@ const PortfolioItemForm = () => {
                           <table className="table table-sm table-bordered table-hover align-middle mb-0">
                             <thead>
                               <tr>
-                                <th style={{ width: '38px', textAlign: 'center', background: '#f8f9fa', verticalAlign: 'middle' }}>#</th>
+                                <th style={{ width: '38px', textAlign: 'center', background: 'var(--bs-tertiary-bg)', verticalAlign: 'middle' }}>#</th>
 
                                 {/* Column 1 Header (Orange) - Directly Editable */}
                                 <th style={{ minWidth: '220px', background: '#da9748', borderBottom: '2px solid #c58236', padding: '6px 8px' }}>
@@ -501,7 +503,7 @@ const PortfolioItemForm = () => {
                                   </div>
                                 </th>
 
-                                <th style={{ width: '45px', textAlign: 'center', background: '#f8f9fa' }}></th>
+                                <th style={{ width: '45px', textAlign: 'center', background: 'var(--bs-tertiary-bg)' }}></th>
                               </tr>
                             </thead>
                             <tbody>

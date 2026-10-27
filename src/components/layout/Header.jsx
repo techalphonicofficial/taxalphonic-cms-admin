@@ -4,31 +4,27 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSidebar } from '../../context/SidebarContext';
 import GlobalSearch from '../common/GlobalSearch';
 import { AuthService } from '../../services/auth.service';
-import { InquiryService } from '../../services/inquiry.service';
+import { leadSourceLabel, useLeadNotifications } from '../../context/LeadNotificationsContext';
+import './leadAlerts.css';
+
+// "2 min ago" for the bell list.
+const timeAgo = (date) => {
+  const s = Math.max(0, (Date.now() - new Date(date).getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+};
 
 const Header = ({ toggleSidebar }) => {
   const { theme, toggleTheme } = useTheme();
   const { isSecondarySidebarOpen, toggleSecondarySidebar } = useSidebar();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const alerts = useLeadNotifications();
 
   useEffect(() => {
     setUser(AuthService.getCurrentUser());
-
-    const fetchNotifications = async () => {
-      try {
-        const res = await InquiryService.getAll({ status: 'NEW', limit: 5 });
-        if (res?.data) {
-          setNotifications(res.data);
-          setUnreadCount(res.pagination?.total || res.data.length || 0);
-        }
-      } catch (err) {
-        console.error("Failed to load notifications", err);
-      }
-    };
-    fetchNotifications();
 
     const handleUserUpdate = () => {
       setUser(AuthService.getCurrentUser());
@@ -166,49 +162,86 @@ const Header = ({ toggleSidebar }) => {
           <i className={`bi ${theme === 'light' ? 'bi-moon-stars' : 'bi-brightness-high'} fs-5`}></i>
         </button>
 
-        {/* Notifications */}
-        <div className="dropdown">
-          <button className="btn btn-link text-secondary p-0 position-relative text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static" title="Notifications">
-            <i className="bi bi-bell fs-5"></i>
-            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem', padding: '0.25em 0.4em' }}>
-              {unreadCount > 0 ? (unreadCount > 99 ? '99+' : unreadCount) : 0}
-            </span>
-          </button>
-          <div className="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-0 mt-2" style={{ width: '320px', overflow: 'hidden' }}>
-            <div className="bg-body-tertiary px-3 py-2 border-bottom d-flex justify-content-between align-items-center mb-2">
-              <h6 className="mb-0 fw-bold">Notifications</h6>
-              {unreadCount > 0 && <span className="badge bg-primary rounded-pill">{unreadCount} New</span>}
-            </div>
-            <div className="list-group list-group-flush" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {notifications.length > 0 ? (
-                notifications.map((notif, idx) => (
-                  <Link to={`/crm/leads`} key={notif.id || idx} className="list-group-item list-group-item-action d-flex gap-3 py-3 border-0 border-bottom">
-                    <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
+        {/* New-lead notifications (LeadNotificationsContext: polling, ring, toasts, desktop alerts) */}
+        {alerts?.enabled && (
+          <div className="dropdown">
+            <button
+              className={`btn btn-link text-secondary p-0 position-relative text-decoration-none ta-bell${alerts.unseen > 0 ? ' is-ringing' : ''}`}
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              data-bs-display="static"
+              data-bs-auto-close="outside"
+              title={alerts.unseen > 0 ? `${alerts.unseen} new lead(s)` : 'Lead notifications'}
+              onClick={alerts.acknowledge}
+            >
+              <i className={`bi ${alerts.unseen > 0 ? 'bi-bell-fill text-danger' : 'bi-bell'} fs-5`}></i>
+              {alerts.newCount > 0 && (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem', padding: '0.25em 0.4em' }}>
+                  {alerts.newCount > 99 ? '99+' : alerts.newCount}
+                </span>
+              )}
+            </button>
+            <div className="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-0 mt-2 ta-bell-menu">
+              <div className="bg-body-tertiary px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                <h6 className="mb-0 fw-bold">New leads</h6>
+                {alerts.newCount > 0 && <span className="badge bg-primary rounded-pill">{alerts.newCount} new</span>}
+              </div>
+              <div className="list-group list-group-flush ta-bell-list">
+                {alerts.leads.length > 0 ? alerts.leads.map((lead) => (
+                  <button type="button" key={lead.id} className="list-group-item list-group-item-action d-flex gap-3 py-2 border-0 border-bottom text-start" onClick={() => alerts.openLeads(lead)}>
+                    <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 38, height: 38 }}>
                       <i className="bi bi-person-plus-fill"></i>
                     </div>
-                    <div className="d-flex gap-2 w-100 justify-content-between">
-                      <div>
-                        <h6 className="mb-0 fw-medium" style={{ fontSize: '0.9rem' }}>New Inquiry</h6>
-                        <p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>{notif.name} submitted a form.</p>
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                      <div className="d-flex justify-content-between gap-2">
+                        <span className="fw-semibold text-truncate" style={{ fontSize: '0.88rem' }}>{lead.name}</span>
+                        <small className="text-muted text-nowrap" style={{ fontSize: '0.72rem' }}>{timeAgo(lead.createdAt)}</small>
                       </div>
-                      <small className="text-muted text-nowrap" style={{ fontSize: '0.75rem' }}>
-                        {new Date(notif.createdAt).toLocaleDateString()}
-                      </small>
+                      <div className="text-muted text-truncate" style={{ fontSize: '0.78rem' }}>{[lead.phone, leadSourceLabel(lead)].filter(Boolean).join(' · ')}</div>
                     </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-4 text-center text-muted">
-                  <i className="bi bi-bell-slash fs-2 mb-2 d-block opacity-50"></i>
-                  <span style={{ fontSize: '0.875rem' }}>No new notifications</span>
+                  </button>
+                )) : (
+                  <div className="p-4 text-center text-muted">
+                    <i className="bi bi-bell-slash fs-2 mb-2 d-block opacity-50"></i>
+                    <span style={{ fontSize: '0.875rem' }}>No new leads</span>
+                  </div>
+                )}
+              </div>
+              <div className="px-3 py-2 border-top bg-body-tertiary">
+                <div className="form-check form-switch mb-1">
+                  <input className="form-check-input" type="checkbox" id="ta-bell-sound" checked={alerts.settings.sound} onChange={(e) => alerts.setSetting('sound', e.target.checked)} />
+                  <label className="form-check-label small" htmlFor="ta-bell-sound">Ring on new lead</label>
+                  <button type="button" className="btn btn-link btn-sm p-0 ms-2 align-baseline" onClick={alerts.testRing}>Test</button>
                 </div>
-              )}
-            </div>
-            <div className="p-2 border-top text-center bg-body-tertiary">
-              <Link to="/crm/leads" className="text-decoration-none text-primary fw-medium" style={{ fontSize: '0.85rem' }}>View All Leads</Link>
+                {alerts.settings.sound && (
+                  <div className="form-check form-switch mb-1">
+                    <input className="form-check-input" type="checkbox" id="ta-bell-repeat" checked={alerts.settings.repeat} onChange={(e) => alerts.setSetting('repeat', e.target.checked)} />
+                    <label className="form-check-label small" htmlFor="ta-bell-repeat">Ring again until someone looks (max 1 min)</label>
+                  </div>
+                )}
+                {alerts.permission === 'granted' ? (
+                  <div className="form-check form-switch mb-1">
+                    <input className="form-check-input" type="checkbox" id="ta-bell-desktop" checked={alerts.settings.desktop} onChange={(e) => alerts.setSetting('desktop', e.target.checked)} />
+                    <label className="form-check-label small" htmlFor="ta-bell-desktop">Desktop notification when this tab is in the background</label>
+                  </div>
+                ) : alerts.permission === 'default' ? (
+                  <button type="button" className="btn btn-sm btn-outline-primary w-100 mb-1" onClick={alerts.requestDesktop}>
+                    <i className="bi bi-window-stack me-1"></i>Allow desktop notifications
+                  </button>
+                ) : alerts.permission === 'denied' ? (
+                  <div className="small text-muted mb-1"><i className="bi bi-info-circle me-1"></i>Desktop notifications are blocked in this browser (site settings → Notifications → Allow).</div>
+                ) : null}
+                {alerts.settings.sound && !alerts.soundReady && (
+                  <div className="small text-warning-emphasis"><i className="bi bi-volume-mute me-1"></i>Click anywhere once so the browser lets the ring play.</div>
+                )}
+              </div>
+              <div className="p-2 border-top text-center">
+                <Link to="/crm/leads?status=NEW" className="text-decoration-none text-primary fw-medium" style={{ fontSize: '0.85rem' }} onClick={alerts.acknowledge}>View all new leads</Link>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Profile */}
         <div className="dropdown ms-1">

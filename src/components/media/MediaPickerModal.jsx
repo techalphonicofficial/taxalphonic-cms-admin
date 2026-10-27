@@ -98,7 +98,7 @@ const MediaPickerInner = ({ onSelect, onClose, accept }) => {
                       onDoubleClick={() => insert(item)}
                       title="Double-click to insert"
                     >
-                      <div style={{ height: '120px', backgroundColor: '#f9fafb' }} className="d-flex align-items-center justify-content-center">
+                      <div style={{ height: '120px', backgroundColor: 'var(--bs-tertiary-bg)' }} className="d-flex align-items-center justify-content-center">
                         {isImage ? (
                           <img src={mediaUrl(item.url)} alt={item.originalName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (

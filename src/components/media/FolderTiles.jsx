@@ -8,7 +8,7 @@ const countFolders = (folder) => (folder.children || []).reduce((n, child) => n 
  * Above the files: where you are (All Media / A / B, each part clickable) and the subfolders of
  * the open folder as tiles. A tile opens the folder, has the folder menu (new subfolder, upload
  * folder here, rename, delete) and takes dropped files or folders (onDropInto).
- */
+ **/
 const FolderTiles = ({ onDropInto }) => {
   const { folders, currentFolderId, setCurrentFolderId, setCurrentCategoryId, folderById, renameFolder, createFolder } = useMediaLibrary();
   const [editing, setEditing] = useState(null); // { id, mode: 'rename' | 'subfolder' }

@@ -15,6 +15,7 @@ const TARGET_BADGES = {
   service: { label: 'Service', className: 'bg-primary-subtle text-primary-emphasis border' },
   page: { label: 'CMS Page', className: 'bg-info-subtle text-info-emphasis border' },
   seo_page: { label: 'pSEO', className: 'bg-success-subtle text-success-emphasis border' },
+  landing: { label: 'Landing', className: 'bg-warning-subtle text-warning-emphasis border' },
   static: { label: 'Website', className: 'bg-secondary-subtle text-secondary-emphasis border' },
   custom: { label: 'Custom URL', className: 'bg-light text-dark border' },
 };

@@ -29,7 +29,8 @@ export const DEFAULT_PLACEMENT = {
 };
 
 // Blocks the website has a sidebar design for (lead card, side-trust grid, side-why, side CTA).
-export const SERVICE_SIDEBAR_BLOCKS = ['Form', 'Highlights', 'Checklist', 'CallToAction'];
+// CommonTool: a free tool's calculator, which stacks into one column there.
+export const SERVICE_SIDEBAR_BLOCKS = ['Form', 'Highlights', 'Checklist', 'CallToAction', 'CommonTool'];
 
 // header / footer: the landing page regions (LandingHeader / LandingFooter blocks, landingBlocks.js);
 // empty on every other builder. They stay first / last in the saved list.
@@ -53,7 +54,7 @@ export const serviceDropError = (type, zone, label) => {
   if (type === 'HeroBanner' && zone !== 'hero') return `${label} always stays at the top of the page.`;
   if (type !== 'HeroBanner' && zone === 'hero') return 'Only the Hero Banner goes in the Hero area.';
   if (zone === 'sidebar' && !SERVICE_SIDEBAR_BLOCKS.includes(type)) {
-    return `${label} can't go in the right sidebar. Sidebar blocks: Form, Highlights, Checklist, Call to Action.`;
+    return `${label} can't go in the right sidebar. Sidebar blocks: Form, Highlights, Checklist, Call to Action, Free Tool / Calculator.`;
   }
   return '';
 };

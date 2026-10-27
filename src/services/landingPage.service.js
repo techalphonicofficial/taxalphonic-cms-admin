@@ -19,6 +19,9 @@ export const LandingPageService = {
   versions: (id) => api.get(`/landing-pages/${id}/versions`).then(data),
   deleteVersion: (id, versionId) => api.delete(`/landing-pages/${id}/versions/${versionId}`).then(data),
   restoreVersion: (id, versionId) => api.post(`/landing-pages/${id}/versions/${versionId}/restore`).then(data),
+  // "My themes": custom colour themes shared by all landing pages.
+  themes: () => api.get('/landing-pages/themes').then(data),
+  saveThemes: (themes) => api.put('/landing-pages/themes', { themes }).then(data),
 };
 
 /** "message" + field errors of a failed request, for a toast. */

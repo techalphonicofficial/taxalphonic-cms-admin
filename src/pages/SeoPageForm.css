@@ -1,8 +1,8 @@
-/* pSEO Matrix Combinator (SeoPageForm.jsx) */
+/* pSEO Matrix Combinator (SeoPageForm.jsx). Colours only from Bootstrap theme variables, so dark mode works. */
 .mx-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
 .mx-main { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 
-.mx-step { background: #fff; border: 1px solid var(--bs-border-color); border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+.mx-step { background: var(--cms-card-bg, var(--bs-body-bg)); border: 1px solid var(--bs-border-color); border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
 .mx-step-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
 .mx-step-head h5 { font-size: 16px; font-weight: 700; margin: 0 0 2px; }
 .mx-step-head p { font-size: 13px; color: var(--bs-secondary-color); margin: 0; }
@@ -11,19 +11,19 @@
 
 .mx-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .mx-panel { display: flex; flex-direction: column; border: 1px solid var(--bs-border-color); border-radius: 14px; padding: 12px; background: var(--bs-tertiary-bg); min-width: 0; transition: border-color .15s, background .15s; }
-.mx-panel.has-selection { border-color: var(--bs-primary-border-subtle); background: #fff; }
+.mx-panel.has-selection { border-color: var(--bs-primary-border-subtle); background: var(--bs-body-bg); }
 .mx-panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
 .mx-panel-title { display: flex; gap: 10px; min-width: 0; }
 .mx-panel-title b { display: block; font-size: 14.5px; }
 .mx-panel-title small { display: block; font-size: 12px; color: var(--bs-secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mx-panel-title > div { min-width: 0; }
 .mx-panel-icon { flex: 0 0 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--bs-primary-bg-subtle); color: var(--bs-primary); font-size: 16px; }
-.mx-count { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: #fff; border: 1px solid var(--bs-border-color); white-space: nowrap; }
+.mx-count { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); white-space: nowrap; }
 .mx-count span { color: var(--bs-secondary-color); font-weight: 500; }
 .mx-count.on { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
 .mx-count.on span { color: rgba(255, 255, 255, .75); }
 
-.mx-locked { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 220px; color: var(--bs-secondary-color); font-size: 13px; border: 1px dashed var(--bs-border-color); border-radius: 10px; background: #fff; }
+.mx-locked { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 220px; color: var(--bs-secondary-color); font-size: 13px; border: 1px dashed var(--bs-border-color); border-radius: 10px; background: var(--bs-body-bg); }
 .mx-locked i { font-size: 22px; }
 .mx-panel.is-disabled { opacity: .85; }
 
@@ -34,7 +34,7 @@
 .mx-actions button:hover:not(:disabled) { background: var(--bs-primary-bg-subtle); }
 .mx-actions button:disabled { color: var(--bs-secondary-color); opacity: .6; }
 
-.mx-list { height: 300px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 10px; background: #fff; overscroll-behavior: contain; }
+.mx-list { height: 300px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 10px; background: var(--bs-body-bg); overscroll-behavior: contain; }
 .mx-group { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--bs-secondary-color); background: var(--bs-tertiary-bg); border-bottom: 1px solid var(--bs-border-color); cursor: pointer; }
 .mx-group small { margin-left: auto; font-weight: 600; text-transform: none; letter-spacing: 0; }
 .mx-group .form-check-input, .mx-item .form-check-input { margin: 0; flex: 0 0 auto; }
@@ -43,12 +43,12 @@
 .mx-item.on { background: var(--bs-primary-bg-subtle); }
 .mx-item.exists .mx-item-name { color: var(--bs-secondary-color); }
 .mx-item-name { flex: 1; min-width: 0; }
-.mx-tag { font-size: 10.5px; font-weight: 700; color: #8a5a00; background: #fff3cd; padding: 1px 7px; border-radius: 99px; white-space: nowrap; }
+.mx-tag { font-size: 10.5px; font-weight: 700; color: var(--bs-warning-text-emphasis); background: var(--bs-warning-bg-subtle); padding: 1px 7px; border-radius: 99px; white-space: nowrap; }
 .mx-empty { padding: 30px 10px; text-align: center; color: var(--bs-secondary-color); font-size: 13px; }
 
 .mx-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; max-height: 120px; overflow-y: auto; }
 .mx-chip { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; padding: 2px 4px 2px 9px; border-radius: 99px; background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
-.mx-chip.exists { background: #fff3cd; color: #8a5a00; }
+.mx-chip.exists { background: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); }
 .mx-chip button { border: 0; background: transparent; color: inherit; padding: 0 2px; line-height: 1; }
 .mx-more { border: 0; background: transparent; font-size: 12px; font-weight: 600; color: var(--bs-primary); }
 
@@ -58,13 +58,13 @@
 .mx-plan thead th { position: sticky; top: 0; z-index: 1; background: var(--bs-tertiary-bg); font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--bs-secondary-color); }
 .mx-plan tr.is-existing td { color: var(--bs-secondary-color); }
 .mx-type { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--bs-secondary-bg-subtle); }
-.mx-type.t-location { background: #e0f2fe; color: #075985; }
-.mx-type.t-industry { background: #ede9fe; color: #5b21b6; }
-.mx-type.t-technology { background: #dcfce7; color: #166534; }
-.mx-type.t-problem { background: #ffe4e6; color: #9f1239; }
+.mx-type.t-location { background: var(--bs-info-bg-subtle); color: var(--bs-info-text-emphasis); }
+.mx-type.t-industry { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
+.mx-type.t-technology { background: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); }
+.mx-type.t-problem { background: var(--bs-danger-bg-subtle); color: var(--bs-danger-text-emphasis); }
 
 .mx-summary { position: sticky; top: 80px; }
-.mx-summary-card { background: #fff; border: 1px solid var(--bs-border-color); border-radius: 16px; padding: 18px; box-shadow: 0 8px 30px rgba(15, 23, 42, .07); }
+.mx-summary-card { background: var(--cms-card-bg, var(--bs-body-bg)); border: 1px solid var(--bs-border-color); border-radius: 16px; padding: 18px; box-shadow: 0 8px 30px rgba(15, 23, 42, .07); }
 .mx-summary-card h6 { font-weight: 700; margin-bottom: 12px; }
 .mx-sum-service { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 10px; background: var(--bs-tertiary-bg); margin-bottom: 10px; }
 .mx-sum-service small { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--bs-secondary-color); }
@@ -79,7 +79,7 @@
 .mx-sum-totals .new { background: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); }
 .mx-sum-totals .skip { background: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); }
 .mx-sum-note { font-size: 12px; color: var(--bs-secondary-color); margin: 10px 0 0; line-height: 1.5; }
-.mx-sum-warn { font-size: 12px; color: #9a3412; background: #ffedd5; border-radius: 8px; padding: 6px 8px; margin: 8px 0 0; }
+.mx-sum-warn { font-size: 12px; color: var(--bs-warning-text-emphasis); background: var(--bs-warning-bg-subtle); border-radius: 8px; padding: 6px 8px; margin: 8px 0 0; }
 
 @media (max-width: 1199.98px) {
   .mx-layout { grid-template-columns: minmax(0, 1fr); }

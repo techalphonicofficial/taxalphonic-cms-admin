@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import DataGrid from '../../components/datagrid/DataGrid';
+import { runBulk } from '../../components/datagrid/bulkStatus';
 import useServerList from '../../components/datagrid/useServerList';
 import { HistoryButton } from '../../components/datagrid/RecordHistory';
 import SearchableSelect from '../../components/common/SearchableSelect';
@@ -10,8 +11,8 @@ import { confirmDialog } from '../../components/common/confirm';
 import { LandingPageService, apiErrorText, canLanding } from '../../services/landingPage.service';
 import './landing.css';
 
-// Landing Pages (/landing-pages): one subdomain each (cbdt.taxalphonic.com). Server-side list from
-// GET /landing-pages (search on title / subdomain, status and service filters, `counts` for the views).
+// Landing Pages (/landing-pages): one address each (services.taxalphonic.com/lp/cbdt). Server-side list from
+// GET /landing-pages (search on title / URL name, status and service filters, `counts` for the views).
 
 const VIEWS = [
   { key: '', label: 'Active', icon: 'bi-collection', count: (c) => c.all },
@@ -57,7 +58,7 @@ const LandingPagesList = () => {
     const steps = {
       publish: { title: `Publish "${row.title}"?`, message: `The current draft goes live at ${row.url}`, confirmText: 'Publish', tone: 'warning', done: 'Published' },
       unpublish: { title: `Unpublish "${row.title}"?`, message: `${row.url} will show "page not found" until it is published again. The draft and versions are kept.`, confirmText: 'Unpublish', tone: 'warning', done: 'Unpublished' },
-      archive: { title: `Archive "${row.title}"?`, message: 'It goes offline (if live) and leaves the active list. The subdomain stays reserved for it; restore it any time.', confirmText: 'Archive', tone: 'danger', done: 'Archived' },
+      archive: { title: `Archive "${row.title}"?`, message: 'It goes offline (if live) and leaves the active list. The URL stays reserved for it; restore it any time.', confirmText: 'Archive', tone: 'danger', done: 'Archived' },
       unarchive: { title: `Restore "${row.title}"?`, message: 'It comes back as a draft (not live until you publish it).', confirmText: 'Restore', tone: 'warning', done: 'Restored as a draft' },
     }[action];
     if (!(await confirmDialog({ title: steps.title, message: steps.message, confirmText: steps.confirmText, tone: steps.tone }))) return;
@@ -74,6 +75,18 @@ const LandingPagesList = () => {
   };
 
   const columns = [
+    // Row checkboxes for the bulk bar (Publish / Unpublish), only when the user may do either.
+    ...(canLanding('publish') || canLanding('unpublish') ? [{
+      id: 'select',
+      header: ({ table }) => (
+        <input type="checkbox" className="grid-checkbox" aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onChange={table.getToggleAllPageRowsSelectedHandler()} />
+      ),
+      cell: ({ row }) => (
+        <input type="checkbox" className="grid-checkbox" aria-label={`Select ${row.original.title}`} checked={row.getIsSelected()} onChange={row.getToggleSelectedHandler()} />
+      ),
+      size: 50,
+      enableSorting: false,
+    }] : []),
     {
       accessorKey: 'title',
       header: 'Landing page',
@@ -91,7 +104,7 @@ const LandingPagesList = () => {
     },
     {
       accessorKey: 'slug',
-      header: 'Subdomain',
+      header: 'URL name',
       cell: ({ row }) => <code className="lp-slug">{row.original.slug}</code>,
     },
     {
@@ -139,12 +152,47 @@ const LandingPagesList = () => {
     },
   ];
 
+  // Bulk bar: publish (current draft goes live as a new version, checked like a single publish) or
+  // unpublish the selected landing pages, one request each.
+  const bulkActions = [
+    ...(canLanding('publish') ? [{
+      label: 'Publish', icon: 'bi-rocket-takeoff', variant: 'success',
+      onClick: async (rows, clear) => {
+        const ran = await runBulk(rows, {
+          title: (n) => `Publish ${n} landing page${n > 1 ? 's' : ''}?`,
+          message: 'Each current draft goes live at its URL as a new version.',
+          note: 'Pages that fail the publish checks (e.g. a Form block without a form) are skipped and listed afterwards.',
+          confirmText: 'Publish',
+          skip: (r) => (r.status === 'archived' ? 'archived (restore it first)' : r.isLive && !r.hasUnpublishedChanges ? 'already live with no changes' : ''),
+          run: (r) => LandingPageService.publish(r.id),
+          done: 'published',
+        });
+        if (ran) { clear(); list.reload(); }
+      },
+    }] : []),
+    ...(canLanding('unpublish') ? [{
+      label: 'Unpublish', icon: 'bi-cloud-slash', variant: 'light',
+      onClick: async (rows, clear) => {
+        const ran = await runBulk(rows, {
+          title: (n) => `Unpublish ${n} landing page${n > 1 ? 's' : ''}?`,
+          message: 'Their URLs show "page not found" until published again. Drafts and versions are kept.',
+          confirmText: 'Unpublish',
+          tone: 'danger',
+          skip: (r) => (!r.isLive ? 'not live' : ''),
+          run: (r) => LandingPageService.unpublish(r.id),
+          done: 'unpublished',
+        });
+        if (ran) { clear(); list.reload(); }
+      },
+    }] : []),
+  ];
+
   return (
     <div className="container-fluid p-0">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
           <h4 className="mb-1 fw-bold">Landing Pages</h4>
-          <p className="text-muted mb-0">Service landing pages on their own subdomain (e.g. cbdt.taxalphonic.com), built with the Page Builder.</p>
+          <p className="text-muted mb-0">Service landing pages at services.taxalphonic.com/lp/&lt;name&gt;, built with the Page Builder.</p>
         </div>
         {canLanding('create') && (
           <Link to="/landing-pages/new" className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
@@ -185,13 +233,13 @@ const LandingPagesList = () => {
 
       <div className="card shadow-sm border-0 rounded-4">
         <div className="card-body p-0">
-          <DataGrid key={`${view}-${serviceId}`} {...list.gridProps} columns={columns} title={VIEWS.find((v) => v.key === view).label} itemLabel="landing page" />
+          <DataGrid key={`${view}-${serviceId}`} {...list.gridProps} columns={columns} title={VIEWS.find((v) => v.key === view).label} itemLabel="landing page" bulkActions={bulkActions} />
         </div>
       </div>
       {!list.gridProps.isLoading && !list.gridProps.error && list.total === 0 && (
         <div className="text-center text-muted py-4">
           <i className="bi bi-window-stack fs-2 d-block mb-2"></i>
-          {view === 'archived' ? 'No archived landing pages.' : 'No landing pages yet. Create one for a service, e.g. CBDT → cbdt.taxalphonic.com.'}
+          {view === 'archived' ? 'No archived landing pages.' : 'No landing pages yet. Create one for a service, e.g. CBDT → services.taxalphonic.com/lp/cbdt.'}
         </div>
       )}
     </div>

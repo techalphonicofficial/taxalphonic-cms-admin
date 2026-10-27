@@ -2,6 +2,7 @@
 // blogs, journey stages, tools). The website renders them with
 // components/tax-alphonic/blocks/CommonBlocks.jsx (types in commonBlockTypes.js: keep in sync).
 import { imageHint } from '../../config/imageSizes';
+import { CALCULATORS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 
 export const COMMON_BLOCKS = [
   { type: 'CommonText', label: 'Text & Heading', icon: 'bi-text-paragraph' },
@@ -15,6 +16,7 @@ export const COMMON_BLOCKS = [
   { type: 'CommonButtons', label: 'Buttons', icon: 'bi-hand-index' },
   { type: 'CommonSpacer', label: 'Spacer / Divider', icon: 'bi-distribute-vertical' },
   { type: 'CommonEmbed', label: 'Map / Embed', icon: 'bi-geo-alt' },
+  { type: 'CommonTool', label: 'Free Tool / Calculator', icon: 'bi-calculator' },
 ];
 
 export const isCommonType = (type) => COMMON_BLOCKS.some(b => b.type === type);
@@ -96,6 +98,17 @@ export const COMMON_SCHEMAS = {
     { key: 'caption', label: 'Caption', type: 'text' },
     ANCHOR,
   ],
+  // A free tool's calculator on this page (website CommonBlocks.jsx Tool). Where it sits: the
+  // block's Placement (Main content, Right sidebar, Top / Bottom full width; homepage: column / full width).
+  CommonTool: [
+    { key: 'source', label: 'Calculator from', type: 'select', options: [{ value: 'page', label: 'A published tool page (its settings)' }, { value: 'calculator', label: 'A calculator type (default settings)' }] },
+    { key: 'toolSlug', label: 'Tool page', type: 'toolPage', hint: "Uses that page's calculator and settings (slabs, rates, defaults); edits there show here too.", showIf: (d) => d.source !== 'calculator' },
+    { key: 'calculator', label: 'Calculator', type: 'select', options: CALCULATORS, hint: 'Default settings (website toolDefaults.js). For your own rates, build a tool page and pick it instead.', showIf: (d) => d.source === 'calculator' },
+    KICKER, HEADING, SUB,
+    { key: 'button', label: 'Button under the calculator (optional)', type: 'button', width: 'col-12' },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: "Where it shows: use this block's Placement setting (Main content, Right sidebar, or full width above / below). In the right sidebar the calculator stacks into one column." },
+  ],
 };
 
 // Starting content, so a new block shows something sensible straight away.
@@ -111,6 +124,7 @@ const DEFAULTS = {
   CommonButtons: { kicker: '', heading: '', align: 'center', buttons: [{ text: '🎧 Talk to an expert', url: '/talk-to-expert', style: 'primary' }, { text: '📅 Book a meeting', url: '/book-meeting', style: 'ghost' }], anchorId: '' },
   CommonSpacer: { size: 'md', line: 'no' },
   CommonEmbed: { kind: 'map', url: '', html: '', height: '420', kicker: '', heading: '', caption: '', anchorId: '' },
+  CommonTool: { source: 'page', toolSlug: '', calculator: 'gst', kicker: 'Free tool', heading: 'Try our calculator', sub: '', button: { text: '', url: '' }, anchorId: '' },
 };
 
 export const commonDefaultPayload = (type) => JSON.parse(JSON.stringify(DEFAULTS[type] || {}));

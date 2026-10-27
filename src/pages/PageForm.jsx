@@ -11,6 +11,7 @@ import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, isJourneyPage, journeySt
 import { TOOL_REFERENCE, TOOL_SLUG_PREFIX, TOOLS_HUB_SLUG, isToolPage, toolPageSections, toolsHubSections } from '../components/page-builder/toolBlocks';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const joditConfig = {
   toolbarAdaptive: false,
@@ -71,6 +72,7 @@ const PageForm = () => {
 
   const editorConfig = useMemo(() => ({
     ...joditConfig,
+    ...JODIT_CLEAN_PASTE,
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
 

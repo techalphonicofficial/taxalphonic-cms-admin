@@ -4,6 +4,7 @@ import RailMenu from '../components/layout/sidebar/RailMenu';
 import SecondarySidebar from '../components/layout/sidebar/SecondarySidebar';
 import Header from '../components/layout/Header';
 import { useSidebar } from '../context/SidebarContext';
+import { LeadNotificationsProvider } from '../context/LeadNotificationsContext';
 
 const SidebarContent = () => (
   <>
@@ -51,7 +52,9 @@ const AdminLayout = () => {
   const mainRef = useRef(null);
   useEditorBarOffset(mainRef);
 
+  // LeadNotificationsProvider: new-lead ring / alerts on every admin page (the Header bell shows them).
   return (
+    <LeadNotificationsProvider>
     <div className="d-flex w-100 vh-100 overflow-hidden bg-body-tertiary">
       {/* Desktop Dual Panel Sidebar System */}
       <div className="d-none d-md-flex h-100 position-relative" style={{ zIndex: 1060 }}>
@@ -91,6 +94,7 @@ const AdminLayout = () => {
         </main>
       </div>
     </div>
+    </LeadNotificationsProvider>
   );
 };
 export default AdminLayout;

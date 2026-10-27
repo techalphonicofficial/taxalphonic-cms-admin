@@ -65,3 +65,41 @@ textarea::placeholder {
 .ta-below-bar {
   top: calc(var(--ta-sticky-offset, 0px) - 0.5rem) !important;
 }
+
+// Jodit editors: content pasted with fixed widths / nowrap (older saves, or HTML typed in) must not
+// widen the editor and the Page Builder panel around it. New pastes are cleaned (cleanPastedHtml.js).
+.jodit-container:not(.jodit_inline) {
+  max-width: 100%;
+}
+
+.jodit-wysiwyg {
+  overflow-wrap: break-word;
+  overflow-x: auto;
+
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  :not(img)[style*="width"] {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  [style*="white-space"]:not(pre) {
+    white-space: normal !important;
+  }
+
+  table,
+  table[style] {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+
+  td,
+  th {
+    border: 1px solid #dee2e6;
+    padding: 6px 8px;
+    vertical-align: top;
+  }
+}

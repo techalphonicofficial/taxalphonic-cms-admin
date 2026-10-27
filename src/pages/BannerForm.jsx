@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import MediaPickerModal from '../components/media/MediaPickerModal';
 import ImageSizeHint from '../components/common/ImageSizeHint';
 import { mediaUrl } from '../utils/mediaUrl';
+import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const joditConfig = {
   toolbarAdaptive: false,
@@ -53,6 +54,7 @@ const BannerForm = () => {
 
   const editorConfig = useMemo(() => ({
     ...joditConfig,
+    ...JODIT_CLEAN_PASTE,
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
   
@@ -338,7 +340,7 @@ const BannerForm = () => {
               <h5 className="card-title fw-bold mb-2">Banner Image <span className="text-danger">*</span></h5>
               <div className="mb-3">
                 {imageUrl ? (
-                  <div className="position-relative mb-3 rounded overflow-hidden shadow-sm" style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6' }}>
+                  <div className="position-relative mb-3 rounded overflow-hidden shadow-sm" style={{ aspectRatio: '16/9', backgroundColor: 'var(--bs-tertiary-bg)' }}>
                     <img src={mediaUrl(imageUrl)} alt="Preview" className="w-100 h-100" style={{ objectFit: 'cover' }} />
                     <button 
                       type="button" 
@@ -375,7 +377,7 @@ const BannerForm = () => {
               <h5 className="card-title fw-bold mb-2">Mobile Banner Image</h5>
               <div className="mb-3">
                 {mobileImageUrl ? (
-                  <div className="position-relative mb-3 rounded overflow-hidden shadow-sm" style={{ aspectRatio: '3/4', backgroundColor: '#f3f4f6', maxWidth: '200px', margin: '0 auto' }}>
+                  <div className="position-relative mb-3 rounded overflow-hidden shadow-sm" style={{ aspectRatio: '3/4', backgroundColor: 'var(--bs-tertiary-bg)', maxWidth: '200px', margin: '0 auto' }}>
                     <img src={mediaUrl(mobileImageUrl)} alt="Mobile Preview" className="w-100 h-100" style={{ objectFit: 'cover' }} />
                     <button 
                       type="button" 

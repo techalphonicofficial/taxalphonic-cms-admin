@@ -9,7 +9,7 @@ import { siteUrl } from '../config/siteUrl';
 
 /**
  * SEO Config: a detailed SEO override for ONE website page. Pick the page (service, CMS page,
- * pSEO page, Home / About, or a typed URL); the website then uses every field filled here over
+ * pSEO page, landing page, Home / About, or a typed URL); the website then uses every field filled here over
  * that page's own SEO, and keeps the page's own value for fields left empty.
  * Backend: controllers/SeoController.js (works out the URL from the picked record).
  */
@@ -21,6 +21,7 @@ const TARGET_TYPES = [
   { value: 'service', label: 'Service', icon: 'bi-briefcase' },
   { value: 'page', label: 'CMS Page', icon: 'bi-file-earmark-text' },
   { value: 'seo_page', label: 'pSEO Page', icon: 'bi-diagram-3' },
+  { value: 'landing', label: 'Landing Page', icon: 'bi-rocket-takeoff' },
   { value: 'static', label: 'Website Page', icon: 'bi-house' },
   { value: 'custom', label: 'Custom URL', icon: 'bi-link-45deg' },
 ];
@@ -63,9 +64,13 @@ const listOf = (res) => {
 const routeOf = (type, item) => {
   if (!item) return '';
   if (type === 'static') return item.route;
+  if (type === 'landing') return item.url || '';
   if (type === 'page' && item.slug === 'home') return '/';
   return `/${String(item.slug || '').replace(/^\/+/, '')}`;
 };
+
+/** Absolute URLs (older landing page configs stored the full subdomain URL) stay as they are. */
+const linkOf = (route) => (/^https?:\/\//i.test(route) ? route : siteUrl(route));
 
 /** Text input / textarea with a live character counter against the recommended length. */
 const CountedField = ({ label, value, onChange, placeholder, ideal, max, textarea, hint }) => {
@@ -95,7 +100,7 @@ const SeoForm = () => {
   const [errors, setErrors] = useState({});
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [query, setQuery] = useState('');
-  const [records, setRecords] = useState({ service: [], page: [], seo_page: [], static: STATIC_PAGES });
+  const [records, setRecords] = useState({ service: [], page: [], seo_page: [], landing: [], static: STATIC_PAGES });
   const [taken, setTaken] = useState(new Set()); // "type:id" of pages that already have a config
   const [current, setCurrent] = useState({}); // the picked page's own SEO (placeholders)
 
@@ -110,13 +115,16 @@ const SeoForm = () => {
       api.get('/seo-pages', { params: { limit: 2000 } }).catch(() => null),
       api.get('/seo', { params: { limit: 1000 } }).catch(() => null),
       isEdit ? api.get(`/seo/${id}`) : Promise.resolve(null),
-    ]).then(([services, pages, seoPages, configs, existing]) => {
+      // Landing pages (max 200 per call), archived ones included.
+      api.get('/landing-pages', { params: { limit: 200, status: 'all' } }).catch(() => null),
+    ]).then(([services, pages, seoPages, configs, existing, landing]) => {
       if (!alive) return;
       setRecords({
         service: listOf(services).map(s => ({ id: s.id, label: s.title, slug: s.slug })),
         // The CMS page "home" is the Homepage (Website Page).
         page: listOf(pages).filter(p => p.slug !== 'home').map(p => ({ id: p.id, label: p.title, slug: p.slug, status: p.status })),
         seo_page: listOf(seoPages).map(p => ({ id: p.id, label: p.title, slug: p.slug, status: p.status })),
+        landing: listOf(landing).map(p => ({ id: p.id, label: p.title, slug: p.slug, url: p.url, status: p.status })),
         static: STATIC_PAGES,
       });
       setTaken(new Set(listOf(configs).filter(c => c.targetType && c.targetId && c.id !== id).map(c => `${c.targetType}:${c.targetId}`)));
@@ -148,7 +156,7 @@ const SeoForm = () => {
   // The picked page's own SEO, shown as placeholders ("what the page uses now").
   useEffect(() => {
     let alive = true;
-    const endpoint = { service: '/services', page: '/pages', seo_page: '/seo-pages' }[form.targetType];
+    const endpoint = { service: '/services', page: '/pages', seo_page: '/seo-pages', landing: '/landing-pages' }[form.targetType];
     if (!endpoint || !form.targetId) {
       setCurrent({});
       return undefined;
@@ -306,7 +314,7 @@ const SeoForm = () => {
                 {route && (
                   <div className="d-flex flex-wrap align-items-center gap-2 mt-3 p-2 px-3 bg-body-tertiary rounded-3 small">
                     <span className="text-muted">Website URL:</span>
-                    <a href={siteUrl(route)} target="_blank" rel="noreferrer" className="font-monospace text-decoration-none">{siteUrl(route)} <i className="bi bi-box-arrow-up-right"></i></a>
+                    <a href={linkOf(route)} target="_blank" rel="noreferrer" className="font-monospace text-decoration-none">{linkOf(route)} <i className="bi bi-box-arrow-up-right"></i></a>
                     {Object.keys(current).length > 0 && (
                       <button type="button" className="btn btn-sm btn-outline-primary ms-auto" onClick={copyCurrent}>
                         <i className="bi bi-clipboard-plus me-1"></i>Copy this page's current SEO
@@ -324,7 +332,7 @@ const SeoForm = () => {
 
                 <div className="border rounded-3 p-3 mb-4 bg-white">
                   <div className="small text-muted mb-1">Google preview</div>
-                  <div className="small text-success text-truncate">{route ? siteUrl(route) : 'https://…'}</div>
+                  <div className="small text-success text-truncate">{route ? linkOf(route) : 'https://…'}</div>
                   <div className="fs-5 text-truncate" style={{ color: '#1a0dab' }}>{previewTitle}</div>
                   <div className="small text-secondary" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{previewDescription}</div>
                 </div>
@@ -407,7 +415,7 @@ const SeoForm = () => {
               <div className="card-body p-4">
                 <h5 className="card-title fw-bold mb-3">Share image</h5>
                 {ogImage ? (
-                  <div className="position-relative mb-2 rounded overflow-hidden" style={{ border: '1px solid #e5e7eb', aspectRatio: '1.91 / 1', backgroundColor: '#f9fafb' }}>
+                  <div className="position-relative mb-2 rounded overflow-hidden" style={{ border: '1px solid var(--bs-border-color)', aspectRatio: '1.91 / 1', backgroundColor: 'var(--bs-tertiary-bg)' }}>
                     <img src={mediaUrl(ogImage)} alt="OG" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: form.ogImage ? 1 : 0.5 }} />
                     {!form.ogImage && <span className="position-absolute bottom-0 start-0 m-2 badge bg-dark bg-opacity-75">Page's own image</span>}
                     <div className="position-absolute top-0 end-0 p-2 d-flex gap-2">

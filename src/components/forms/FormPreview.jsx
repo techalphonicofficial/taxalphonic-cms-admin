@@ -1,11 +1,13 @@
 import React from 'react';
+import { useLiveOptionFields } from './optionSources';
 
 const INPUT_TYPES = { text: 'text', email: 'email', phone: 'tel', number: 'number', date: 'date' };
 
 // Renders a form definition the way the website will. `interactive` lets the
 // admin type into the preview; otherwise inputs are disabled (Page Builder block).
 const FormPreview = ({ form, interactive = false, compact = false }) => {
-  const fields = (form?.fields || []).filter(f => f.type !== 'hidden');
+  // "Options from" fields show the current site list, as on the website.
+  const fields = useLiveOptionFields(form?.fields || []).filter(f => f.type !== 'hidden');
   const disabled = !interactive;
 
   if (fields.length === 0) {
