@@ -82,6 +82,7 @@ export const secondaryMenuData = {
       items: [
         { label: 'All Landing Pages', path: '/landing-pages', icon: 'bi-window-stack', permission: { action: 'read', module: 'LandingPages' } },
         { label: 'New Landing Page', path: '/landing-pages/new', icon: 'bi-plus-circle', permission: { action: 'create', module: 'LandingPages' } },
+        { label: 'Thank-you Page & Tracking', path: '/landing-pages/thank-you', icon: 'bi-bullseye', permission: { action: 'read', module: 'LandingPages' } },
       ]
     }
   ],

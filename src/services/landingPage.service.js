@@ -22,6 +22,9 @@ export const LandingPageService = {
   // "My themes": custom colour themes shared by all landing pages.
   themes: () => api.get('/landing-pages/themes').then(data),
   saveThemes: (themes) => api.put('/landing-pages/themes', { themes }).then(data),
+  // Thank-you page after every landing form + the landing tracking codes.
+  thankYou: () => api.get('/landing-pages/thank-you').then(data),
+  saveThankYou: (body) => api.put('/landing-pages/thank-you', body).then(data),
 };
 
 /** "message" + field errors of a failed request, for a toast. */

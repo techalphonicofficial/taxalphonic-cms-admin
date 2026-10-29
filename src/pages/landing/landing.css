@@ -637,3 +637,88 @@
     flex: 0 0 240px;
   }
 }
+
+/* ---------- Thank-you page & tracking (LandingThankYou.jsx) ---------- */
+.lp-ty .lp-ty-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.lp-ty .lp-ty-example {
+  font-size: 11.5px;
+  background: var(--bs-tertiary-bg);
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+  user-select: all;
+}
+
+/* Website-look preview: stays light on purpose, like the website. */
+.lp-ty-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #5b6478;
+  background: #eef1f6;
+  border: 1px solid #e2e6ee;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  padding: 6px 10px;
+}
+
+.lp-ty-dot { width: 8px; height: 8px; border-radius: 50%; background: #0e96ac; }
+
+.lp-ty-preview-body {
+  background: radial-gradient(circle at 20% 0%, rgba(14, 150, 172, .1), transparent 55%), #f7f9fc;
+  border: 1px solid #e2e6ee;
+  border-radius: 0 0 10px 10px;
+  padding: 26px 16px;
+}
+
+.lp-ty-card {
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+  background: #fff;
+  color: #0a0e1a;
+  border: 1px solid #e6e8f0;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 14px 34px rgba(10, 14, 26, .07);
+}
+
+.lp-ty-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  border-radius: 50%;
+  background: #e1f3f6;
+}
+
+.lp-ty-h { font-weight: 800; font-size: 17px; line-height: 1.25; margin-bottom: 6px; }
+.lp-ty-msg { font-size: 12.5px; color: #5b6478; margin: 0 0 12px; }
+
+.lp-ty-steps {
+  text-align: left;
+  background: #f6fbfc;
+  border: 1px solid #e6e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.lp-ty-steps-t { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #0e96ac; margin-bottom: 6px; }
+.lp-ty-step { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-top: 4px; }
+.lp-ty-step span { flex: 0 0 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; font-size: 10px; font-weight: 800; color: #fff; background: #0e96ac; }
+.lp-ty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.lp-ty-btn { font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 8px; border: 1px solid #e6e8f0; color: #0a0e1a; background: #fff; }
+.lp-ty-btn.solid { background: #0e96ac; border-color: #0e96ac; color: #fff; }

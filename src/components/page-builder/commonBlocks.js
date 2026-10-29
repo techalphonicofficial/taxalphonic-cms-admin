@@ -17,6 +17,17 @@ export const COMMON_BLOCKS = [
   { type: 'CommonSpacer', label: 'Spacer / Divider', icon: 'bi-distribute-vertical' },
   { type: 'CommonEmbed', label: 'Map / Embed', icon: 'bi-geo-alt' },
   { type: 'CommonTool', label: 'Free Tool / Calculator', icon: 'bi-calculator' },
+  // From the reference design (uirefrence.html).
+  { type: 'CommonFormHero', label: 'Hero with Form', icon: 'bi-person-lines-fill' },
+  { type: 'CommonTextSide', label: 'Text + Side Card', icon: 'bi-layout-sidebar-reverse' },
+  { type: 'CommonTabs', label: 'Tabs', icon: 'bi-segmented-nav' },
+  { type: 'CommonTimeline', label: 'Timeline / Steps', icon: 'bi-signpost-split' },
+  { type: 'CommonCaseStudy', label: 'Case Study', icon: 'bi-graph-up-arrow' },
+  { type: 'CommonStory', label: 'Before → After Story', icon: 'bi-arrow-right-circle' },
+  { type: 'CommonAwards', label: 'Awards / Certifications', icon: 'bi-trophy' },
+  { type: 'CommonTrust', label: 'Trust Badges', icon: 'bi-shield-check' },
+  { type: 'CommonContact', label: 'Contact Card (call / WhatsApp)', icon: 'bi-telephone' },
+  { type: 'CommonMiniFaq', label: 'Quick FAQ', icon: 'bi-patch-question' },
 ];
 
 export const isCommonType = (type) => COMMON_BLOCKS.some(b => b.type === type);
@@ -109,6 +120,99 @@ export const COMMON_SCHEMAS = {
     ANCHOR,
     { key: 'placementNote', type: 'note', label: "Where it shows: use this block's Placement setting (Main content, Right sidebar, or full width above / below). In the right sidebar the calculator stacks into one column." },
   ],
+
+  // ---- From the reference design (uirefrence.html); website CommonBlocks.jsx ----
+  CommonFormHero: [
+    { key: 'kicker', label: 'Small pill above the heading', type: 'text', placeholder: '🎧 Free consultation · No obligation' },
+    { key: 'heading', label: 'Heading', type: 'text', width: 'col-md-8' },
+    { key: 'highlight', label: 'Highlighted words', type: 'text', width: 'col-md-4', hint: 'Must be the end of the heading.' },
+    { key: 'text', label: 'Text', type: 'textarea' },
+    { key: 'points', label: 'Points (icon, title, text)', type: 'list', addLabel: 'Add point', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'text', placeholder: 'Text', width: 'col-md-6' }] },
+    { key: 'chips', label: 'Trust chips', type: 'list', addLabel: 'Add chip', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'e.g. Callback within hours', width: 'col-md-9' }] },
+    { key: 'rating', label: 'Rating line (after ★★★★★)', type: 'text', width: 'col-12', placeholder: '4.8/5 from 2,100+ consultations' },
+    { key: 'formId', label: 'CMS form', type: 'form', hint: 'Shown in the card. Leads go to CRM → Leads.' },
+    { key: 'formSide', label: 'Form side', type: 'select', options: [{ value: 'right', label: 'Form on the right' }, { value: 'left', label: 'Form on the left' }] },
+    { key: 'formHeading', label: 'Form card heading', type: 'text' },
+    { key: 'formSub', label: 'Form card sub text', type: 'text' },
+    { key: 'formNote', label: 'Note under the form', type: 'text', width: 'col-12' },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Full width. On service and landing pages it goes under the hero (Top area) by default; it can also replace the hero look on a plain page.' },
+  ],
+  CommonTextSide: [
+    KICKER, HEADING,
+    { key: 'lead', label: 'Lead paragraph (bigger)', type: 'textarea' },
+    TEXT,
+    { key: 'cardTitle', label: 'Side card title', type: 'text' },
+    { key: 'button', label: 'Side card button', type: 'button' },
+    { key: 'points', label: 'Side card points', type: 'list', addLabel: 'Add point', fields: [{ key: 'icon', placeholder: 'Icon (empty = ✓)', width: 'col-md-3' }, { key: 'text', placeholder: 'Point', width: 'col-md-9' }] },
+    ANCHOR,
+  ],
+  CommonTabs: [
+    KICKER, HEADING, SUB,
+    { key: 'tabs', label: 'Tabs', type: 'list', addLabel: 'Add tab', hint: 'Text: a blank line starts a new paragraph; lines starting with "- " become a ticked list.', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'label', placeholder: 'Tab name', width: 'col-md-4' }, { key: 'heading', placeholder: 'Heading in the panel', width: 'col-md-6' }, { key: 'text', placeholder: 'Text', width: 'col-12', textarea: true }, { key: 'buttonText', placeholder: 'Button text (optional)', width: 'col-md-6' }, { key: 'buttonUrl', placeholder: 'Button link (#form, /page, tel:…)', width: 'col-md-6' }] },
+    ANCHOR,
+  ],
+  CommonTimeline: [
+    KICKER, HEADING, SUB,
+    { key: 'layout', label: 'Layout', type: 'select', options: [{ value: 'columns', label: 'Side by side (up to 4 per row)' }, { value: 'vertical', label: 'Down the page' }] },
+    { key: 'items', label: 'Steps', type: 'list', addLabel: 'Add step', fields: [{ key: 'icon', placeholder: 'Icon (empty = number)', width: 'col-md-3' }, { key: 'tag', placeholder: 'Tag (e.g. Past, Day 1)', width: 'col-md-3' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'color', type: 'color', width: 'col-md-2' }, { key: 'text', placeholder: 'Text', width: 'col-12', textarea: true }] },
+    ANCHOR,
+  ],
+  CommonCaseStudy: [
+    KICKER, HEADING,
+    { key: 'tag', label: 'Tag', type: 'text', placeholder: '📈 Client success story' },
+    { key: 'client', label: 'Client / business name', type: 'text' },
+    TEXT,
+    { key: 'stats', label: 'Result numbers', type: 'list', addLabel: 'Add number', fields: [{ key: 'value', placeholder: 'e.g. 40%', width: 'col-md-4' }, { key: 'label', placeholder: 'e.g. faster than expected', width: 'col-md-8' }] },
+    { key: 'note', label: 'Small note (optional)', type: 'text', width: 'col-12' },
+    ANCHOR,
+  ],
+  CommonStory: [
+    KICKER, HEADING,
+    { key: 'icon', label: 'Client icon', type: 'text', width: 'col-md-3' },
+    { key: 'client', label: 'Client / business', type: 'text', width: 'col-md-9' },
+    { key: 'before', label: 'Before', type: 'textarea' },
+    { key: 'did', label: 'What we did', type: 'textarea' },
+    { key: 'after', label: 'The result', type: 'textarea' },
+    { key: 'beforeLabel', label: 'Label: Before', type: 'text', width: 'col-md-4', placeholder: '😟 Before' },
+    { key: 'didLabel', label: 'Label: What we did', type: 'text', width: 'col-md-4', placeholder: '🛠️ What we did' },
+    { key: 'afterLabel', label: 'Label: Result', type: 'text', width: 'col-md-4', placeholder: '🎉 The result' },
+    { key: 'note', label: 'Small note (optional)', type: 'text', width: 'col-12' },
+    ANCHOR,
+  ],
+  CommonAwards: [
+    KICKER, HEADING, SUB,
+    { key: 'items', label: 'Awards / certifications', type: 'list', addLabel: 'Add item', fields: [{ key: 'icon', placeholder: 'Icon / image', width: 'col-md-3' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'text', placeholder: 'Small text', width: 'col-md-5' }] },
+    ANCHOR,
+  ],
+  CommonTrust: [
+    { key: 'heading', label: 'Title', type: 'text' },
+    { key: 'columns', label: 'Columns', type: 'select', options: ['1', '2', '3', '4'].map(v => ({ value: v, label: v === '2' ? '2 (default)' : v })) },
+    { key: 'items', label: 'Badges', type: 'list', addLabel: 'Add badge', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'e.g. Data encrypted', width: 'col-md-9' }] },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Small block: fits the right sidebar (Placement) next to a form.' },
+  ],
+  CommonContact: [
+    { key: 'icon', label: 'Icon', type: 'text', width: 'col-md-3' },
+    { key: 'heading', label: 'Heading', type: 'text', width: 'col-md-9' },
+    { key: 'text', label: 'Text', type: 'textarea' },
+    { key: 'button', label: 'Main button', type: 'button', width: 'col-12' },
+    { key: 'phone', label: 'Phone number', type: 'text', placeholder: '+91 88826 75689' },
+    { key: 'phoneText', label: 'Call link text (empty = the number)', type: 'text' },
+    { key: 'whatsapp', label: 'WhatsApp number (with country code)', type: 'text', placeholder: '918882675689' },
+    { key: 'whatsappText', label: 'WhatsApp link text', type: 'text', placeholder: 'Chat on WhatsApp' },
+    { key: 'whatsappMessage', label: 'WhatsApp first message', type: 'text', width: 'col-12', placeholder: 'Hi, I need help with…' },
+    { key: 'note', label: 'Small note', type: 'text', width: 'col-12' },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Small block: fits the right sidebar (Placement). Empty phone / WhatsApp = that link is hidden. On landing pages the WhatsApp link opens the form instead (landing pages never link away).' },
+  ],
+  CommonMiniFaq: [
+    { key: 'heading', label: 'Title', type: 'text' },
+    { key: 'firstOpen', label: 'First answer open', type: 'select', options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }] },
+    { key: 'items', label: 'Questions', type: 'list', addLabel: 'Add question', fields: [{ key: 'question', placeholder: 'Question', width: 'col-12' }, { key: 'answer', placeholder: 'Answer', width: 'col-12', textarea: true }] },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Small block: fits the right sidebar (Placement). For a full FAQ section use the FAQ block.' },
+  ],
 };
 
 // Starting content, so a new block shows something sensible straight away.
@@ -125,6 +229,85 @@ const DEFAULTS = {
   CommonSpacer: { size: 'md', line: 'no' },
   CommonEmbed: { kind: 'map', url: '', html: '', height: '420', kicker: '', heading: '', caption: '', anchorId: '' },
   CommonTool: { source: 'page', toolSlug: '', calculator: 'gst', kicker: 'Free tool', heading: 'Try our calculator', sub: '', button: { text: '', url: '' }, anchorId: '' },
+  // Reference design blocks: starting content taken from uirefrence.html.
+  CommonFormHero: {
+    kicker: '🎧 Free consultation · No obligation', heading: 'Talk to an expert — free', highlight: 'expert — free',
+    text: 'Get a free 15-minute call with a qualified CA, CS or lawyer. Clear, honest advice with no cost and no pressure.',
+    points: [
+      { icon: '🎯', title: 'Matched to your need', text: 'We assign the right expert for your requirement.' },
+      { icon: '⚡', title: 'Fast callback', text: 'We reach out within hours during working time.' },
+      { icon: '💸', title: 'Transparent quote', text: 'Clear, upfront pricing with no hidden charges.' },
+    ],
+    chips: [{ icon: '🔒', text: '100% confidential' }, { icon: '🇮🇳', text: 'Across India' }],
+    rating: '4.8/5 from 2,100+ consultations',
+    formId: '', formSide: 'right', formHeading: 'Request a callback', formSub: 'Share your details and we will call you back.', formNote: '🔒 Your details are safe. We never spam.', anchorId: '',
+  },
+  CommonTextSide: {
+    kicker: 'Why Tax Alphonic', heading: 'Running a business is hard. We make the paperwork easy.',
+    lead: 'Registrations, licences, tax filing and yearly compliance: most business owners find this confusing and time-consuming.',
+    text: 'We handle every legal, tax and compliance need your business has, from the idea to steady revenue. You stay focused on your business; we handle the paperwork.',
+    cardTitle: 'What you get', points: [{ icon: '', text: 'Real CA / CS experts' }, { icon: '', text: 'Transparent, upfront pricing' }, { icon: '', text: '100% online, no office visits' }],
+    button: { text: '🎧 Talk to an expert', url: '#form' }, anchorId: '',
+  },
+  CommonTabs: {
+    kicker: '', heading: 'Everything in one place', sub: '',
+    tabs: [
+      { icon: '📝', label: 'Overview', heading: 'What it is', text: 'Explain the service in a few lines.\n\n- Who needs it\n- What is included', buttonText: '', buttonUrl: '' },
+      { icon: '📂', label: 'Documents', heading: 'Documents you need', text: '- PAN and Aadhaar\n- Address proof\n- Business details', buttonText: '', buttonUrl: '' },
+      { icon: '⏱️', label: 'Timeline', heading: 'How long it takes', text: 'Most cases are done in 7–10 working days once the documents are ready.', buttonText: 'Get started', buttonUrl: '#form' },
+    ],
+    anchorId: '',
+  },
+  CommonTimeline: {
+    kicker: '', heading: 'How it has changed', sub: '', layout: 'columns',
+    items: [
+      { icon: '📜', tag: 'Past', title: 'Paper and office visits', text: 'Long queues, physical forms and weeks of waiting.', color: '#64748b' },
+      { icon: '⚡', tag: 'Present', title: 'Online filing', text: 'Most work is online, but the rules change often.', color: '#0e96ac' },
+      { icon: '🚀', tag: 'Future', title: 'Automated compliance', text: 'Reminders and filings handled for you, on time.', color: '#16a34a' },
+    ],
+    anchorId: '',
+  },
+  CommonCaseStudy: {
+    kicker: 'Real results', heading: 'Case study', tag: '📈 Client success story', client: '',
+    text: 'A growing business came to us worried about delays, paperwork and hidden costs. Our team handled everything end to end and delivered ahead of schedule.',
+    stats: [{ value: '40%', label: 'faster than expected' }, { value: '₹0', label: 'hidden charges' }, { value: '100%', label: 'compliant outcome' }],
+    note: '', anchorId: '',
+  },
+  CommonStory: {
+    kicker: 'A real example', heading: 'How we helped', icon: '🏪', client: 'A small retail business',
+    before: 'Unsure which registrations applied and worried about penalties.',
+    did: 'Mapped every requirement, prepared the documents and filed everything.',
+    after: 'Fully compliant in two weeks, with reminders set for every due date.',
+    beforeLabel: '', didLabel: '', afterLabel: '', note: '', anchorId: '',
+  },
+  CommonAwards: {
+    kicker: '', heading: 'Recognised & trusted', sub: '',
+    items: [
+      { icon: '🏆', title: 'Top Rated', text: 'Business services 2025' },
+      { icon: '🛡️', title: 'ISO 27001', text: 'Data security certified' },
+      { icon: '⭐', title: '4.8/5 Rating', text: '2,100+ reviews' },
+      { icon: '🤝', title: 'Startup India', text: 'Recognised partner' },
+    ],
+    anchorId: '',
+  },
+  CommonTrust: {
+    heading: '🔒 Safe & trusted', columns: '2',
+    items: [{ icon: '🛡️', text: 'Data encrypted' }, { icon: '👨‍💼', text: 'CA/CS verified' }, { icon: '💯', text: 'No hidden fees' }, { icon: '🔁', text: 'Free revisions' }],
+    anchorId: '',
+  },
+  CommonContact: {
+    icon: '🎧', heading: 'Need help right now?', text: 'Talk to an expert for free. No cost, no obligation.',
+    button: { text: 'Get a call back', url: '#form' }, phone: '', phoneText: '', whatsapp: '', whatsappText: 'Chat on WhatsApp', whatsappMessage: 'Hi, I need help', note: '', anchorId: '',
+  },
+  CommonMiniFaq: {
+    heading: '❓ Quick answers', firstOpen: 'no',
+    items: [
+      { question: 'How long does it take?', answer: 'Usually 7–10 working days, depending on documents and government processing.' },
+      { question: 'Is the process fully online?', answer: 'Yes. Everything is handled online.' },
+      { question: 'What if my documents are missing?', answer: 'Our experts give you a personalised checklist so nothing is missed.' },
+    ],
+    anchorId: '',
+  },
 };
 
 export const commonDefaultPayload = (type) => JSON.parse(JSON.stringify(DEFAULTS[type] || {}));

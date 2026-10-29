@@ -103,3 +103,9 @@ textarea::placeholder {
     vertical-align: top;
   }
 }
+
+// Block preview popup (page-builder/BlockPreviewModal.jsx): wide enough for the desktop layout.
+.modal-dialog.pb-block-preview-modal {
+  --bs-modal-width: min(1400px, 96vw);
+  max-width: min(1400px, 96vw);
+}

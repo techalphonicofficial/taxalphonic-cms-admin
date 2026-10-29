@@ -194,11 +194,16 @@ const LandingPagesList = () => {
           <h4 className="mb-1 fw-bold">Landing Pages</h4>
           <p className="text-muted mb-0">Service landing pages at services.taxalphonic.com/lp/&lt;name&gt;, built with the Page Builder.</p>
         </div>
+        <div className="d-flex flex-wrap gap-2">
+        <Link to="/landing-pages/thank-you" className="btn btn-outline-secondary rounded-pill px-3 fw-medium">
+          <i className="bi bi-bullseye me-2"></i>Thank-you page &amp; tracking
+        </Link>
         {canLanding('create') && (
           <Link to="/landing-pages/new" className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
             <i className="bi bi-plus-lg me-2"></i>New Landing Page
           </Link>
         )}
+        </div>
       </div>
 
       <div className="lp-views">

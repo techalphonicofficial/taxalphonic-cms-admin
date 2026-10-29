@@ -96,6 +96,7 @@ export const ROUTES = [
   ...crud('/forms', M.forms),
   { path: '/landing-pages', action: 'read', module: M.landing },
   { path: '/landing-pages/new', action: 'create', module: M.landing },
+  { path: '/landing-pages/thank-you', action: 'read', module: M.landing },
   { path: '/landing-pages/edit/:id', action: 'read', module: M.landing },
   { path: '/blogs/dashboard', action: 'read', module: M.blogs },
   { path: '/blogs/comments', action: 'read', module: M.blogs },

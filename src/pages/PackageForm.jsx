@@ -6,6 +6,28 @@ import api from '../services/api';
 import IncludedServices from '../components/packages/IncludedServices';
 import '../components/common/PremiumForms.css';
 
+// A plan's details (saved as plan.keywords, the field older SEO packages used for "10 Keywords").
+// The website shows one line as text and several lines as a ticked list (PackagesBlock PlanDetails).
+const PlanDetailsInput = ({ value, onChange, category }) => {
+  const cat = (category || '').toLowerCase();
+  const example = cat.includes('smo') || cat.includes('social media')
+    ? 'e.g. Facebook + Instagram\n12 posts a month'
+    : cat.includes('seo') ? 'e.g. 10 keywords\nMonthly ranking report' : 'e.g. Document review\nApplication filing\nCertificate in 7 days';
+  const lines = String(value || '').split('\n').length;
+  return (
+    <div className="mt-2">
+      <textarea
+        className="form-control form-control-sm"
+        rows={Math.min(8, Math.max(2, lines))}
+        placeholder={example}
+        value={value || ''}
+        onChange={e => onChange(e.target.value)}
+      />
+      <div className="form-text mt-1">Details under the price (optional). Press Enter for a new line; several lines show as a ticked list on the website.</div>
+    </div>
+  );
+};
+
 const PackageForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -452,12 +474,15 @@ const PackageForm = () => {
 
                           <h6>Pricing Plans</h6>
                           {tier.pricingPlans.map((plan, pIdx) => (
-                            <div key={pIdx} className="d-flex gap-2 mb-2 align-items-center bg-white p-2 border rounded">
-                              <input type="text" className="form-control form-control-sm" placeholder="Duration (e.g. 1 Month)" value={plan.duration} onChange={e => updatePlanInTier(tIdx, pIdx, 'duration', e.target.value)} />
-                              <input type="text" className="form-control form-control-sm" placeholder="Price (₹)" value={plan.monthlyPrice} onChange={e => updatePlanInTier(tIdx, pIdx, 'monthlyPrice', e.target.value)} />
-                              <input type="text" className="form-control form-control-sm" placeholder="Original (₹)" value={plan.originalTotal} onChange={e => updatePlanInTier(tIdx, pIdx, 'originalTotal', e.target.value)} />
-                              <input type="text" className="form-control form-control-sm" placeholder="Save %" value={plan.savePercentage} onChange={e => updatePlanInTier(tIdx, pIdx, 'savePercentage', e.target.value)} />
-                              <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removePlanFromTier(tIdx, pIdx)}><i className="bi bi-x-lg"></i></button>
+                            <div key={pIdx} className="mb-2 bg-white p-2 border rounded">
+                              <div className="d-flex gap-2 align-items-center">
+                                <input type="text" className="form-control form-control-sm" placeholder="Duration (e.g. 1 Month)" value={plan.duration} onChange={e => updatePlanInTier(tIdx, pIdx, 'duration', e.target.value)} />
+                                <input type="text" className="form-control form-control-sm" placeholder="Price (₹)" value={plan.monthlyPrice} onChange={e => updatePlanInTier(tIdx, pIdx, 'monthlyPrice', e.target.value)} />
+                                <input type="text" className="form-control form-control-sm" placeholder="Original (₹)" value={plan.originalTotal} onChange={e => updatePlanInTier(tIdx, pIdx, 'originalTotal', e.target.value)} />
+                                <input type="text" className="form-control form-control-sm" placeholder="Save %" value={plan.savePercentage} onChange={e => updatePlanInTier(tIdx, pIdx, 'savePercentage', e.target.value)} />
+                                <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removePlanFromTier(tIdx, pIdx)} title="Remove plan"><i className="bi bi-x-lg"></i></button>
+                              </div>
+                              <PlanDetailsInput value={plan.keywords} onChange={v => updatePlanInTier(tIdx, pIdx, 'keywords', v)} category={formData.category} />
                             </div>
                           ))}
                           <button type="button" className="btn btn-sm btn-secondary mt-2" onClick={() => addPlanToTier(tIdx)}>
@@ -472,15 +497,15 @@ const PackageForm = () => {
                   ) : (
                     <div>
                       {pricingPlans.map((plan, pIdx) => (
-                        <div key={pIdx} className="d-flex gap-2 mb-2 align-items-center bg-light p-2 border rounded">
-                          <input type="text" className="form-control form-control-sm" placeholder="Duration" value={plan.duration} onChange={e => updatePlan(pIdx, 'duration', e.target.value)} />
-                          {!(formData.category?.toLowerCase()?.includes('design') || formData.category?.toLowerCase()?.includes('development')) && (
-                          <input type="text" className="form-control form-control-sm" placeholder={(formData.category?.toLowerCase()?.includes('smo') || formData.category?.toLowerCase()?.includes('social media')) ? "Platforms (optional)" : "Keywords (optional)"} value={plan.keywords} onChange={e => updatePlan(pIdx, 'keywords', e.target.value)} />
-                          )}
-                          <input type="text" className="form-control form-control-sm" placeholder="Price (₹)" value={plan.monthlyPrice} onChange={e => updatePlan(pIdx, 'monthlyPrice', e.target.value)} />
-                          <input type="text" className="form-control form-control-sm" placeholder="Original (₹)" value={plan.originalTotal} onChange={e => updatePlan(pIdx, 'originalTotal', e.target.value)} />
-                          <input type="text" className="form-control form-control-sm" placeholder="Save %" value={plan.savePercentage} onChange={e => updatePlan(pIdx, 'savePercentage', e.target.value)} />
-                          <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removePlan(pIdx)}><i className="bi bi-trash"></i></button>
+                        <div key={pIdx} className="mb-2 bg-light p-2 border rounded">
+                          <div className="d-flex gap-2 align-items-center">
+                            <input type="text" className="form-control form-control-sm" placeholder="Plan name / duration" value={plan.duration} onChange={e => updatePlan(pIdx, 'duration', e.target.value)} />
+                            <input type="text" className="form-control form-control-sm" placeholder="Price (₹)" value={plan.monthlyPrice} onChange={e => updatePlan(pIdx, 'monthlyPrice', e.target.value)} />
+                            <input type="text" className="form-control form-control-sm" placeholder="Original (₹)" value={plan.originalTotal} onChange={e => updatePlan(pIdx, 'originalTotal', e.target.value)} />
+                            <input type="text" className="form-control form-control-sm" placeholder="Save %" value={plan.savePercentage} onChange={e => updatePlan(pIdx, 'savePercentage', e.target.value)} />
+                            <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removePlan(pIdx)} title="Remove plan"><i className="bi bi-trash"></i></button>
+                          </div>
+                          <PlanDetailsInput value={plan.keywords} onChange={v => updatePlan(pIdx, 'keywords', v)} category={formData.category} />
                         </div>
                       ))}
                       <button type="button" className="btn btn-outline-primary mt-2" onClick={addPlan}>

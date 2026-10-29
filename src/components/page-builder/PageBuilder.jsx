@@ -15,6 +15,7 @@ import {
   homeDropError, homeRows, insertInFlat, serviceDropError, servicePlacementOf, serviceZones
 } from './layoutZones';
 import { confirmDialog } from '../common/confirm';
+import BlockPreviewModal from './BlockPreviewModal';
 
 const AVAILABLE_BLOCKS = [
   { type: 'HeroBanner', label: 'Hero Banner', icon: 'bi-image' },
@@ -181,6 +182,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     .map(g => ({ ...g, items: query ? g.items.filter(b => `${b.label} ${b.type}`.toLowerCase().includes(query)) : g.items }))
     .filter(g => g.items.length);
   const [sections, setSections] = useState(initialSections);
+  // Eye button on a block: that block alone in a popup, as the website renders it (unsaved edits included).
+  const [previewId, setPreviewId] = useState(null);
   // Accordion: only one block is open at a time; null = all collapsed.
   const [openId, setOpenId] = useState(null);
   const [scrollToId, setScrollToId] = useState(null);
@@ -430,6 +433,9 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                 </button>
               </div>
               <div className="d-flex align-items-center gap-1 flex-shrink-0">
+                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => setPreviewId(section.id)} title="Preview this block" aria-label={`Preview ${meta?.label || section.type}`}>
+                  <i className="bi bi-eye text-primary"></i>
+                </button>
                 <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, -1)} disabled={position === 0} title="Move Up">
                   <i className="bi bi-arrow-up text-secondary"></i>
                 </button>
@@ -715,6 +721,13 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         </div>
       </div>
     </DragDropContext>
+    <BlockPreviewModal
+      section={sections.find((s) => s.id === previewId) || null}
+      sections={sections}
+      blockSet={blockSet}
+      label={(() => { const s = sections.find((x) => x.id === previewId); return s ? (BLOCK_META[s.type]?.label || s.type) : ''; })()}
+      onHide={() => setPreviewId(null)}
+    />
     </LinkPolicyContext.Provider>
   );
 };
