@@ -113,13 +113,13 @@ function App() {
             <Route path="pages/categories/new" element={<RoutePermission action="create" module="PageCategories"><PageCategoryForm key="new" /></RoutePermission>} />
             <Route path="pages/categories/edit/:id" element={<RoutePermission action="update" module="PageCategories"><PageCategoryForm key="edit" /></RoutePermission>} />
 
-            <Route path="pages/menus" element={<RoutePermission action="read" module="Menus"><MenusList /></RoutePermission>} />
-            <Route path="pages/menus/new" element={<RoutePermission action="create" module="Menus"><MenuBuilder key="new" /></RoutePermission>} />
-            <Route path="pages/menus/edit/:id" element={<RoutePermission action="update" module="Menus"><MenuBuilder key="edit" /></RoutePermission>} />
+            <Route path="pages/menus" element={<RoutePermission action="read" module={['CMS', 'Menus']}><MenusList /></RoutePermission>} />
+            <Route path="pages/menus/new" element={<RoutePermission action="create" module={['CMS', 'Menus']}><MenuBuilder key="new" /></RoutePermission>} />
+            <Route path="pages/menus/edit/:id" element={<RoutePermission action="update" module={['CMS', 'Menus']}><MenuBuilder key="edit" /></RoutePermission>} />
 
-            <Route path="services/categories" element={<RoutePermission action="read" module="ServiceCategories"><ServiceCategoriesList /></RoutePermission>} />
-            <Route path="services/categories/new" element={<RoutePermission action="create" module="ServiceCategories"><ServiceCategoryForm key="new" /></RoutePermission>} />
-            <Route path="services/categories/edit/:id" element={<RoutePermission action="update" module="ServiceCategories"><ServiceCategoryForm key="edit" /></RoutePermission>} />
+            <Route path="services/categories" element={<RoutePermission action="read" module={['Services', 'ServiceCategories']}><ServiceCategoriesList /></RoutePermission>} />
+            <Route path="services/categories/new" element={<RoutePermission action="create" module={['Services', 'ServiceCategories']}><ServiceCategoryForm key="new" /></RoutePermission>} />
+            <Route path="services/categories/edit/:id" element={<RoutePermission action="update" module={['Services', 'ServiceCategories']}><ServiceCategoryForm key="edit" /></RoutePermission>} />
 
             <Route path="packages" element={<RoutePermission action="read" module="Packages"><PackagesList /></RoutePermission>} />
             <Route path="packages/new" element={<RoutePermission action="create" module="Packages"><PackageForm key="new" /></RoutePermission>} />
@@ -157,9 +157,9 @@ function App() {
             <Route path="blogs/edit/:id" element={<RoutePermission action="update" module="Blogs"><BlogForm key="edit" /></RoutePermission>} />
             <Route path="blogs/comments" element={<RoutePermission action="read" module="Blogs"><BlogComments /></RoutePermission>} />
 
-            <Route path="blog-categories" element={<RoutePermission action="read" module="Blogs"><BlogCategoriesList /></RoutePermission>} />
-            <Route path="blog-categories/new" element={<RoutePermission action="create" module="Blogs"><BlogCategoryForm key="new" /></RoutePermission>} />
-            <Route path="blog-categories/edit/:id" element={<RoutePermission action="update" module="Blogs"><BlogCategoryForm key="edit" /></RoutePermission>} />
+            <Route path="blog-categories" element={<RoutePermission action="read" module={['Blogs', 'BlogCategories']}><BlogCategoriesList /></RoutePermission>} />
+            <Route path="blog-categories/new" element={<RoutePermission action="create" module={['Blogs', 'BlogCategories']}><BlogCategoryForm key="new" /></RoutePermission>} />
+            <Route path="blog-categories/edit/:id" element={<RoutePermission action="update" module={['Blogs', 'BlogCategories']}><BlogCategoryForm key="edit" /></RoutePermission>} />
             <Route path="blog-tags" element={<BlogTagsList />} />
             <Route path="blog-tags/new" element={<BlogTagForm key="new" />} />
             <Route path="blog-tags/edit/:id" element={<BlogTagForm key="edit" />} />

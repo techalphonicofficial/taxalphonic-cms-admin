@@ -3,17 +3,15 @@ import clsx from 'clsx';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSidebar } from '../../../context/SidebarContext';
 import { useTheme } from '../../../context/ThemeContext';
-import { railMenuData } from '../../../config/menuConfig';
+import { railMenuData, secondaryMenuData } from '../../../config/menuConfig';
+import { canOpen } from '../../../utils/permissions';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { AuthService } from '../../../services/auth.service';
 
-const hasPermission = (permission) => {
-    if (!permission) return true;
-    const user = AuthService.getCurrentUser();
-    if (!user) return false;
-    if (user.role?.name === 'Admin') return true;
-    const permissions = user.role?.permissions || [];
-    return permissions.some(p => p.action === permission.action && p.module === permission.module);
+// A rail item shows when the user may open one of its pages (utils/permissions.js ROUTES); its click
+// opens its own page, or the first page of its menu the user may open.
+const openablePaths = (item) => {
+  const children = (secondaryMenuData[item.id] || []).flatMap((group) => group.items.map((i) => i.path));
+  return [item.path, ...children].filter((path) => path && canOpen(path));
 };
 
 const RailMenu = () => {
@@ -25,12 +23,11 @@ const RailMenu = () => {
     e.preventDefault();
     setActiveRailItem(item.id);
     setIsSecondarySidebarOpen(true);
-    if (item.path) {
-      navigate(item.path);
-    }
+    const target = openablePaths(item)[0];
+    if (target) navigate(target);
   };
 
-  const filteredRailMenuData = railMenuData.filter(item => hasPermission(item.permission));
+  const filteredRailMenuData = railMenuData.filter((item) => openablePaths(item).length > 0);
 
   return (
     <div className="rail-menu d-flex flex-column flex-shrink-0 align-items-center py-3 bg-body shadow-sm position-relative" style={{ zIndex: 1060 }}>

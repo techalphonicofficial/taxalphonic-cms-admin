@@ -11,6 +11,7 @@ import { FormService } from '../../services/form.service';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { confirmDialog, confirmDelete } from '../../components/common/confirm';
+import PermLink from '../../components/common/PermLink';
 
 const PAGE_SIZE = 50;
 const VIEW_KEY = 'formsListView';
@@ -57,7 +58,7 @@ const FormCards = ({ reloadKey, onPreview, onDuplicate, onDelete }) => {
           <div className="text-center py-5 text-muted border border-dashed rounded">
             <i className="bi bi-ui-checks display-5"></i>
             <p className="mt-3 mb-3">{search || status ? 'No forms match your filters.' : 'No forms yet.'}</p>
-            <Link to="/forms/new" className="premium-btn-primary"><i className="bi bi-plus-lg me-2"></i> Create Form</Link>
+            <PermLink to="/forms/new" className="premium-btn-primary"><i className="bi bi-plus-lg me-2"></i> Create Form</PermLink>
           </div>
         )}
 
@@ -67,7 +68,7 @@ const FormCards = ({ reloadKey, onPreview, onDuplicate, onDelete }) => {
               <div className="card h-100 border shadow-sm rounded-4 overflow-hidden">
                 <div className="card-header bg-transparent d-flex justify-content-between align-items-start gap-2 py-3">
                   <div style={{ minWidth: 0 }}>
-                    <Link to={`/forms/edit/${form.id}`} className="fw-bold text-decoration-none d-block text-truncate">{form.name}</Link>
+                    <PermLink asText to={`/forms/edit/${form.id}`} className="fw-bold text-decoration-none d-block text-truncate">{form.name}</PermLink>
                     <code className="small text-muted">{form.slug}</code>
                   </div>
                   <StatusBadge status={form.status} />
@@ -92,7 +93,7 @@ const FormCards = ({ reloadKey, onPreview, onDuplicate, onDelete }) => {
                   <Link to={`/crm/leads?formId=${form.id}`} className="text-decoration-none"><i className="bi bi-inbox me-1"></i>{form.submissionCount || 0} leads</Link>
                   <div className="ms-auto d-flex gap-1">
                     <button type="button" className="btn btn-sm btn-light" title="Preview" onClick={() => onPreview(form)}><i className="bi bi-eye"></i></button>
-                    <Link to={`/forms/edit/${form.id}`} className="btn btn-sm btn-light" title="Edit"><i className="bi bi-pencil"></i></Link>
+                    <PermLink to={`/forms/edit/${form.id}`} className="btn btn-sm btn-light" title="Edit"><i className="bi bi-pencil"></i></PermLink>
                     <button type="button" className="btn btn-sm btn-light" title="Duplicate" onClick={() => onDuplicate(form)}><i className="bi bi-files"></i></button>
                     <button type="button" className="btn btn-sm btn-light text-danger" title="Delete" onClick={() => onDelete(form)}><i className="bi bi-trash"></i></button>
                   </div>
@@ -207,7 +208,7 @@ const FormsList = () => {
       header: 'Form Name',
       cell: ({ row }) => (
         <div>
-          <Link to={`/forms/edit/${row.original.id}`} className="fw-semibold text-decoration-none">{row.original.name}</Link>
+          <PermLink asText to={`/forms/edit/${row.original.id}`} className="fw-semibold text-decoration-none">{row.original.name}</PermLink>
           {row.original.description && <div className="text-muted small text-truncate" style={{ maxWidth: 320 }}>{row.original.description}</div>}
         </div>
       ),
@@ -285,9 +286,9 @@ const FormsList = () => {
               <i className="bi bi-grid-3x2-gap"></i>
             </button>
           </div>
-          <Link to="/forms/new" className="premium-btn-primary">
+          <PermLink to="/forms/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Create Form
-          </Link>
+          </PermLink>
         </div>
       </div>
 

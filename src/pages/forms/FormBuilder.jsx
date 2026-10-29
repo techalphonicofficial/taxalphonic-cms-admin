@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Breadcrumb from '../../components/common/Breadcrumb';
+import SlugStatus from '../../components/common/SlugStatus';
 import FormPreview from '../../components/forms/FormPreview';
 import { publicFormEndpoints } from '../../components/forms/formEmbed';
 import { FormService } from '../../services/form.service';
@@ -677,6 +678,7 @@ const FormBuilder = () => {
                     <label className="form-label fw-semibold">Slug</label>
                     <input type="text" className="form-control font-monospace" value={meta.slug} onChange={e => setMeta(m => ({ ...m, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))} placeholder="auto-generated from name" />
                     <div className="form-text">Used by the website: <code>/forms/public/{meta.slug || 'your-slug'}</code></div>
+                    <SlugStatus type="form" slug={meta.slug} id={id} prefix="" onUseSuggestion={(next) => setMeta((m) => ({ ...m, slug: next }))} />
                   </div>
                   <div className="col-12">
                     <label className="form-label fw-semibold">Description</label>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
+import SlugStatus from '../../components/common/SlugStatus';
 import { BlogTagsService } from '../../services/blogTag.service';
 
 const BlogTagForm = () => {
@@ -123,6 +124,7 @@ const BlogTagForm = () => {
                   required 
                   maxLength="255"
                 />
+                <SlugStatus type="blog_tag" slug={formData.slug} id={id} prefix="" onUseSuggestion={(next) => setFormData((f) => ({ ...f, slug: next }))} />
               </div>
 
               <div className="col-md-4">

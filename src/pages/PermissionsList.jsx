@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import HasPermission from '../components/common/HasPermission';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 // The list API returns 10 rows by default: the grid pages on the server (useServerList), the
 // module filter and the counts come from one call for all permissions (module + action only).
@@ -85,9 +86,9 @@ const PermissionsList = () => {
             {modules.map(([name, count]) => <option key={name} value={name}>{name} ({count})</option>)}
           </select>
           <HasPermission action="create" module="Permissions">
-            <Link to="/permissions/new" className="btn btn-primary rounded-pill px-4 text-nowrap">
+            <PermLink to="/permissions/new" className="btn btn-primary rounded-pill px-4 text-nowrap">
               <i className="bi bi-plus-lg me-2"></i> Add Permission
-            </Link>
+            </PermLink>
           </HasPermission>
         </div>
       </div>

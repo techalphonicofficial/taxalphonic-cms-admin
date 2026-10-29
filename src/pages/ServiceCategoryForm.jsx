@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import SearchableSelect from '../components/common/SearchableSelect';
 import Breadcrumb from '../components/common/Breadcrumb';
+import SlugStatus from '../components/common/SlugStatus';
 import { ServiceCategoryService } from '../services/serviceCategory.service';
 import JoditEditor from 'jodit-react';
 import { useTheme } from '../context/ThemeContext';
@@ -171,6 +172,7 @@ const ServiceCategoryForm = () => {
                   required 
                   maxLength="255"
                 />
+                <SlugStatus type="service_category" slug={formData.slug} id={id} prefix="" onUseSuggestion={(next) => setFormData((f) => ({ ...f, slug: next }))} />
               </div>
 
               <div className="col-md-6">

@@ -9,7 +9,9 @@ import { AuthService } from '../services/auth.service';
 import { useTheme } from '../context/ThemeContext';
 import { SITE_URL } from '../config/siteUrl';
 import { STORAGE_LABELS } from '../utils/storageLabels';
+import { M, can as canDo, canOpen } from '../utils/permissions';
 import './Dashboard.css';
+import PermLink from '../components/common/PermLink';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Filler);
 
@@ -51,13 +53,11 @@ const statusOf = (status) => LEAD_STATUS.find((s) => s.key === String(status || 
 
 const ACTIVITY_ICON = { CREATE: 'bi-plus-lg', UPDATE: 'bi-pencil', DELETE: 'bi-trash3', RESTORE: 'bi-arrow-counterclockwise', LOGIN: 'bi-box-arrow-in-right' };
 
+// Dashboard names → the modules the backend accepts for them (utils/permissions.js M).
+const ALIAS = { CRM: M.leads, CMS: M.pages, Portfolio: M.portfolioItems };
+
 function useCan() {
-  return useMemo(() => {
-    const user = AuthService.getCurrentUser();
-    const isAdmin = user?.role?.name === 'Admin';
-    const perms = user?.role?.permissions || [];
-    return (module, action = 'read') => !module || isAdmin || perms.some((p) => p.module === module && p.action === action);
-  }, []);
+  return (module, action = 'read') => !module || canDo(action, ALIAS[module] || module);
 }
 
 const Panel = ({ title, icon, link, linkText = 'View all', children, className = '', bodyClass = '' }) => (
@@ -107,11 +107,11 @@ const ServiceList = ({ rows }) => (rows.length ? (
   <ul className="dash-rows">
     {rows.map((s) => (
       <li key={s.id}>
-        <Link to={`/services/edit/${s.id}`}>
+        <PermLink asText to={`/services/edit/${s.id}`}>
           <span className={`dash-status ${s.status}`} title={s.status}></span>
           <span>{s.title}</span>
           <small>{timeAgo(s.updatedAt)}</small>
-        </Link>
+        </PermLink>
       </li>
     ))}
   </ul>
@@ -224,7 +224,7 @@ const Dashboard = () => {
     { label: 'Write blog', icon: 'bi-pencil-square', to: '/blogs/new', module: 'Blogs', action: 'create' },
     { label: 'SEO pages', icon: 'bi-diagram-3', to: '/seo-pages/new', module: 'SEO', action: 'create' },
     { label: 'Upload media', icon: 'bi-cloud-arrow-up', to: '/media', module: 'Media', action: 'create' },
-  ].filter((a) => can(a.module, a.action));
+  ].filter((a) => canOpen(a.to) && can(a.module, a.action));
 
   const attentionRows = [
     { show: can('CRM'), icon: 'bi-bell', tone: 'teal', label: 'New enquiries waiting', value: todo.newLeads, to: '/crm/leads?status=NEW' },
@@ -233,7 +233,7 @@ const Dashboard = () => {
     { show: can('Services'), icon: 'bi-search', tone: 'violet', label: 'Live services missing SEO title / description', value: todo.servicesWithoutSeo, to: '/services?status=published' },
     { show: can('SEO'), icon: 'bi-geo-alt', tone: 'blue', label: 'Draft SEO location pages', value: todo.draftSeoPages, to: '/seo-pages' },
     { show: can('Blogs'), icon: 'bi-journal', tone: 'pink', label: 'Draft blog posts', value: todo.draftBlogs, to: '/blogs' },
-    { show: true, icon: 'bi-trash3', tone: 'slate', label: 'Items in Trash', value: todo.trash, to: '/trash' },
+    { show: canOpen('/trash'), icon: 'bi-trash3', tone: 'slate', label: 'Items in Trash', value: todo.trash, to: '/trash' },
   ].filter((r) => r.show && r.value > 0);
 
   const library = [
@@ -271,7 +271,8 @@ const Dashboard = () => {
         { module: 'Media', to: '/media', icon: 'bi-folder2', tone: 'green', label: 'Media folders', value: media.folders },
       ],
     },
-  ].map((g) => ({ ...g, tiles: g.tiles.filter((t) => can(t.module)) })).filter((g) => g.tiles.length);
+  // A tile shows when its list page may be opened (utils/permissions.js ROUTES).
+  ].map((g) => ({ ...g, tiles: g.tiles.filter((t) => canOpen(t.to)) })).filter((g) => g.tiles.length);
 
   return (
     <div className="ta-dash">
@@ -453,7 +454,7 @@ const Dashboard = () => {
                 <ul className="dash-rows">
                   {leads.byForm.map((f) => (
                     <li key={f.formId}>
-                      <Link to={`/forms/edit/${f.formId}`}><i className="bi bi-ui-checks"></i><span>{f.name}</span><b>{fmt(f.count)}</b></Link>
+                      <PermLink asText to={`/forms/edit/${f.formId}`}><i className="bi bi-ui-checks"></i><span>{f.name}</span><b>{fmt(f.count)}</b></PermLink>
                     </li>
                   ))}
                 </ul>
@@ -525,7 +526,7 @@ const Dashboard = () => {
               <div className="dash-subhead">Most read blog posts</div>
               <ul className="dash-rows">
                 {topBlogs.map((b) => (
-                  <li key={b.id}><Link to={`/blogs/edit/${b.id}`}><i className="bi bi-journal-text"></i><span>{b.title}</span><b>{fmt(b.viewCount)} views</b></Link></li>
+                  <li key={b.id}><PermLink asText to={`/blogs/edit/${b.id}`}><i className="bi bi-journal-text"></i><span>{b.title}</span><b>{fmt(b.viewCount)} views</b></PermLink></li>
                 ))}
               </ul>
             </>

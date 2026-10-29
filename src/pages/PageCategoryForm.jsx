@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
+import SlugStatus from '../components/common/SlugStatus';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
@@ -11,7 +12,7 @@ const PageCategoryForm = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
       name: '',
       slug: '',
@@ -104,6 +105,7 @@ const PageCategoryForm = () => {
                       placeholder="Auto-generated if left blank"
                     />
                     <div className="form-text">e.g. legal-pages</div>
+                    <SlugStatus type="page_category" slug={watch('slug')} id={id} prefix="" onUseSuggestion={(next) => setValue('slug', next, { shouldDirty: true })} />
                   </div>
                 </div>
 

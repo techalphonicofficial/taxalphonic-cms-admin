@@ -12,6 +12,7 @@ import { BlogAuthorsService } from '../../services/blogAuthor.service';
 import PageBuilder from '../../components/page-builder/PageBuilder';
 import MediaPickerModal from '../../components/media/MediaPickerModal';
 import ImageSizeHint from '../../components/common/ImageSizeHint';
+import SlugStatus from '../../components/common/SlugStatus';
 import '../../components/common/PremiumForms.css';
 
 const BlogForm = () => {
@@ -309,6 +310,13 @@ const BlogForm = () => {
                           />
                         </div>
                         {errors.slug && <div className="invalid-feedback d-block">{errors.slug.message}</div>}
+                        <SlugStatus
+                          type="blog"
+                          slug={watch('slug')}
+                          id={id}
+                          prefix="/blog/"
+                          onUseSuggestion={(next) => setValue('slug', next, { shouldValidate: true, shouldDirty: true })}
+                        />
                       </div>
 
                       <div className="mb-3">

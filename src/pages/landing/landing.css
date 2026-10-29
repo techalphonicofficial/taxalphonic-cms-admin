@@ -508,3 +508,132 @@
   background: var(--d);
   color: rgba(255, 255, 255, 0.8);
 }
+
+/* Layout cards with a Preview button (LayoutPicker onPreview) */
+.lp-layout-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lp-layout-wrap > .lp-layout {
+  flex: 1 1 auto;
+}
+
+.lp-layout-preview-btn {
+  align-self: stretch;
+  padding: 0.3rem 0.5rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 0.6rem;
+  background: var(--bs-tertiary-bg);
+  color: var(--bs-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.lp-layout-preview-btn:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--bs-primary);
+}
+
+/* Layout window with live preview (LayoutPreviewModal) */
+/* Bootstrap sizes .modal-xl through --bs-modal-width (1140px): wide enough that the preview shows
+   the desktop page (side-by-side hero, sidebar), not the tablet stack. */
+.modal-dialog.lp-layout-preview-modal {
+  --bs-modal-width: min(1500px, 96vw);
+  max-width: min(1500px, 96vw);
+}
+
+.lp-lpm {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  /* Header + footer of the window stay on screen: the body takes the rest. */
+  height: calc(100vh - 3.5rem - 140px);
+  min-height: 420px;
+}
+
+.lp-lpm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-right: 1px solid var(--bs-border-color);
+  background: var(--bs-tertiary-bg);
+  overflow-y: auto;
+}
+
+.lp-lpm-item {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  padding: 0.5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.lp-lpm-item:hover {
+  border-color: var(--bs-primary);
+}
+
+.lp-lpm-item.active {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.18);
+}
+
+.lp-lpm-item .lp-sk {
+  min-height: 104px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.lp-lpm-item .lp-sk-box {
+  font-size: 0.5rem;
+  padding: 1px 2px;
+  min-height: 0;
+}
+
+.lp-lpm-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.lp-lpm-preview {
+  padding: 0.85rem;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.lp-lpm-preview iframe {
+  height: calc(100vh - 3.5rem - 290px) !important;
+  min-height: 300px;
+}
+
+.lp-lpm-preview .premium-form-card {
+  padding: 0 !important;
+}
+
+@media (max-width: 991.98px) {
+  .lp-lpm {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .lp-lpm-list {
+    flex-direction: row;
+    overflow-x: auto;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+
+  .lp-lpm-item {
+    flex: 0 0 240px;
+  }
+}

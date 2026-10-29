@@ -1,13 +1,21 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { HistoryButton, recordTitle } from './RecordHistory';
+import { canOnPage } from '../../utils/permissions';
 
 const ActionColumn = ({
   onView,
-  onEdit,
-  onDelete,
-  onDuplicate,
+  onEdit: onEditProp,
+  onDelete: onDeleteProp,
+  onDuplicate: onDuplicateProp,
   row
 }) => {
+  // Edit / Duplicate / Delete only when the role may update / create / delete on this list page
+  // (utils/permissions.js ROUTES); View and History stay.
+  const { pathname } = useLocation();
+  const onEdit = canOnPage('update', pathname) ? onEditProp : undefined;
+  const onDuplicate = canOnPage('create', pathname) ? onDuplicateProp : undefined;
+  const onDelete = canOnPage('delete', pathname) ? onDeleteProp : undefined;
   return (
     <div className="action-buttons d-flex align-items-center gap-1 justify-content-end w-100">
       {onView && (

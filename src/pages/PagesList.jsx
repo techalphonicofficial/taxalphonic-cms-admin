@@ -9,10 +9,12 @@ import api from '../services/api';
 import { toast } from 'react-toastify';
 import { confirmDelete, confirmDialog } from '../components/common/confirm';
 import { canDo, runBulk } from '../components/datagrid/bulkStatus';
+import { M } from '../utils/permissions';
 import { Dropdown } from 'react-bootstrap';
 import { siteUrl } from '../config/siteUrl';
 import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, journeyReferencePage } from '../components/page-builder/journeyBlocks';
 import { TOOL_REFERENCE, TOOLS_HUB, TOOLS_HUB_SLUG, TOOL_SLUG_PREFIX, toolReferencePage } from '../components/page-builder/toolBlocks';
+import PermLink from '../components/common/PermLink';
 
 const PagesList = () => {
   const navigate = useNavigate();
@@ -276,7 +278,7 @@ const PagesList = () => {
   ], [navigate]);
 
   // Bulk bar: publish / move to draft the selected pages (PUT /pages/:id { status }).
-  const bulkActions = !canDo('update', 'Pages') ? [] : ['published', 'draft'].map((status) => {
+  const bulkActions = !canDo('update', M.pages) ? [] : ['published', 'draft'].map((status) => {
     const publish = status === 'published';
     return {
       label: publish ? 'Publish' : 'Move to draft',
@@ -307,12 +309,14 @@ const PagesList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/trash?module=pages" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold" title="Deleted pages (restore)">
+          <PermLink to="/trash?module=pages" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold" title="Deleted pages (restore)">
             <i className="bi bi-trash3 me-2"></i> Trash
-          </Link>
-          <Link to="/pages/home" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold">
+          </PermLink>
+          <PermLink to="/pages/home" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold">
             <i className="bi bi-house-door me-2"></i> Home Page Builder
-          </Link>
+          </PermLink>
+          {/* Journey stages and free tools create pages: only with create permission. */}
+          {canDo('create', M.pages) && (<>
           <Dropdown align="end">
             <Dropdown.Toggle as="button" type="button" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold h-100" disabled={creatingStages}>
               {creatingStages ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-signpost-split me-2"></i>}
@@ -348,9 +352,10 @@ const PagesList = () => {
               ))}
             </Dropdown.Menu>
           </Dropdown>
-          <Link to="/pages/new" className="premium-btn-primary">
+          </>)}
+          <PermLink to="/pages/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Page
-          </Link>
+          </PermLink>
         </div>
       </div>
 

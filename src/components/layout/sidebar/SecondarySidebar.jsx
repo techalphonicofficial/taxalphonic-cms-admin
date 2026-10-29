@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSidebar } from '../../../context/SidebarContext';
 import { secondaryMenuData, railMenuData } from '../../../config/menuConfig';
-import { AuthService } from '../../../services/auth.service';
+import { canOpen } from '../../../utils/permissions';
 
 const SidebarSearch = ({ value, onChange, onKeyDown }) => {
   const searchInputRef = useRef(null);
@@ -41,14 +41,7 @@ const SidebarSearch = ({ value, onChange, onKeyDown }) => {
   );
 };
 
-const hasPermission = (permission) => {
-    if (!permission) return true;
-    const user = AuthService.getCurrentUser();
-    if (!user) return false;
-    if (user.role?.name === 'Admin') return true;
-    const permissions = user.role?.permissions || [];
-    return permissions.some(p => p.action === permission.action && p.module === permission.module);
-};
+
 
 const SecondarySidebar = () => {
   const { activeRailItem, isSecondarySidebarOpen, toggleSecondarySidebar, orgSettings } = useSidebar();
@@ -66,18 +59,22 @@ const SecondarySidebar = () => {
   const rawMenuConfig = secondaryMenuData[activeRailItem] || [];
   const currentRailItemLabel = railMenuData.find(item => item.id === activeRailItem)?.label || 'Menu';
 
+  // Changes when the stored user (role permissions) is reloaded, so the menu follows it.
+  const userKey = localStorage.getItem('user') || sessionStorage.getItem('user') || '';
+
   const menuConfig = useMemo(() => {
     const query = searchQuery.toLowerCase();
     
     return rawMenuConfig.map(group => {
       const filteredItems = group.items.filter(item => {
         const matchesQuery = item.label.toLowerCase().includes(query);
-        const matchesPermission = hasPermission(item.permission);
+        const matchesPermission = canOpen(item.path); // utils/permissions.js ROUTES
         return matchesQuery && matchesPermission;
       });
       return { ...group, items: filteredItems };
     }).filter(group => group.items.length > 0);
-  }, [rawMenuConfig, searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawMenuConfig, searchQuery, userKey]);
 
   const flatItems = useMemo(() => {
     return menuConfig.reduce((acc, group) => [...acc, ...group.items], []);

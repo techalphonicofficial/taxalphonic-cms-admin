@@ -74,3 +74,8 @@
 .ta-lead-toast-body small {
   color: var(--bs-secondary-color);
 }
+
+/* Apps grid: a tile whose page the role may not open renders nothing (PermLink); drop its cell. */
+.ta-apps-grid > .col-4:empty {
+  display: none;
+}

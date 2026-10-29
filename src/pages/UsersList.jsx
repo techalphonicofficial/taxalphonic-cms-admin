@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import HasPermission from '../components/common/HasPermission';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const UsersList = () => {
   const queryClient = useQueryClient();
@@ -67,9 +68,9 @@ const UsersList = () => {
           <h4 className="mb-1 fw-bold">User Management</h4>
           <p className="text-muted mb-0">Manage system users and their roles</p>
         </div>
-        <Link to="/users/new" className="btn btn-primary rounded-pill px-4">
+        <PermLink to="/users/new" className="btn btn-primary rounded-pill px-4">
           <i className="bi bi-plus-lg me-2"></i> Add User
-        </Link>
+        </PermLink>
       </div>
       
       <DataGrid 

@@ -10,6 +10,7 @@ import MediaPickerModal from '../components/media/MediaPickerModal';
 import ImageSizeHint from '../components/common/ImageSizeHint';
 import SearchableSelect from '../components/common/SearchableSelect';
 import MediaPickButton from '../components/media/MediaPickButton';
+import SlugStatus from '../components/common/SlugStatus';
 import '../components/common/PremiumForms.css';
 
 const ServiceForm = () => {
@@ -464,6 +465,12 @@ const ServiceForm = () => {
                           />
                         </div>
                         {errors.slug && <div className="invalid-feedback d-block">{errors.slug.message}</div>}
+                        <SlugStatus
+                          type="service"
+                          slug={currentSlug}
+                          id={id}
+                          onUseSuggestion={(next) => setValue('slug', next, { shouldValidate: true, shouldDirty: true })}
+                        />
                       </div>
 
                       {/* Navigation Menu Link Integration Card */}

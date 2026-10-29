@@ -8,6 +8,32 @@ import { homeDefaultPayload } from './homeBlocks';
 import { servicePlacementOf } from './layoutZones';
 
 const ENQUIRE = { text: 'Enquire Now', url: '#form' };
+const NO_BUTTON = { text: '', url: '' };
+
+// Starting photos (free Unsplash images, loaded from their CDN): editors swap them for their own
+// from Media. Each layout uses different ones so the layouts don't look alike.
+const photo = (id, w = 1600, h = 0) => `https://images.unsplash.com/photo-${id}?w=${w}${h ? `&h=${h}` : ''}&q=70&auto=format&fit=crop`;
+const PHOTOS = {
+  meeting: '1556761175-5973dc0f32e7',
+  office: '1497366216548-37526070297c',
+  handshake: '1521791136064-7986c2920216',
+  team: '1600880292203-757bb62b4baf',
+  analytics: '1460925895917-afdab827c52f',
+  charts: '1454165804606-c3d57bc86b40',
+  calculator: '1554224155-6726b3ff858f',
+  signing: '1450101499163-c8848c66ca85',
+  advisor: '1573497019940-1c28c88b4f3e',
+  building: '1486406146926-c627a92ad1ab',
+};
+
+// Block backgrounds (BackgroundSettings.jsx → section.config.background). Neutral colours, so
+// they suit every page theme.
+const BG = {
+  photo: (id, overlay = 60, extra = {}) => ({ image: photo(PHOTOS[id]), position: 'center', size: 'cover', overlayColor: '#0b1220', overlayOpacity: overlay, textTheme: 'light', ...extra }),
+  soft: { color: '#f3f6fb', padding: 'lg', rounded: 'yes' },
+  deep: { color: '#0f172a', textTheme: 'light', padding: 'lg', rounded: 'yes' },
+};
+const withBg = (block, background) => ({ ...block, config: { ...(block.config || {}), background } });
 
 // Homepage blocks link to main-site pages (/talk-to-expert, /services/...); on a landing page their
 // buttons open the enquiry form instead.
@@ -37,6 +63,43 @@ const B = {
       showMeta: false,
       ...patch,
     },
+    config: {},
+  }),
+  // Text left, photo right (or left with imageSide: 'left').
+  heroSplit: (c, id, patch = {}) => B.hero(c, { imageMode: 'custom', backgroundImage: photo(PHOTOS[id], 900), ...patch }),
+  // Photo behind the hero with a dark overlay: centred heading, text and button.
+  heroPhoto: (c, id, patch = {}) => withBg(
+    B.hero(c, { imageMode: 'none', align: 'center', height: 'lg', badges: [], secondaryButton: NO_BUTTON, ...patch }),
+    BG.photo(id, 62),
+  ),
+  // Photo only: "Text on the hero" = buttons / hide (the heading stays hidden for Google).
+  heroBanner: (c, id, textMode, patch = {}) => withBg(
+    B.hero(c, { textMode, height: textMode === 'hide' ? 'r31' : 'lg', buttonsAlign: 'left', secondaryButton: NO_BUTTON, ...patch }),
+    BG.photo(id, textMode === 'hide' ? 0 : 25, { textTheme: '' }),
+  ),
+  // Just the heading (and a line), centred, no image.
+  heroHeading: (c, patch = {}, background = null) => {
+    const block = B.hero(c, { imageMode: 'none', align: 'center', badges: [], secondaryButton: NO_BUTTON, ...patch });
+    return background ? withBg(block, background) : block;
+  },
+  text: (c, placement, patch = {}) => ({
+    type: 'CommonText',
+    payload: { kicker: '', heading: '', text: '', align: 'center', anchorId: '', primaryButton: NO_BUTTON, secondaryButton: NO_BUTTON, ...patch },
+    config: { placement },
+  }),
+  cards: (c, placement, patch = {}) => ({
+    type: 'CommonCards',
+    payload: {
+      kicker: 'Why customers pick us', heading: `${c.name} without the paperwork stress`, sub: '', align: 'center', columns: '3', style: 'plain',
+      items: [
+        { icon: '🧾', title: 'One fixed price', text: 'Know the full cost before we start.', url: '', linkText: '' },
+        { icon: '🧑‍💼', title: 'A named expert', text: 'The same CA / CS from start to finish.', url: '', linkText: '' },
+        { icon: '📲', title: 'Updates on WhatsApp', text: 'Status at every step, no chasing.', url: '', linkText: '' },
+      ],
+      anchorId: '',
+      ...patch,
+    },
+    config: { placement },
   }),
   overview: (c, placement = 'main') => ({
     type: 'Overview',
@@ -88,11 +151,11 @@ const B = {
     },
     config: { placement },
   }),
-  highlights: (c, placement = 'top') => ({
+  highlights: (c, placement = 'top', variant = 'tinted') => ({
     type: 'Highlights',
     payload: {
       title: '',
-      variant: 'tinted',
+      variant,
       items: [
         { icon: '🧑‍💼', title: 'Expert CA / CS', text: 'Qualified professionals' },
         { icon: '⚡', title: 'Quick turnaround', text: 'Most cases in days' },
@@ -107,9 +170,9 @@ const B = {
     payload: { title: '✅ What you get', items: [{ icon: '✔️', text: 'Free expert consultation' }, { icon: '✔️', text: 'Document checklist for your case' }, { icon: '✔️', text: 'End-to-end filing' }, { icon: '✔️', text: 'Support after completion' }] },
     config: { placement },
   }),
-  cta: (c, placement = 'bottom') => ({
+  cta: (c, placement = 'bottom', variant = 'dark') => ({
     type: 'CallToAction',
-    payload: { variant: 'dark', icon: '🎧', title: `Ready to start your ${c.name}?`, text: 'Talk to an expert for free. No cost, no obligation.', buttons: [ENQUIRE], note: '' },
+    payload: { variant, icon: '🎧', title: `Ready to start your ${c.name}?`, text: 'Talk to an expert for free. No cost, no obligation.', buttons: [ENQUIRE], note: '' },
     config: { placement },
   }),
   faq: (c, placement = 'bottom') => ({
@@ -126,7 +189,7 @@ const B = {
     config: { placement },
   }),
   stats: (c, placement = 'top') => ({ type: 'CommonStats', payload: { kicker: '', heading: '', sub: '', columns: '4', items: [{ icon: '🏢', value: '12,400+', label: 'Businesses served' }, { icon: '⭐', value: '4.8/5', label: 'Average rating' }, { icon: '⚡', value: '7–10 days', label: 'Average turnaround' }, { icon: '🧑‍💼', value: '700+', label: 'Expert services' }], anchorId: '' }, config: { placement } }),
-  imageText: (c, placement = 'main') => ({ type: 'CommonImageText', payload: { image: '', imageSide: 'left', imageAlt: '', kicker: 'Why it matters', heading: `${c.name}, done right`, text: 'Explain the benefit for your customer in a few lines. Add a picture from Media.', points: [{ text: 'Handled by qualified experts' }, { text: 'Clear timelines and updates' }], primaryButton: ENQUIRE, secondaryButton: { text: '', url: '' }, anchorId: '' }, config: { placement } }),
+  imageText: (c, placement = 'main', patch = {}) => ({ type: 'CommonImageText', payload: { image: '', imageSide: 'left', imageAlt: '', kicker: 'Why it matters', heading: `${c.name}, done right`, text: 'Explain the benefit for your customer in a few lines. Add a picture from Media.', points: [{ text: 'Handled by qualified experts' }, { text: 'Clear timelines and updates' }], primaryButton: ENQUIRE, secondaryButton: NO_BUTTON, anchorId: '', ...patch }, config: { placement } }),
   testimonials: () => ({ type: 'HomeTestimonials', payload: home('HomeTestimonials'), config: { placement: 'bottom' } }),
   trustBar: (c, placement = 'top') => ({ type: 'HomeTrustBar', payload: home('HomeTrustBar'), config: { placement } }),
   clients: () => ({ type: 'HomeClients', payload: home('HomeClients'), config: { placement: 'bottom' } }),
@@ -143,40 +206,86 @@ const B = {
  * between Header and Footer.
  */
 export const LANDING_LAYOUTS = [
+  // Every layout has its own hero style and section look (description starts with the hero).
   {
     key: 'classic', name: 'Classic lead page', theme: 'default',
-    description: 'Hero, about + sticky form, why us, process, reviews, FAQ. Works for most services.',
-    body: (c) => [B.hero(c), B.overview(c), B.form(c), B.why(c), B.process(c), B.testimonials(c), B.faq(c)],
+    description: 'Hero: text left, photo right. About + sticky form, why us on a soft band, process, reviews, FAQ.',
+    body: (c) => [
+      B.heroSplit(c, 'meeting'),
+      B.overview(c), B.form(c),
+      withBg(B.why(c), BG.soft),
+      B.process(c), B.testimonials(c), B.faq(c),
+    ],
   },
   {
     key: 'quick', name: 'Quick enquiry', theme: 'ocean',
-    description: 'Short and focused for ads: hero, highlights, about with form and checklist, one call to action.',
-    body: (c) => [B.hero(c, { secondaryButton: { text: '', url: '' } }), B.highlights(c), B.overview(c), B.form(c), B.checklist(c), B.cta(c)],
+    description: 'Hero: photo background with a centred heading and one button. Highlights strip, about with form + checklist, dark call to action.',
+    body: (c) => [
+      B.heroPhoto(c, 'office'),
+      B.highlights(c, 'top', 'plain'),
+      B.overview(c), B.form(c), B.checklist(c),
+      B.cta(c),
+    ],
   },
   {
     key: 'trust', name: 'Trust & proof', theme: 'midnight',
-    description: 'Numbers, clients, reviews and security up front for buyers who compare providers.',
-    body: (c) => [B.hero(c, { secondaryButton: { text: 'Why choose us', url: '#whychoose' } }), B.trustBar(c), B.why(c), B.form(c), B.stats(c, 'main'), B.clients(c), B.testimonials(c), B.security(c), B.faq(c), B.finalCta(c)],
+    description: 'Hero: photo left, text right. Numbers on a dark band, why us, clients, reviews, security, FAQ.',
+    body: (c) => [
+      B.heroSplit(c, 'handshake', {
+        imageSide: 'left',
+        badges: [],
+        secondaryButton: { text: 'Why choose us', url: '#whychoose' },
+      }),
+      withBg(B.stats(c, 'top'), BG.deep),
+      B.why(c), B.form(c),
+      B.clients(c), B.testimonials(c), B.security(c), B.faq(c), B.finalCta(c),
+    ],
   },
   {
     key: 'pricing', name: 'Plans & pricing', theme: 'emerald',
-    description: 'Packages and a comparison table next to the process, for price-led services.',
-    body: (c) => [B.hero(c), B.highlights(c), B.process(c), B.form(c), B.bundles(c), B.compare(c), B.faq(c), B.cta(c)],
+    description: 'Hero: just the heading and a button, centred on a light band. Benefit cards, process + form, packages, comparison, FAQ.',
+    body: (c) => [
+      B.heroHeading(c, { subHeading: 'Simple, fixed prices. Pick a plan or ask for a custom quote.' }, { color: '#f3f6fb' }),
+      B.cards(c, 'top'),
+      B.process(c), B.form(c, 'sidebar', 'Get your quote'),
+      B.bundles(c), B.compare(c), B.faq(c),
+      B.cta(c, 'bottom', 'light'),
+    ],
   },
   {
     key: 'consult', name: 'Expert consultation', theme: 'royal',
-    description: 'Image + text story, what is included and a big expert banner, with the form next to the content.',
-    body: (c) => [B.hero(c, { secondaryButton: { text: 'Talk to an expert', url: '#talk' } }), B.overview(c), B.imageText(c), B.included(c), B.form(c), B.expert(c), B.testimonials(c), B.faq(c)],
+    description: 'Hero: a big photo with only the buttons. Intro heading, photo + text left and right, included, expert banner, reviews, FAQ.',
+    body: (c) => [
+      B.heroBanner(c, 'team', 'buttons', { secondaryButton: { text: 'Talk to an expert', url: '#talk' } }),
+      B.text(c, 'top', { kicker: c.name, heading: c.title || `Talk to a ${c.name} expert today`, text: 'Real chartered accountants and company secretaries, one call away. Tell us your case and get a clear plan, a fixed quote and a named expert.', primaryButton: ENQUIRE }),
+      B.imageText(c, 'main', { image: photo(PHOTOS.advisor, 900, 640), imageSide: 'left', imageAlt: 'Expert advisor', kicker: 'Personal advice', heading: 'An expert who knows your case' }),
+      B.imageText(c, 'main', { image: photo(PHOTOS.signing, 900, 640), imageSide: 'right', imageAlt: 'Signing documents', kicker: 'Done for you', heading: 'We prepare, file and follow up', points: [{ text: 'Document checklist for your case' }, { text: 'Filing and every department query handled' }], primaryButton: NO_BUTTON }),
+      B.included(c), B.form(c),
+      B.expert(c), B.testimonials(c), B.faq(c),
+    ],
   },
   {
     key: 'detailed', name: 'Detailed service guide', theme: 'slate',
-    description: 'Long-form page for SEO: highlights, about, included, why us, process, form + checklist, FAQ.',
-    body: (c) => [B.hero(c), B.highlights(c), B.overview(c), B.included(c), B.why(c), B.process(c), B.form(c), B.checklist(c), B.faq(c), B.testimonials(c), B.cta(c)],
+    description: 'Hero: a wide banner image only (put your own banner with its text). Heading on a soft band, long guide with form + checklist, photo call to action.',
+    body: (c) => [
+      B.heroBanner(c, 'analytics', 'hide'),
+      withBg(B.text(c, 'top', { kicker: c.name, heading: c.title || `${c.name}: the complete guide`, text: 'Everything you need to know, what it costs and how we get it done for you.', primaryButton: ENQUIRE, secondaryButton: { text: 'How it works', url: '#process' } }), BG.soft),
+      B.highlights(c),
+      B.overview(c), B.included(c), B.why(c), B.process(c),
+      B.form(c), B.checklist(c),
+      B.imageText(c, 'bottom', { image: photo(PHOTOS.charts, 900, 640), imageSide: 'right', imageAlt: 'Business reports', kicker: 'After filing', heading: 'Support that continues after the work is done', points: [{ text: 'Reminders before every due date' }, { text: 'One expert for follow-up questions' }] }),
+      B.faq(c), B.testimonials(c),
+      withBg(B.text(c, 'bottom', { heading: `Ready to start your ${c.name}?`, text: 'Free consultation. No cost, no obligation.', primaryButton: ENQUIRE }), BG.photo('calculator', 65, { padding: 'xl', rounded: 'yes' })),
+    ],
   },
   {
     key: 'minimal', name: 'Minimal form page', theme: 'sunset',
-    description: 'Just the hero, the form full width and a few highlights. Fastest to publish.',
-    body: (c) => [B.hero(c, { secondaryButton: { text: '', url: '' } }), B.form(c, 'main', 'Tell us what you need'), B.highlights(c, 'main')],
+    description: 'Hero: just the heading on a dark colour band, no image. The form full width and a few highlights. Fastest to publish.',
+    body: (c) => [
+      B.heroHeading(c, { primaryButton: NO_BUTTON, height: 'sm' }, { color: '#111827', textTheme: 'light' }),
+      B.form(c, 'main', 'Tell us what you need'),
+      B.highlights(c, 'main', 'plain'),
+    ],
   },
 ];
 

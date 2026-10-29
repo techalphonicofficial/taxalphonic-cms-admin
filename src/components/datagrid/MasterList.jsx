@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import DataGrid from './DataGrid';
 import { HistoryButton, recordTitle } from './RecordHistory';
 import useServerList from './useServerList';
+import PermLink from '../common/PermLink';
 
 // List page for the pSEO masters (States, Locations, Industries, Technologies, Problems):
 // server-side paging, search (by name) and sorting, optional select filters, edit + history actions.
@@ -29,9 +29,9 @@ export default function MasterList({ title, subtitle, url, editPath, addPath, ad
       enableSorting: false,
       cell: ({ row }) => (
         <div className="d-flex gap-2">
-          <Link to={`${editPath}/${row.original.id}`} className="btn btn-sm btn-outline-primary" title="Edit">
+          <PermLink to={`${editPath}/${row.original.id}`} className="btn btn-sm btn-outline-primary" title="Edit">
             <i className="bi bi-pencil"></i>
-          </Link>
+          </PermLink>
           <HistoryButton recordId={row.original.id} title={recordTitle(row.original)} className="btn btn-sm btn-outline-secondary" />
         </div>
       ),
@@ -50,9 +50,9 @@ export default function MasterList({ title, subtitle, url, editPath, addPath, ad
             <span className="badge bg-primary-subtle text-primary-emphasis rounded-pill ms-2">{list.total.toLocaleString('en-IN')} {list.total === 1 ? itemLabel : `${itemLabel}s`}</span>
           </p>
         </div>
-        <Link to={addPath} className="btn btn-primary rounded-pill px-4 shadow-sm">
+        <PermLink to={addPath} className="btn btn-primary rounded-pill px-4 shadow-sm">
           <i className="bi bi-plus-lg me-2"></i> {addLabel}
-        </Link>
+        </PermLink>
       </div>
 
       {filters.length > 0 && (

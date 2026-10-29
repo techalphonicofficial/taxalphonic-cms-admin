@@ -10,7 +10,7 @@ import { confirmDelete, confirmDialog } from '../../components/common/confirm';
 import PageBuilder from '../../components/page-builder/PageBuilder';
 import ServicePreviewPane from '../../components/page-builder/ServicePreviewPane';
 import { applyLayout, landingTemplate } from '../../components/page-builder/landingLayouts';
-import { ChangeLayoutModal, LayoutPicker } from './LandingLayoutPicker';
+import { ChangeLayoutModal, LayoutPicker, LayoutPreviewModal } from './LandingLayoutPicker';
 import { pageThemeOfSections, withTheme } from '../../components/page-builder/landingThemes';
 import { ThemeDots, ThemePicker, themeName } from './CustomThemes';
 import { LandingPageService, apiErrorText, canLanding } from '../../services/landingPage.service';
@@ -205,6 +205,7 @@ const LandingPageForm = () => {
   const [formId, setFormId] = useState('');
   const [newTheme, setNewTheme] = useState({ key: 'default', custom: null });
   const [newLayout, setNewLayout] = useState('classic');
+  const [newPreview, setNewPreview] = useState(null); // layout key open in the preview window (new page)
   const [layoutModal, setLayoutModal] = useState(false);
   const [loading, setLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState('');
@@ -279,24 +280,29 @@ const LandingPageForm = () => {
     setDirty(true);
   }, []);
 
-  const pickLayout = useCallback(async (layout, alsoTheme) => {
-    setLayoutModal(false);
-    const ok = await confirmDialog({
-      title: `Use the "${layout.name}" layout?`,
-      message: 'The blocks between the Header and the Footer are replaced by this layout. Header, Footer and the enquiry form are kept.',
-      note: 'Nothing is saved until you click Save draft; leaving without saving keeps the current draft.',
-      tone: 'warning',
-      confirmText: 'Use layout',
-    });
-    if (!ok) return;
+  // The page with another layout (and optionally its theme): shown in the layout window's preview,
+  // then used as is. No extra confirmation: the window already showed the result, nothing is saved.
+  const buildLayoutSections = useCallback((layout, alsoTheme) => {
     const service = services.find((sv) => sv.id === settings.serviceId);
-    let next = applyLayout(sectionsRef.current, layout.key, { title: settings.title, serviceTitle: service?.title });
-    if (alsoTheme) next = withTheme(next, layout.theme);
+    const next = applyLayout(sectionsRef.current, layout.key, { title: settings.title, serviceTitle: service?.title });
+    return alsoTheme ? withTheme(next, layout.theme) : next;
+  }, [services, settings.serviceId, settings.title]);
+
+  const pickLayout = useCallback((layout, alsoTheme) => {
+    setLayoutModal(false);
+    const next = buildLayoutSections(layout, alsoTheme);
+    toast.info(`"${layout.name}" layout applied. Save draft to keep it.`);
     sectionsRef.current = next;
     setInitialSections(next);
     setSectionsVersion((v) => v + 1);
     setDirty(true);
-  }, [services, settings.serviceId, settings.title]);
+  }, [buildLayoutSections]);
+
+  // New page: the template a layout would create, for the layout preview window.
+  const buildNewSections = (layout) => {
+    const service = services.find((sv) => sv.id === settings.serviceId);
+    return landingTemplate({ layout: layout.key, title: settings.title, serviceTitle: service?.title, formId, theme: layout.theme });
+  };
 
   const previewDraft = useMemo(() => ({ title: settings.title, sections: sectionsRef.current }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -507,9 +513,28 @@ const LandingPageForm = () => {
             <SettingsFields value={settings} onChange={setSettings} errors={errors} services={services} slugState={slugState} showStart start={start} setStart={setStart} formId={formId} setFormId={setFormId} />
             {start === 'template' && (
               <div className="mt-3">
-                <label className="form-label fw-semibold mb-1">Layout</label>
-                <div className="form-text mt-0 mb-2">Blocks, order and placement ready to fill in. Every block can still be edited, moved, removed or added later; "Change layout" in the Builder switches it.</div>
-                <LayoutPicker value={newLayout} onChange={(layout) => { setNewLayout(layout.key); setNewTheme({ key: layout.theme, custom: null }); }} />
+                <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                  <label className="form-label fw-semibold mb-1">Layout</label>
+                  <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setNewPreview(newLayout)}>
+                    <i className="bi bi-eye me-1" />Preview layouts
+                  </button>
+                </div>
+                <div className="form-text mt-0 mb-2">Blocks, order and placement ready to fill in. Click "Preview" on a layout to see the real page before choosing. Every block can still be edited, moved, removed or added later; "Change layout" in the Builder switches it.</div>
+                <LayoutPicker
+                  value={newLayout}
+                  onChange={(layout) => { setNewLayout(layout.key); setNewTheme({ key: layout.theme, custom: null }); }}
+                  onPreview={(layout) => setNewPreview(layout.key)}
+                />
+                <LayoutPreviewModal
+                  show={Boolean(newPreview)}
+                  onHide={() => setNewPreview(null)}
+                  initialKey={newPreview}
+                  buildSections={buildNewSections}
+                  previewTitle={settings.title}
+                  useLabel="Choose this layout"
+                  note="Click a layout to see the page it creates (with your title, service and enquiry form). All text can be edited after creating."
+                  onUse={(layout) => { setNewLayout(layout.key); setNewTheme({ key: layout.theme, custom: null }); setNewPreview(null); }}
+                />
               </div>
             )}
             <div className="mt-3">
@@ -621,7 +646,7 @@ const LandingPageForm = () => {
         </fieldset>
       </div>
 
-      <ChangeLayoutModal show={layoutModal} onHide={() => setLayoutModal(false)} onApply={pickLayout} />
+      <ChangeLayoutModal show={layoutModal} onHide={() => setLayoutModal(false)} onApply={pickLayout} buildSections={buildLayoutSections} previewTitle={settings.title} />
 
       {previewMounted && (
         <div className={tab === 'preview' ? 'd-block' : 'd-none'}>

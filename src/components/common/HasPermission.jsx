@@ -1,34 +1,16 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { AuthService } from '../../services/auth.service';
+import { can } from '../../utils/permissions';
 
-const HasPermission = ({ action, module, children, fallback = null }) => {
-    const user = AuthService.getCurrentUser();
-    
-    if (!user) {
-        return fallback;
-    }
+/** Shows `children` only when the role allows `action` on `module` (a module or a list, any one is enough). */
+const HasPermission = ({ action, module, children, fallback = null }) => (
+  can(action, module) ? <>{children}</> : fallback
+);
 
-    if (user.role?.name === 'Admin') {
-        return <>{children}</>;
-    }
-
-    const permissions = user.role?.permissions || [];
-    const hasPerm = permissions.some(p => p.action === action && p.module === module);
-
-    if (!hasPerm) {
-        return fallback;
-    }
-
-    return <>{children}</>;
-};
-
-export const RoutePermission = ({ action, module, children }) => {
-    return (
-        <HasPermission action={action} module={module} fallback={<Navigate to="/unauthorized" replace />}>
-            {children}
-        </HasPermission>
-    );
-};
+export const RoutePermission = ({ action, module, children }) => (
+  <HasPermission action={action} module={module} fallback={<Navigate to="/unauthorized" replace />}>
+    {children}
+  </HasPermission>
+);
 
 export default HasPermission;

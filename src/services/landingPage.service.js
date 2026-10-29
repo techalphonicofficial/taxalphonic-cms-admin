@@ -1,5 +1,5 @@
 import api from './api';
-import { AuthService } from './auth.service';
+import { can } from '../utils/permissions';
 
 // Landing pages on subdomains (backend routes/landingPageRoutes.js, permission module "LandingPages").
 const data = (res) => res.data?.data;
@@ -34,8 +34,5 @@ export function apiErrorText(error, fallback = 'Something went wrong') {
 
 /** Permission check for buttons (same rule as HasPermission: the Admin role may do everything). */
 export function canLanding(action) {
-  const user = AuthService.getCurrentUser();
-  if (!user) return false;
-  if (user.role?.name === 'Admin') return true;
-  return (user.role?.permissions || []).some((p) => p.module === 'LandingPages' && p.action === action);
+  return can(action, 'LandingPages');
 }

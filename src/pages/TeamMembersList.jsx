@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { StatusBadge, DateCell } from '../components/datagrid/CellRenderers';
@@ -9,6 +9,7 @@ import api from '../services/api';
 import { toast } from 'react-toastify';
 import { confirmDelete } from '../components/common/confirm';
 import { mediaUrl } from '../utils/mediaUrl';
+import PermLink from '../components/common/PermLink';
 
 const AvatarCell = ({ imageUrl, name }) => {
   if (!imageUrl) {
@@ -182,9 +183,9 @@ const TeamMembersList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/cms/team/new" className="premium-btn-primary">
+          <PermLink to="/cms/team/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Team Member
-          </Link>
+          </PermLink>
         </div>
       </div>
 

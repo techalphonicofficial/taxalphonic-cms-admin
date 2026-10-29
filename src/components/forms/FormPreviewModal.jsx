@@ -5,6 +5,7 @@ import FormPreview from './FormPreview';
 import { StatusBadge } from '../datagrid/CellRenderers';
 import { publicFormEndpoints, sampleSubmission } from './formEmbed';
 import { toast } from 'react-toastify';
+import PermLink from '../common/PermLink';
 
 const copy = (text) => {
   navigator.clipboard?.writeText(text)
@@ -86,9 +87,9 @@ const FormPreviewModal = ({ form, show, onHide }) => {
           <i className="bi bi-inbox me-1"></i> Submissions ({form.submissionCount || 0})
         </Link>
         <button type="button" className="btn btn-light" onClick={onHide}>Close</button>
-        <Link to={`/forms/edit/${form.id}`} className="btn btn-primary">
+        <PermLink to={`/forms/edit/${form.id}`} className="btn btn-primary">
           <i className="bi bi-pencil me-1"></i> Edit Form
-        </Link>
+        </PermLink>
       </Modal.Footer>
     </Modal>
   );

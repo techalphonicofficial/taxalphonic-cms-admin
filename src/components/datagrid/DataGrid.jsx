@@ -7,6 +7,8 @@ import BulkActionBar from './BulkActionBar';
 import { LoadingState, ErrorState, NoDataState } from './EmptyStates';
 import ConfirmDialog from '../common/ConfirmDialog';
 import api from '../../services/api';
+import { useLocation } from 'react-router-dom';
+import { canOnPage } from '../../utils/permissions';
 import { toast } from 'react-toastify';
 import './DataGrid.css';
 
@@ -173,16 +175,20 @@ const DataGrid = ({
   isLoading,
   error,
   title = 'Data',
-  onBulkDelete,
+  onBulkDelete: onBulkDeleteProp,
   // Built-in bulk delete: DELETE `${deleteUrl}/${row.id}` for every selected row, after a themed
   // confirmation, then the grid reloads. deleteMode "trash" = the records go to the Trash (soft
   // delete, restorable); "permanent" = they are gone for good. itemLabel names one record.
-  deleteUrl,
+  deleteUrl: deleteUrlProp,
   deleteMode = 'permanent',
   itemLabel = 'item',
   // Extra bulk-bar buttons: [{ label, icon, variant, disabled, onClick(selectedRows, clearSelection) }]
   bulkActions = [],
 }) => {
+  // Bulk delete only for a role that may delete on this list page (utils/permissions.js).
+  const canDelete = canOnPage('delete', useLocation().pathname);
+  const deleteUrl = canDelete ? deleteUrlProp : undefined;
+  const onBulkDelete = canDelete ? onBulkDeleteProp : undefined;
   const [rowSelection, setRowSelection] = useState({});
   const [confirmRows, setConfirmRows] = useState(null);
   const [deleting, setDeleting] = useState(false);

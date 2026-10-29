@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { InquiryService } from '../services/inquiry.service';
-import { AuthService } from '../services/auth.service';
+import { M, can } from '../utils/permissions';
 import { isRingReady, playLeadRing, unlockLeadRing } from '../utils/leadRing';
 
 /*
@@ -35,10 +35,7 @@ function readSettings() {
 }
 
 export function canReadLeads() {
-  const user = AuthService.getCurrentUser();
-  if (!user) return false;
-  if (user.role?.name === 'Admin') return true;
-  return (user.role?.permissions || []).some((p) => ['CRM', 'Inquiries'].includes(p.module) && p.action === 'read');
+  return can('read', M.leads);
 }
 
 export const leadSourceLabel = (lead) => lead?.form?.name || lead?.source || 'Website';

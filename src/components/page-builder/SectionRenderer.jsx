@@ -104,6 +104,26 @@ const HeroBannerForm = ({ data, onChange }) => {
         />
       )}
       {!bare && <>
+      <SelectField
+        label="Text alignment"
+        value={p.align || 'left'}
+        onChange={set('align')}
+        options={[{ value: 'left', label: 'Left' }, { value: 'center', label: 'Centre' }]}
+        hint="Centre suits a hero without an image or with a background image."
+      />
+      <SelectField
+        label="Hero height"
+        value={p.height || ''}
+        onChange={set('height')}
+        options={[
+          { value: '', label: 'Automatic (fits the text)' },
+          { value: 'sm', label: 'Small (280 px)' },
+          { value: 'md', label: 'Medium (400 px)' },
+          { value: 'lg', label: 'Large (520 px)' },
+          { value: 'xl', label: 'Extra large (640 px)' },
+        ]}
+        hint="A set height keeps the text in the middle, e.g. on a background image."
+      />
       <TextField label="Eyebrow" value={p.eyebrow} onChange={set('eyebrow')} placeholder="e.g. 📑 GST" hint="Small label above the heading. Empty = service category name." />
       <TextField label="Highlighted words" value={p.highlight} onChange={set('highlight')} placeholder="e.g. made simple" hint="Must be the end of the heading. Empty = last two words." />
       </>}
@@ -122,7 +142,15 @@ const HeroBannerForm = ({ data, onChange }) => {
         hint="With a background (Background panel above), Automatic shows only the image chosen here, not the service thumbnail."
       />
       {(p.imageMode || 'auto') !== 'none' && (
-        <TextField label="Image" media value={p.backgroundImage} onChange={set('backgroundImage')} placeholder="Choose from Media or paste a URL" hint={`Shown on the right. ${imageHint('serviceHero')}`} />
+        <>
+        <TextField label="Image" media value={p.backgroundImage} onChange={set('backgroundImage')} placeholder="Choose from Media or paste a URL" hint={`Shown beside the text. ${imageHint('serviceHero')}`} />
+        <SelectField
+          label="Image side"
+          value={p.imageSide || 'right'}
+          onChange={set('imageSide')}
+          options={[{ value: 'right', label: 'Image on the right, text left' }, { value: 'left', label: 'Image on the left, text right' }]}
+        />
+        </>
       )}
       </>}
       {textMode !== 'hide' && <>
@@ -554,6 +582,7 @@ const PackagesBlockForm = ({ data, onChange }) => {
       <TextField label="Price suffix" value={payload.priceSuffix} onChange={priceSuffix => setPayload({ priceSuffix })} placeholder="e.g. / month" />
       <TextField label="Best value badge" value={payload.bestValueLabel} onChange={bestValueLabel => setPayload({ bestValueLabel })} placeholder="e.g. BEST VALUE" hint="Marks the plan with the biggest saving. Empty = no badge." />
       <TextField label="Features heading" value={payload.featuresTitle} onChange={featuresTitle => setPayload({ featuresTitle })} placeholder="e.g. What's included" />
+      <TextField label="Bundle services heading" value={payload.includesTitle} onChange={includesTitle => setPayload({ includesTitle })} placeholder="e.g. Services included" hint="Shown above the services of a bundle package (Packages → Services in this package). Empty = the list shows without a heading." />
       <TextField label="Recommended package badge" value={payload.recommendedLabel} onChange={recommendedLabel => setPayload({ recommendedLabel })} placeholder="e.g. POPULAR" hint="Shown on packages marked Recommended (multi-package layout)." />
       {selectedPackages.length > 0 && (
         <div className="col-12">

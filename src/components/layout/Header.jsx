@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useSidebar } from '../../context/SidebarContext';
 import GlobalSearch from '../common/GlobalSearch';
 import { AuthService } from '../../services/auth.service';
 import { leadSourceLabel, useLeadNotifications } from '../../context/LeadNotificationsContext';
 import './leadAlerts.css';
+import PermLink from '../common/PermLink';
+import { canOpen } from '../../utils/permissions';
+
+const QUICK_CREATE = ['/pages/new', '/services/new', '/cms/banners/new', '/cms/faqs/new', '/cms/team/new'];
 
 // "2 min ago" for the bell list.
 const timeAgo = (date) => {
@@ -74,20 +78,22 @@ const Header = ({ toggleSidebar }) => {
 
       {/* Right Section */}
       <div className="d-flex align-items-center gap-3 me-3">
-        {/* Quick Create */}
+        {/* Quick Create: only with at least one page the role may create */}
+        {QUICK_CREATE.some((path) => canOpen(path)) && (
         <div className="dropdown">
           <button className="btn btn-primary btn-sm dropdown-toggle rounded-pill px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
             <i className="bi bi-plus-lg me-1"></i> Quick Create
           </button>
           <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
-            <li><Link className="dropdown-item py-2" to="/pages/new"><i className="bi bi-file-earmark-text me-2 text-muted"></i> New Page</Link></li>
-            <li><Link className="dropdown-item py-2" to="/services/new"><i className="bi bi-briefcase me-2 text-muted"></i> New Service</Link></li>
-            <li><Link className="dropdown-item py-2" to="/cms/banners/new"><i className="bi bi-image me-2 text-muted"></i> New Banner</Link></li>
-            <li><Link className="dropdown-item py-2" to="/cms/faqs/new"><i className="bi bi-question-circle me-2 text-muted"></i> New FAQ</Link></li>
-            <li><hr className="dropdown-divider" /></li>
-            <li><Link className="dropdown-item py-2" to="/cms/team/new"><i className="bi bi-people me-2 text-muted"></i> New Team Member</Link></li>
+            <li><PermLink className="dropdown-item py-2" to="/pages/new"><i className="bi bi-file-earmark-text me-2 text-muted"></i> New Page</PermLink></li>
+            <li><PermLink className="dropdown-item py-2" to="/services/new"><i className="bi bi-briefcase me-2 text-muted"></i> New Service</PermLink></li>
+            <li><PermLink className="dropdown-item py-2" to="/cms/banners/new"><i className="bi bi-image me-2 text-muted"></i> New Banner</PermLink></li>
+            <li><PermLink className="dropdown-item py-2" to="/cms/faqs/new"><i className="bi bi-question-circle me-2 text-muted"></i> New FAQ</PermLink></li>
+            {canOpen('/cms/team/new') && ['/pages/new', '/services/new', '/cms/banners/new', '/cms/faqs/new'].some((p) => canOpen(p)) && <li><hr className="dropdown-divider" /></li>}
+            <li><PermLink className="dropdown-item py-2" to="/cms/team/new"><i className="bi bi-people me-2 text-muted"></i> New Team Member</PermLink></li>
           </ul>
         </div>
+        )}
 
         {/* Apps Grid */}
         <div className="dropdown d-none d-sm-block">
@@ -97,56 +103,56 @@ const Header = ({ toggleSidebar }) => {
           <div className="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-3 mt-2" style={{ width: '320px' }}>
             <div className="d-flex justify-content-between align-items-center mb-2 mb-3 px-1">
               <h6 className="mb-0 fw-bold">Web Apps</h6>
-              <Link to="/" className="text-decoration-none" style={{ fontSize: '0.8rem' }}>View All</Link>
+              <PermLink to="/" className="text-decoration-none" style={{ fontSize: '0.8rem' }}>View All</PermLink>
             </div>
-            <div className="row g-2 text-center">
+            <div className="row g-2 text-center ta-apps-grid">
               <div className="col-4">
-                <Link to="/" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-primary bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-speedometer2 text-primary fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Dashboard</span>
-                </Link>
+                </PermLink>
               </div>
               <div className="col-4">
-                <Link to="/media" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/media" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-success bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-images text-success fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Media</span>
-                </Link>
+                </PermLink>
               </div>
               <div className="col-4">
-                <Link to="/blogs" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/blogs" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-info bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-journal-text text-info fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Blogs</span>
-                </Link>
+                </PermLink>
               </div>
               <div className="col-4">
-                <Link to="/pages" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/pages" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-warning bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-file-earmark-text text-warning fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Pages</span>
-                </Link>
+                </PermLink>
               </div>
               <div className="col-4">
-                <Link to="/services" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/services" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-danger bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-briefcase text-danger fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Services</span>
-                </Link>
+                </PermLink>
               </div>
               <div className="col-4">
-                <Link to="/settings" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
+                <PermLink to="/settings" className="dropdown-item rounded-3 p-2 text-wrap text-center d-flex flex-column align-items-center h-100">
                   <div className="bg-secondary bg-opacity-10 rounded-circle mb-2 d-flex align-items-center justify-content-center" style={{ width: '46px', height: '46px' }}>
                     <i className="bi bi-gear text-secondary fs-5"></i>
                   </div>
                   <span className="fw-medium" style={{ fontSize: '0.75rem' }}>Settings</span>
-                </Link>
+                </PermLink>
               </div>
             </div>
           </div>
@@ -237,7 +243,7 @@ const Header = ({ toggleSidebar }) => {
                 )}
               </div>
               <div className="p-2 border-top text-center">
-                <Link to="/crm/leads?status=NEW" className="text-decoration-none text-primary fw-medium" style={{ fontSize: '0.85rem' }} onClick={alerts.acknowledge}>View all new leads</Link>
+                <PermLink to="/crm/leads?status=NEW" className="text-decoration-none text-primary fw-medium" style={{ fontSize: '0.85rem' }} onClick={alerts.acknowledge}>View all new leads</PermLink>
               </div>
             </div>
           </div>
@@ -251,8 +257,8 @@ const Header = ({ toggleSidebar }) => {
             <i className="bi bi-chevron-down text-muted" style={{ fontSize: '0.75rem' }}></i>
           </button>
           <ul className="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3 mt-3">
-            <li><Link className="dropdown-item py-2" to="/profile"><i className="bi bi-person me-2"></i> Profile</Link></li>
-            <li><Link className="dropdown-item py-2" to="/settings"><i className="bi bi-gear me-2"></i> Settings</Link></li>
+            <li><PermLink className="dropdown-item py-2" to="/profile"><i className="bi bi-person me-2"></i> Profile</PermLink></li>
+            <li><PermLink className="dropdown-item py-2" to="/settings"><i className="bi bi-gear me-2"></i> Settings</PermLink></li>
             <li><hr className="dropdown-divider" /></li>
             <li><a className="dropdown-item py-2 text-danger" href="#" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i> Logout</a></li>
           </ul>

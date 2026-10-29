@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import DataGrid from '../../components/datagrid/DataGrid';
 import { StatusBadge, DateCell } from '../../components/datagrid/CellRenderers';
@@ -8,6 +8,7 @@ import GridFilterDrawer from '../../components/datagrid/GridFilterDrawer';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 import { confirmDelete } from '../../components/common/confirm';
+import PermLink from '../../components/common/PermLink';
 
 const BlogTagsList = () => {
   const navigate = useNavigate();
@@ -166,9 +167,9 @@ const BlogTagsList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/blog-tags/new" className="premium-btn-primary">
+          <PermLink to="/blog-tags/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Tags
-          </Link>
+          </PermLink>
         </div>
       </div>
 

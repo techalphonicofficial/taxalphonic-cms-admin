@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { StatusBadge } from '../components/datagrid/CellRenderers';
@@ -8,6 +8,7 @@ import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const MenusList = () => {
   const navigate = useNavigate();
@@ -137,9 +138,9 @@ const MenusList = () => {
           <h2 className="premium-title mb-0 fs-5" style={{ letterSpacing: '-0.5px' }}>Menus & Navigation</h2>
         </div>
         <div className="d-flex gap-2">
-          <Link to="/pages/menus/new" className="premium-btn-primary">
+          <PermLink to="/pages/menus/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Menu
-          </Link>
+          </PermLink>
         </div>
       </div>
 

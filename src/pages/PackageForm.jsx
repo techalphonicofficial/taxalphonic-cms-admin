@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { toast } from 'react-toastify';
 import api from '../services/api';
+import IncludedServices from '../components/packages/IncludedServices';
 import '../components/common/PremiumForms.css';
 
 const PackageForm = () => {
@@ -71,6 +72,7 @@ const PackageForm = () => {
       // Migrate old format (sections + hiddenSections) → new format (single sections + collapsedCount)
       if (feats.hiddenSections && feats.hiddenSections.length > 0 && !feats.collapsedCount) {
         feats = {
+          includedServices: feats.includedServices,
           sections: [...(feats.sections || []), ...(feats.hiddenSections || [])],
           collapsedCount: (feats.sections || []).length > 0 ? (feats.sections || []).reduce((acc, s) => acc + (s.items?.length || 0), 0) : 3
         };
@@ -385,6 +387,24 @@ const PackageForm = () => {
                       ></textarea>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Bundle: several services in one package (saved in features.includedServices) */}
+              <div className="premium-card mb-4">
+                <div className="premium-card-header d-flex justify-content-between align-items-center">
+                  <h5 className="premium-card-title">Services in this package</h5>
+                  {(features.includedServices || []).length > 0 && (
+                    <span className="badge bg-primary-subtle text-primary-emphasis">
+                      Bundle · {(features.includedServices || []).length} services
+                    </span>
+                  )}
+                </div>
+                <div className="premium-card-body">
+                  <IncludedServices
+                    value={features.includedServices || []}
+                    onChange={(includedServices) => setFeatures((prev) => ({ ...prev, includedServices }))}
+                  />
                 </div>
               </div>
             </div>

@@ -1,16 +1,14 @@
 import { toast } from 'react-toastify';
 import { confirmDialog } from '../common/confirm';
-import { AuthService } from '../../services/auth.service';
+import { can } from '../../utils/permissions';
 
 // Bulk status changes from a DataGrid bulk bar (Services, Pages, Landing Pages): confirm with the
 // list of records, run one request per record (so one failure doesn't stop the rest), then toast
 // how many worked and why the others did not.
 
+/** Same rule as the backend (module may be a list, any one is enough): utils/permissions.js. */
 export function canDo(action, module) {
-  const user = AuthService.getCurrentUser();
-  if (!user) return false;
-  if (user.role?.name === 'Admin') return true;
-  return (user.role?.permissions || []).some((p) => p.module === module && p.action === action);
+  return can(action, module);
 }
 
 const reason = (error) => {

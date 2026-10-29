@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { secondaryMenuData, railMenuData } from '../../config/menuConfig';
+import { canOpen } from '../../utils/permissions';
 
 const generateSearchData = () => {
   const data = [];
@@ -36,10 +37,10 @@ const generateSearchData = () => {
     });
   });
 
-  return data;
+  // Only pages the user may open (utils/permissions.js ROUTES).
+  return data.filter((entry) => canOpen(entry.path));
 };
 
-const searchData = generateSearchData();
 
 const GlobalSearch = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,6 +60,8 @@ const GlobalSearch = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Built per render: it depends on the logged-in user's permissions.
+  const searchData = generateSearchData();
   const filteredResults = query.trim() === '' ? [] : searchData.filter(item => 
     item.title.toLowerCase().includes(query.toLowerCase()) || 
     item.type.toLowerCase().includes(query.toLowerCase())

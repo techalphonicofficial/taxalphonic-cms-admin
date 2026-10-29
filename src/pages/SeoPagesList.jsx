@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import DataGrid from '../components/datagrid/DataGrid';
@@ -11,6 +10,8 @@ import api from '../services/api';
 import AiGenerationModal from '../components/seo/AiGenerationModal';
 import { siteUrl } from '../config/siteUrl';
 import './SeoPagesList.css';
+import PermLink from '../components/common/PermLink';
+import { can } from '../utils/permissions';
 
 // pSEO pages (/seo-pages): server-side list from GET /seo-pages/admin-list (no page bodies),
 // summary cards that double as filters, type / service filters, and bulk publish / draft /
@@ -43,6 +44,7 @@ const timeAgo = (value) => {
 };
 
 const SeoPagesList = () => {
+  const canEdit = can('update', 'SEO');
   const [view, setView] = useState('all');
   const [pageType, setPageType] = useState('');
   const [serviceId, setServiceId] = useState('');
@@ -130,7 +132,7 @@ const SeoPagesList = () => {
         const live = r.status === 'PUBLISHED' && r.hasContent;
         return (
           <div className="sp-page">
-            <Link to={`/seo-pages/edit/${r.id}`} className="sp-title">{r.title}</Link>
+            <PermLink asText to={`/seo-pages/edit/${r.id}`} className="sp-title">{r.title}</PermLink>
             {live
               ? <a href={siteUrl(r.slug)} target="_blank" rel="noreferrer" className="sp-slug">/{r.slug} <i className="bi bi-box-arrow-up-right"></i></a>
               : <span className="sp-slug">/{r.slug}</span>}
@@ -201,10 +203,10 @@ const SeoPagesList = () => {
         const busy = generateMutation.isPending && generateMutation.variables?.id === r.id;
         return (
           <div className="d-flex gap-2">
-            <button type="button" onClick={() => setModal({ target: r })} className="btn btn-sm btn-outline-dark" title={r.hasContent ? 'Rewrite content with AI' : 'Write content with AI'} disabled={busy}>
+            {canEdit && <button type="button" onClick={() => setModal({ target: r })} className="btn btn-sm btn-outline-dark" title={r.hasContent ? 'Rewrite content with AI' : 'Write content with AI'} disabled={busy}>
               {busy ? <span className="spinner-border spinner-border-sm"></span> : <i className="bi bi-magic"></i>}
-            </button>
-            <Link to={`/seo-pages/edit/${r.id}`} className="btn btn-sm btn-outline-primary" title="Edit"><i className="bi bi-pencil"></i></Link>
+            </button>}
+            <PermLink to={`/seo-pages/edit/${r.id}`} className="btn btn-sm btn-outline-primary" title="Edit"><i className="bi bi-pencil"></i></PermLink>
             {r.status === 'PUBLISHED' && r.hasContent && (
               <a href={siteUrl(r.slug)} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-success" title="View on website"><i className="bi bi-box-arrow-up-right"></i></a>
             )}
@@ -213,9 +215,10 @@ const SeoPagesList = () => {
         );
       },
     },
-  ], [generateMutation.isPending, generateMutation.variables]);
+  ], [generateMutation.isPending, generateMutation.variables, canEdit]);
 
-  const bulkActions = [
+  // Publish / Draft / Archive / Write with AI need SEO update (backend bulk-status, generate-ai).
+  const bulkActions = !canEdit ? [] : [
     { label: 'Publish', icon: 'bi-globe2', variant: 'success', onClick: (rows, clear) => setStatus(rows, clear, 'PUBLISHED') },
     { label: 'Draft', icon: 'bi-eye-slash', variant: 'light', onClick: (rows, clear) => setStatus(rows, clear, 'DRAFT') },
     { label: 'Archive', icon: 'bi-archive', variant: 'light', onClick: (rows, clear) => setStatus(rows, clear, 'ARCHIVED') },
@@ -248,9 +251,9 @@ const SeoPagesList = () => {
             {bulkMutation.isPending ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-cpu me-2"></i>}
             Process AI Queue
           </button>
-          <Link to="/seo-pages/new" className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
+          <PermLink to="/seo-pages/new" className="btn btn-primary rounded-pill px-4 shadow-sm fw-medium">
             <i className="bi bi-diagram-3 me-2"></i> Matrix Generator
-          </Link>
+          </PermLink>
         </div>
       </div>
 
@@ -305,7 +308,7 @@ const SeoPagesList = () => {
             <div className="text-center py-5">
               <i className="bi bi-diagram-3 fs-1 text-muted d-block mb-2"></i>
               <p className="text-muted mb-3">No SEO pages yet.</p>
-              <Link to="/seo-pages/new" className="btn btn-primary rounded-pill px-4">Open the Matrix Generator</Link>
+              <PermLink to="/seo-pages/new" className="btn btn-primary rounded-pill px-4">Open the Matrix Generator</PermLink>
             </div>
           )}
         </div>

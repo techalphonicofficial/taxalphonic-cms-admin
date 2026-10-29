@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { DateCell } from '../components/datagrid/CellRenderers';
@@ -9,6 +9,7 @@ import api from '../services/api';
 import { PackageService } from '../services/package.service';
 import { toast } from 'react-toastify';
 import { confirmDialog, confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const PackagesList = () => {
   const navigate = useNavigate();
@@ -136,6 +137,18 @@ const PackagesList = () => {
       accessorKey: 'name',
       header: 'Name',
       size: 250,
+      cell: info => {
+        // A bundle package lists its services in features.includedServices (PackageForm).
+        let features = info.row.original.features;
+        if (typeof features === 'string') { try { features = JSON.parse(features); } catch { features = null; } }
+        const count = Array.isArray(features?.includedServices) ? features.includedServices.length : 0;
+        return (
+          <span>
+            {info.getValue()}
+            {count > 0 && <span className="badge bg-primary-subtle text-primary-emphasis ms-2" title="Services in this package">Bundle · {count}</span>}
+          </span>
+        );
+      },
     },
     {
       accessorKey: 'category',
@@ -185,9 +198,9 @@ const PackagesList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/packages/new" className="premium-btn-primary">
+          <PermLink to="/packages/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Package
-          </Link>
+          </PermLink>
         </div>
       </div>
 

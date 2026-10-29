@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
+import SlugStatus from '../components/common/SlugStatus';
 import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import api from '../services/api';
@@ -150,6 +151,7 @@ const PortfolioCategoryForm = () => {
                     })} 
                   />
                   <div className="form-text">The URL-friendly version of the name. It is auto-generated.</div>
+                  <SlugStatus type="portfolio_category" slug={watch('slug')} id={id} prefix="" onUseSuggestion={(next) => setValue('slug', next, { shouldValidate: true, shouldDirty: true })} />
                   {errors.slug && <div className="invalid-feedback">{errors.slug.message}</div>}
                 </div>
 

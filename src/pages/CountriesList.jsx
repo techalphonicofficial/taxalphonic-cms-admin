@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { StatusBadge } from '../components/datagrid/CellRenderers';
@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { confirmDelete } from '../components/common/confirm';
 
 import { mediaUrl } from '../utils/mediaUrl';
+import PermLink from '../components/common/PermLink';
 
 const CountriesList = () => {
   const navigate = useNavigate();
@@ -150,9 +151,9 @@ const CountriesList = () => {
           <h2 className="premium-title mb-0 fs-5" style={{ letterSpacing: '-0.5px' }}>Global Presence</h2>
         </div>
         <div className="d-flex gap-2">
-          <Link to="/cms/countries/new" className="premium-btn-primary">
+          <PermLink to="/cms/countries/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Country
-          </Link>
+          </PermLink>
         </div>
       </div>
 

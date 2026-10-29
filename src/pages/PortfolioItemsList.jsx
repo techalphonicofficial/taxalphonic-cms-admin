@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { StatusBadge } from '../components/datagrid/CellRenderers';
@@ -7,6 +7,7 @@ import ActionColumn from '../components/datagrid/ActionColumn';
 import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import { PortfolioItemService } from '../services/portfolioItem.service';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const PortfolioItemsList = () => {
   const navigate = useNavigate();
@@ -185,9 +186,9 @@ const PortfolioItemsList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/portfolio-items/new" className="premium-btn-primary">
+          <PermLink to="/portfolio-items/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Item
-          </Link>
+          </PermLink>
         </div>
       </div>
 

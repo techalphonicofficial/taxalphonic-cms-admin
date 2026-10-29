@@ -7,9 +7,9 @@ import ActionColumn from '../components/datagrid/ActionColumn';
 import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import api from '../services/api';
 import { toast } from 'react-toastify';
-import { AuthService } from '../services/auth.service';
 import { confirmDelete } from '../components/common/confirm';
 import { canDo, runBulk } from '../components/datagrid/bulkStatus';
+import PermLink from '../components/common/PermLink';
 
 const ServicesList = () => {
   const navigate = useNavigate();
@@ -160,11 +160,8 @@ const ServicesList = () => {
   });
 
   const columns = useMemo(() => {
-    const user = AuthService.getCurrentUser();
-    const isAdmin = user?.role?.name === 'Admin';
-    const perms = user?.role?.permissions || [];
-    const canUpdate = isAdmin || perms.some(p => p.module === 'Services' && p.action === 'update');
-    const canDelete = isAdmin || perms.some(p => p.module === 'Services' && p.action === 'delete');
+    const canUpdate = canDo('update', 'Services');
+    const canDelete = canDo('delete', 'Services');
 
     return [
       {
@@ -239,10 +236,10 @@ const ServicesList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/trash?module=services" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold" title="Deleted services (restore)">
+          <PermLink to="/trash?module=services" className="btn btn-sm btn-light border d-inline-flex align-items-center fw-semibold" title="Deleted services (restore)">
             <i className="bi bi-trash3 me-2"></i> Trash
-          </Link>
-          {(AuthService.getCurrentUser()?.role?.name === 'Admin' || AuthService.getCurrentUser()?.role?.permissions?.some(p => p.module === 'Services' && p.action === 'create')) && (
+          </PermLink>
+          {canDo('create', 'Services') && (
             <Link to="/services/new" className="premium-btn-primary">
               <i className="bi bi-plus-lg me-2"></i> Add Service
             </Link>
@@ -259,7 +256,7 @@ const ServicesList = () => {
         isLoading={isLoading}
         error={error}
         title="All Services"
-        deleteUrl={AuthService.getCurrentUser()?.role?.name === 'Admin' || AuthService.getCurrentUser()?.role?.permissions?.some(p => p.module === 'Services' && p.action === 'delete') ? '/services' : undefined}
+        deleteUrl={canDo('delete', 'Services') ? '/services' : undefined}
         deleteMode="trash"
         itemLabel="service"
         bulkActions={bulkActions}

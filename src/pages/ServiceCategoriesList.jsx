@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import DataGrid from '../components/datagrid/DataGrid';
 import { StatusBadge, DateCell } from '../components/datagrid/CellRenderers';
@@ -7,6 +7,7 @@ import ActionColumn from '../components/datagrid/ActionColumn';
 import GridFilterDrawer from '../components/datagrid/GridFilterDrawer';
 import { ServiceCategoryService } from '../services/serviceCategory.service';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const ServiceCategoriesList = () => {
   const navigate = useNavigate();
@@ -149,9 +150,9 @@ const ServiceCategoriesList = () => {
         </div>
         
         <div className="d-flex gap-2">
-          <Link to="/service-categories/new" className="premium-btn-primary">
+          <PermLink to="/service-categories/new" className="premium-btn-primary">
             <i className="bi bi-plus-lg me-2"></i> Add Category
-          </Link>
+          </PermLink>
         </div>
       </div>
 

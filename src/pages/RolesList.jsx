@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import HasPermission from '../components/common/HasPermission';
 import { confirmDelete } from '../components/common/confirm';
+import PermLink from '../components/common/PermLink';
 
 const RolesList = () => {
   const queryClient = useQueryClient();
@@ -68,9 +69,9 @@ const RolesList = () => {
           <h4 className="mb-1 fw-bold">Role Management</h4>
           <p className="text-muted mb-0">Define roles and assign permissions</p>
         </div>
-        <Link to="/roles/new" className="btn btn-primary rounded-pill px-4">
+        <PermLink to="/roles/new" className="btn btn-primary rounded-pill px-4">
           <i className="bi bi-plus-lg me-2"></i> Add Role
-        </Link>
+        </PermLink>
       </div>
       
       <DataGrid 

@@ -11,6 +11,7 @@ import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, isJourneyPage, journeySt
 import { TOOL_REFERENCE, TOOL_SLUG_PREFIX, TOOLS_HUB_SLUG, isToolPage, toolPageSections, toolsHubSections } from '../components/page-builder/toolBlocks';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import SlugStatus from '../components/common/SlugStatus';
 import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const joditConfig = {
@@ -282,6 +283,17 @@ const PageForm = () => {
                   {errors.slug && <div className="text-danger mt-1" style={{ fontSize: '0.875rem' }}>{errors.slug.message}</div>}
                   {isHome && <div className="form-text">Fixed to <code>home</code>: this page is served at the site root (/).</div>}
                 </div>
+                {/* Pages share the website URL space with services and pSEO pages: warn before saving. */}
+                {!isHome && (
+                  <div className="mb-4" style={{ marginTop: '-1rem' }}>
+                    <SlugStatus
+                      type="page"
+                      slug={watch('slug')}
+                      id={id}
+                      onUseSuggestion={isJourney || isTool ? undefined : (next) => setValue('slug', next, { shouldValidate: true, shouldDirty: true })}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

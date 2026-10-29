@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { AuthService } from '../services/auth.service';
+import { canOpen, firstAllowedPath } from '../utils/permissions';
 import RailMenu from '../components/layout/sidebar/RailMenu';
 import SecondarySidebar from '../components/layout/sidebar/SecondarySidebar';
 import Header from '../components/layout/Header';
@@ -50,7 +52,23 @@ const useEditorBarOffset = (mainRef) => {
 const AdminLayout = () => {
   const { isMobileOpen, toggleMobileSidebar } = useSidebar();
   const mainRef = useRef(null);
+  const location = useLocation();
+  const [, setPermissionsVersion] = useState(0);
   useEditorBarOffset(mainRef);
+
+  // The role's permissions are saved at login; load them again on every start so a role change
+  // shows at once. When they changed, re-render: menus, buttons and the page guard below follow.
+  useEffect(() => {
+    AuthService.refreshUser()
+      .then((changed) => { if (changed) setPermissionsVersion((v) => v + 1); })
+      .catch(() => {});
+  }, []);
+
+  // Page guard for every admin page (utils/permissions.js ROUTES): no permission, no page.
+  // The dashboard is the start page, so a user who may not see it lands on their first allowed page.
+  if (!canOpen(location.pathname)) {
+    return <Navigate to={location.pathname === '/' ? firstAllowedPath() : '/unauthorized'} replace />;
+  }
 
   // LeadNotificationsProvider: new-lead ring / alerts on every admin page (the Header bell shows them).
   return (

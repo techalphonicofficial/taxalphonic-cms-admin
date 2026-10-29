@@ -5,6 +5,7 @@ import { InquiryService } from '../../services/inquiry.service';
 import { toast } from 'react-toastify';
 import { Modal, Button, Form, Dropdown } from 'react-bootstrap';
 import { confirmDialog, confirmDelete } from '../../components/common/confirm';
+import { M, can } from '../../utils/permissions';
 
 const STATUS_CONFIG = {
   NEW: { label: 'New', bg: 'danger', icon: 'bi-bell-fill' },
@@ -22,6 +23,9 @@ const PRIORITY_CONFIG = {
 };
 
 const LeadsList = () => {
+  // Buttons follow the role (backend: CRM / Inquiries update and delete).
+  const canUpdate = can('update', M.leads);
+  const canDelete = can('delete', M.leads);
   const [searchParams, setSearchParams] = useSearchParams();
   const currentStatusParam = searchParams.get('status') || 'ALL';
   const currentFormIdParam = searchParams.get('formId') || '';
@@ -425,7 +429,7 @@ const LeadsList = () => {
             </div>
 
             <div className="col-md-3 text-md-end">
-              {selectedLeads.length > 0 && (
+              {canDelete && selectedLeads.length > 0 && (
                 <button
                   className="btn btn-sm btn-danger me-3 px-3 rounded-pill shadow-sm"
                   onClick={handleBulkDelete}
@@ -537,6 +541,7 @@ const LeadsList = () => {
                         <Dropdown>
                           <Dropdown.Toggle
                             variant={statusInfo.bg}
+                            disabled={!canUpdate}
                             size="sm"
                             className="rounded-pill px-2 py-1 small fw-semibold"
                           >
@@ -573,6 +578,7 @@ const LeadsList = () => {
                           >
                             <i className="bi bi-eye"></i>
                           </Button>
+                          {canDelete && (
                           <Button
                             variant="outline-danger"
                             size="sm"
@@ -581,6 +587,7 @@ const LeadsList = () => {
                           >
                             <i className="bi bi-trash"></i>
                           </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -779,9 +786,9 @@ const LeadsList = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleSaveModal} disabled={isUpdating}>
+          {canUpdate && <Button variant="primary" onClick={handleSaveModal} disabled={isUpdating}>
             {isUpdating ? 'Saving...' : 'Save Changes'}
-          </Button>
+          </Button>}
         </Modal.Footer>
       </Modal>
     </div>
