@@ -3,7 +3,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://api.taxalphonic.com/api
 // Public endpoints the website uses to render and submit a form (cms-backend routes/formRoutes.js)
 export const publicFormEndpoints = (slug) => [
   { label: 'Load form definition', method: 'GET', url: `${API_URL}/forms/public/${slug || 'your-slug'}` },
-  { label: 'Submit (creates a CRM lead)', method: 'POST', url: `${API_URL}/forms/public/${slug || 'your-slug'}/submit` },
+  { label: 'Get a captcha question ({ question, token }, one per submission)', method: 'GET', url: `${API_URL}/captcha` },
+  { label: 'Submit (creates a CRM lead; needs _captchaToken + _captcha)', method: 'POST', url: `${API_URL}/forms/public/${slug || 'your-slug'}/submit` },
 ];
 
 const SAMPLE_VALUES = {
@@ -26,5 +27,8 @@ export const sampleSubmission = (fields = []) => {
     else body[f.name] = SAMPLE_VALUES[f.type] ?? '';
   });
   body._hp = '';
+  // Arithmetic captcha: the token from GET /captcha and the visitor's answer (required, works once).
+  body._captchaToken = '<token from GET /captcha>';
+  body._captcha = '11';
   return body;
 };

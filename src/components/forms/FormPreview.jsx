@@ -92,6 +92,18 @@ const FormPreview = ({ form, interactive = false, compact = false }) => {
             </div>
           );
         })}
+        {/* The website adds an arithmetic captcha to every form (MathCaptcha); shown here as a sample. */}
+        <div className="col-12">
+          <label className="form-label fw-medium" htmlFor="preview_captcha">
+            Security check<span className="text-danger"> *</span>
+          </label>
+          <div className="d-flex align-items-center gap-2">
+            <span className="px-3 py-2 rounded border bg-body-tertiary fw-bold text-nowrap" style={{ borderStyle: 'dashed' }}>7 + 4 =</span>
+            <input id="preview_captcha" className="form-control text-center" style={{ width: 90 }} placeholder="?" disabled={disabled} />
+            <button type="button" className="btn btn-outline-secondary btn-sm" disabled title="New question"><i className="bi bi-arrow-clockwise" /></button>
+          </div>
+          {!compact && <div className="form-text">Added automatically on the website; the form cannot be sent without the right answer.</div>}
+        </div>
         <div className="col-12">
           <button type="submit" className="btn btn-primary px-4" disabled>
             {form?.settings?.submitButtonText || 'Submit'}
