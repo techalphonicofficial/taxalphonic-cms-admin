@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { confirmDelete } from '../components/common/confirm';
 import { canDo, runBulk } from '../components/datagrid/bulkStatus';
 import PermLink from '../components/common/PermLink';
+import { cloneRecord } from '../utils/cloneRecord';
 
 const ServicesList = () => {
   const navigate = useNavigate();
@@ -216,10 +217,11 @@ const ServicesList = () => {
           <ActionColumn
             row={row.original}
             onEdit={canUpdate ? (r) => navigate(`/services/edit/${r.id}`) : undefined}
+            onDuplicate={(r) => cloneRecord('service', r, navigate)}
             onDelete={canDelete ? handleDelete : undefined}
           />
         ),
-        size: 120,
+        size: 150,
         enableSorting: false,
         pinned: 'right', // Custom handled
       }

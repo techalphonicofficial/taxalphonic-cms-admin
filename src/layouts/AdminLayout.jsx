@@ -16,26 +16,39 @@ const SidebarContent = () => (
 );
 
 /**
- * Keeps --ta-sticky-offset on <main> equal to the height of the page's sticky editor header
- * (.ta-editor-bar, global.scss), 0 when there is none, so sticky side panels sit below it.
+ * Keeps two variables on <main> (global.scss):
+ * --ta-bar-h: height of the page's sticky editor header (.ta-editor-bar), where the sticky editor
+ *   tabs (.ta-sticky-tabs) sit;
+ * --ta-sticky-offset: header + tabs, 0 when there are none, so sticky side panels sit below both.
  */
 const useEditorBarOffset = (mainRef) => {
   useEffect(() => {
     const main = mainRef.current;
     if (!main) return undefined;
     let bar = null;
+    let tabs = null;
     let frame = 0;
-    const sizeObserver = new ResizeObserver(() => {
-      main.style.setProperty('--ta-sticky-offset', `${bar ? Math.round(bar.offsetHeight) : 0}px`);
-    });
+    const write = () => {
+      const barH = bar ? Math.round(bar.offsetHeight) : 0;
+      const tabsH = tabs ? Math.round(tabs.offsetHeight) : 0;
+      main.style.setProperty('--ta-bar-h', `${barH}px`);
+      main.style.setProperty('--ta-sticky-offset', `${barH + tabsH}px`);
+    };
+    const sizeObserver = new ResizeObserver(write);
+    const track = (current, next) => {
+      if (next === current) return current;
+      if (current) sizeObserver.unobserve(current);
+      if (next) sizeObserver.observe(next);
+      return next;
+    };
     const update = () => {
       frame = 0;
-      const next = main.querySelector('.ta-editor-bar');
-      if (next === bar) return;
-      if (bar) sizeObserver.unobserve(bar);
-      bar = next;
-      if (bar) sizeObserver.observe(bar);
-      else main.style.setProperty('--ta-sticky-offset', '0px');
+      const nextBar = main.querySelector('.ta-editor-bar');
+      const nextTabs = main.querySelector('.ta-sticky-tabs');
+      if (nextBar === bar && nextTabs === tabs) return;
+      bar = track(bar, nextBar);
+      tabs = track(tabs, nextTabs);
+      write();
     };
     // Pages render their header after loading, so look again when <main>'s content changes.
     const domObserver = new MutationObserver(() => { if (!frame) frame = requestAnimationFrame(update); });

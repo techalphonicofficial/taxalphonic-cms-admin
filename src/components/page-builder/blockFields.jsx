@@ -102,6 +102,21 @@ const landingActionOf = (url) => {
   return 'section';
 };
 
+/** Optional icon on a button: emoji or a Media image, before or after the text (website ButtonLabel.jsx). */
+const ButtonIconInput = ({ button, set }) => (
+  <div className="d-flex gap-2 mt-2">
+    <div className="flex-grow-1">
+      <MediaTextInput value={button.icon} onChange={icon => set({ icon })} placeholder="Icon on the button (optional): emoji like ➜ 📞 ⚡ or an image" />
+    </div>
+    {String(button.icon || '').trim() && (
+      <select className="form-select flex-grow-0" style={{ width: 'auto' }} value={button.iconSide === 'right' ? 'right' : 'left'} onChange={e => set({ iconSide: e.target.value })} title="Where the icon sits">
+        <option value="left">Icon before text</option>
+        <option value="right">Icon after text</option>
+      </select>
+    )}
+  </div>
+);
+
 /** ButtonField on a landing page: only actions that keep the visitor on the page. */
 const LandingButtonField = ({ label, button, set, className }) => {
   const action = landingActionOf(button.url);
@@ -136,6 +151,7 @@ const LandingButtonField = ({ label, button, set, className }) => {
           <PopupFormSelect value={popupFormOf(url)} onChange={(id) => set({ url: id ? `#form-${id}` : '#form' })} />
         </div>
       )}
+      <ButtonIconInput button={button} set={set} />
       <div className={`form-text ${outbound ? 'text-danger' : ''}`}>
         {outbound
           ? 'This link leaves the landing page, which is not allowed (ads): on the website it opens the form popup instead. Pick one of the actions above.'
@@ -177,6 +193,7 @@ export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) 
           <PopupFormSelect value={popupForm} onChange={(id) => set({ url: id ? `#form-${id}` : '#form' })} />
         </div>
       )}
+      <ButtonIconInput button={button} set={set} />
       <div className="form-text">
         {popup ? 'A click opens the chosen form in a popup (submissions go to CRM Leads). ' : ''}Leave the text empty to hide this button.
       </div>
@@ -185,11 +202,13 @@ export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) 
 };
 
 /**
- * Editable list of objects. `fields`: [{ key, placeholder, textarea?, type: 'checkbox' | 'color'?, width?, media? }]
+ * Editable list of objects. `fields`: [{ key, placeholder, textarea?, type: 'checkbox' | 'color' | 'list'?, width?, media? }]
  * Fields named icon / image / logo / avatar / photo (or media: true) get the Media picker.
  * where width is a Bootstrap column class (default col-12).
+ * type 'list' (with its own `fields`, `label`, `addLabel`) is a list inside each item, e.g. the
+ * links of an Explore card or the cards of a Q&A tab.
  */
-export const RepeaterField = ({ label, items, onChange, fields, addLabel = 'Add item', newItem = {} }) => {
+export const RepeaterField = ({ label, items, onChange, fields, addLabel = 'Add item', newItem = {}, nested = false }) => {
   const list = Array.isArray(items) ? items : [];
   const update = (index, key, value) => onChange(list.map((item, i) => (i === index ? { ...item, [key]: value } : item)));
   const remove = (index) => onChange(list.filter((_, i) => i !== index));
@@ -210,11 +229,22 @@ export const RepeaterField = ({ label, items, onChange, fields, addLabel = 'Add 
       </div>
       {list.length === 0 && <div className="text-muted small mb-2">Nothing added yet.</div>}
       {list.map((item, index) => (
-        <div key={index} className="p-3 mb-2 border rounded-4 bg-white d-flex gap-2">
+        <div key={index} className={`${nested ? 'p-2 bg-body-tertiary' : 'p-3 bg-white'} mb-2 border rounded-4 d-flex gap-2`}>
           <div className="row g-2 flex-grow-1">
             {fields.map(field => (
               <div key={field.key} className={field.width || 'col-12'}>
-                {field.type === 'checkbox' ? (
+                {field.type === 'list' ? (
+                  <div className="row">
+                    <RepeaterField
+                      nested
+                      label={field.label || field.placeholder}
+                      items={item?.[field.key]}
+                      onChange={value => update(index, field.key, value)}
+                      fields={field.fields}
+                      addLabel={field.addLabel}
+                    />
+                  </div>
+                ) : field.type === 'checkbox' ? (
                   <label className="form-check h-100 d-flex align-items-center gap-2 mb-0">
                     <input type="checkbox" className="form-check-input mt-0" checked={item?.[field.key] === true} onChange={e => update(index, field.key, e.target.checked)} />
                     <span className="small">{field.placeholder}</span>

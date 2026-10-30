@@ -252,7 +252,8 @@ const BlogForm = () => {
       </div>
 
       <div className="premium-form-card mb-4">
-        <div className="bg-white border-bottom-0 pt-3 pb-2 px-4" style={{ background: 'transparent' }}>
+        {/* Sticky under the editor header (global.scss .ta-sticky-tabs). */}
+        <div className="ta-sticky-tabs border-bottom-0 px-4" style={{ borderRadius: '20px 20px 0 0' }}>
           <ul className="nav nav-tabs premium-tabs" role="tablist">
             <li className="nav-item">
               <button className={`nav-link fw-medium ${activeTab === 'general' ? 'active' : 'text-muted'}`} onClick={() => setActiveTab('general')}>

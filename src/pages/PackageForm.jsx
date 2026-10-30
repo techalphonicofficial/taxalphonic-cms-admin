@@ -277,7 +277,9 @@ const PackageForm = () => {
       <div className="row g-4">
         <div className="col-lg-8">
           {/* Tabs */}
-          <ul className="nav nav-tabs premium-tabs mb-4">
+          {/* Sticky under the editor header (global.scss .ta-sticky-tabs). */}
+          <div className="ta-sticky-tabs mb-4">
+          <ul className="nav nav-tabs premium-tabs mb-0">
             <li className="nav-item">
               <button
                 type="button"
@@ -306,6 +308,7 @@ const PackageForm = () => {
               </button>
             </li>
           </ul>
+          </div>
 
           <form id="packageForm" onSubmit={onSubmit}>
             {/* GENERAL TAB */}

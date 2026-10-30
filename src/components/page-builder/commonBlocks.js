@@ -28,6 +28,8 @@ export const COMMON_BLOCKS = [
   { type: 'CommonTrust', label: 'Trust Badges', icon: 'bi-shield-check' },
   { type: 'CommonContact', label: 'Contact Card (call / WhatsApp)', icon: 'bi-telephone' },
   { type: 'CommonMiniFaq', label: 'Quick FAQ', icon: 'bi-patch-question' },
+  { type: 'CommonExploreHub', label: 'Explore Links Grid', icon: 'bi-grid-1x2' },
+  { type: 'CommonQna', label: 'Questions & Answers + Knowledge Tabs', icon: 'bi-chat-square-text' },
 ];
 
 export const isCommonType = (type) => COMMON_BLOCKS.some(b => b.type === type);
@@ -79,7 +81,10 @@ export const COMMON_SCHEMAS = {
     ANCHOR,
   ],
   CommonCards: [
-    KICKER, HEADING, SUB, ALIGN, COLUMNS('3'),
+    KICKER, HEADING, SUB,
+    { key: 'subLink', label: 'Link after the sub text (optional)', type: 'button' },
+    ALIGN,
+    { key: 'columns', label: 'Cards per row (laptop / desktop)', type: 'select', hint: 'At least 4 per row at 100% zoom (fewer only when the block has fewer cards); 3 on small laptops, 2 on tablets, 1 on phones, 1 in a sidebar.', options: [{ value: '4', label: '4 (default)' }, { value: '5', label: '5' }, { value: '6', label: '6' }] },
     { key: 'style', label: 'Card style', type: 'select', options: [{ value: 'card', label: 'Cards with border' }, { value: 'plain', label: 'Plain (no box)' }] },
     { key: 'items', label: 'Cards', type: 'list', addLabel: 'Add card', fields: [{ key: 'icon', placeholder: 'Icon / image', width: 'col-md-3' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-5' }, { key: 'text', placeholder: 'Text', width: 'col-md-8', textarea: true }, { key: 'linkText', placeholder: 'Link text (Learn more →)', width: 'col-md-4' }] },
     ANCHOR,
@@ -93,7 +98,7 @@ export const COMMON_SCHEMAS = {
   CommonButtons: [
     KICKER, HEADING,
     { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
-    { key: 'buttons', label: 'Buttons', type: 'list', addLabel: 'Add button', fields: [{ key: 'text', placeholder: 'Text', width: 'col-md-4' }, { key: 'url', placeholder: 'Link', width: 'col-md-5' }, { key: 'style', placeholder: 'primary / ghost', width: 'col-md-3' }] },
+    { key: 'buttons', label: 'Buttons', type: 'list', addLabel: 'Add button', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-3' }, { key: 'text', placeholder: 'Text', width: 'col-md-3' }, { key: 'url', placeholder: 'Link', width: 'col-md-4' }, { key: 'style', placeholder: 'primary / ghost', width: 'col-md-2' }] },
     ANCHOR,
   ],
   CommonSpacer: [
@@ -213,6 +218,47 @@ export const COMMON_SCHEMAS = {
     ANCHOR,
     { key: 'placementNote', type: 'note', label: 'Small block: fits the right sidebar (Placement). For a full FAQ section use the FAQ block.' },
   ],
+  // Reference .xhub "Explore everything for your business": link cards, 4 per row on a laptop.
+  CommonExploreHub: [
+    KICKER, HEADING, SUB, ALIGN, COLUMNS('4'),
+    {
+      key: 'cards', label: 'Cards', type: 'list', addLabel: 'Add card',
+      fields: [
+        { key: 'icon', placeholder: 'Icon', width: 'col-md-3' },
+        { key: 'title', placeholder: 'Card title (e.g. Registrations)', width: 'col-md-4' },
+        { key: 'url', placeholder: 'Title link (optional)', width: 'col-md-5' },
+        { key: 'links', type: 'list', label: 'Links in this card', addLabel: 'Add link', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'Link text', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (/gst-registration)', width: 'col-md-5' }] },
+      ],
+    },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Wide block: use it full width (service pages: Bottom). Empty links or cards are not shown.' },
+  ],
+  // Reference .sp-qna + Taxpedia tabs (.tpx): ask box, answered questions, knowledge panel.
+  CommonQna: [
+    KICKER, HEADING, SUB, ALIGN,
+    { key: 'askPlaceholder', label: 'Ask box placeholder', type: 'text', width: 'col-12' },
+    { key: 'askButton', label: 'Ask button ("Post question")', type: 'button' },
+    { key: 'askFormHeading', label: 'Popup heading when asking (optional)', type: 'text' },
+    { key: 'askNote', label: 'Message under a posted question', type: 'text', width: 'col-12', hint: 'The question goes into the message box of the button\'s form (popup or the form on this page) and is sent with the visitor\'s details as a CRM lead. Leave the button text empty to hide the ask box.' },
+    { key: 'firstOpen', label: 'First answered question open', type: 'select', options: [{ value: 'no', label: 'No' }, { value: 'yes', label: 'Yes' }] },
+    { key: 'items', label: 'Answered questions (optional)', type: 'list', addLabel: 'Add question', fields: [{ key: 'question', placeholder: 'Question', width: 'col-12' }, { key: 'answer', placeholder: 'Answer', width: 'col-12', textarea: true }] },
+    { key: 'showPanel', label: 'Knowledge panel (tabs)', type: 'select', options: [{ value: 'yes', label: 'Show' }, { value: 'no', label: 'Hide' }] },
+    { key: 'panelIcon', label: 'Panel icon', type: 'text', showIf: (d) => d.showPanel !== 'no' },
+    { key: 'panelTitle', label: 'Panel title', type: 'text', showIf: (d) => d.showPanel !== 'no' },
+    { key: 'panelSub', label: 'Panel sub text', type: 'text', width: 'col-12', showIf: (d) => d.showPanel !== 'no' },
+    { key: 'panelButton', label: 'Panel button (e.g. Open Taxpedia →)', type: 'button', showIf: (d) => d.showPanel !== 'no' },
+    {
+      key: 'tabs', label: 'Tabs', type: 'list', addLabel: 'Add tab', showIf: (d) => d.showPanel !== 'no',
+      fields: [
+        { key: 'icon', placeholder: 'Icon', width: 'col-md-3' },
+        { key: 'label', placeholder: 'Tab name (Articles, News…)', width: 'col-md-9' },
+        { key: 'cards', type: 'list', label: 'Cards in this tab', addLabel: 'Add card', fields: [{ key: 'title', placeholder: 'Title', width: 'col-md-6' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-6' }, { key: 'text', placeholder: 'Short text', width: 'col-md-8', textarea: true }, { key: 'linkText', placeholder: 'Link text (Read more →)', width: 'col-md-4' }] },
+      ],
+    },
+    { key: 'topicsLabel', label: 'Topics label', type: 'text', showIf: (d) => d.showPanel !== 'no' },
+    { key: 'topics', label: 'Related topics (chips)', type: 'list', addLabel: 'Add topic', showIf: (d) => d.showPanel !== 'no', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'Topic', width: 'col-md-4' }, { key: 'url', placeholder: 'Link', width: 'col-md-5' }] },
+    ANCHOR,
+  ],
 };
 
 // Starting content, so a new block shows something sensible straight away.
@@ -223,9 +269,9 @@ const DEFAULTS = {
   CommonVideo: { url: '', kicker: '', heading: '', sub: '', caption: '', poster: '', anchorId: '' },
   CommonGallery: { kicker: '', heading: 'Gallery', sub: '', columns: '3', items: [], anchorId: '' },
   CommonStats: { kicker: '', heading: '', sub: '', columns: '4', items: [{ icon: '🏢', value: '12,400+', label: 'Businesses served' }, { icon: '⭐', value: '4.8/5', label: 'Average rating' }, { icon: '⚡', value: '7–10 days', label: 'Average turnaround' }, { icon: '🧑‍💼', value: '700+', label: 'Expert services' }], anchorId: '' },
-  CommonCards: { kicker: '', heading: 'What we offer', sub: '', align: 'center', columns: '3', style: 'card', items: [{ icon: '📝', title: 'Card title', text: 'Short description of this card.', url: '', linkText: '' }, { icon: '⚖️', title: 'Card title', text: 'Short description of this card.', url: '', linkText: '' }, { icon: '📊', title: 'Card title', text: 'Short description of this card.', url: '', linkText: '' }], anchorId: '' },
+  CommonCards: { kicker: '', heading: 'What we offer', sub: 'Everything your business needs, handled by experts.', subLink: { text: 'View all services', url: '/services', icon: '→', iconSide: 'right' }, align: 'center', columns: '4', style: 'card', items: [{ icon: '📝', title: 'Registrations', text: 'Company, GST, MSME and 28+ registrations.', url: '', linkText: '' }, { icon: '🧾', title: 'Tax & filing', text: 'GST, income tax and TDS returns on time.', url: '', linkText: '' }, { icon: '⚖️', title: 'Legal', text: 'Agreements, notices and lawyer support.', url: '', linkText: '' }, { icon: '📊', title: 'Advisory', text: 'CFO, fundraising and growth advice.', url: '', linkText: '' }], anchorId: '' },
   CommonLogos: { kicker: '', heading: 'Trusted by', grayscale: 'yes', items: [], anchorId: '' },
-  CommonButtons: { kicker: '', heading: '', align: 'center', buttons: [{ text: '🎧 Talk to an expert', url: '/talk-to-expert', style: 'primary' }, { text: '📅 Book a meeting', url: '/book-meeting', style: 'ghost' }], anchorId: '' },
+  CommonButtons: { kicker: '', heading: '', align: 'center', buttons: [{ icon: '🎧', text: 'Talk to an expert', url: '/talk-to-expert', style: 'primary' }, { icon: '📅', text: 'Book a meeting', url: '/book-meeting', style: 'ghost' }], anchorId: '' },
   CommonSpacer: { size: 'md', line: 'no' },
   CommonEmbed: { kind: 'map', url: '', html: '', height: '420', kicker: '', heading: '', caption: '', anchorId: '' },
   CommonTool: { source: 'page', toolSlug: '', calculator: 'gst', kicker: 'Free tool', heading: 'Try our calculator', sub: '', button: { text: '', url: '' }, anchorId: '' },
@@ -306,6 +352,44 @@ const DEFAULTS = {
       { question: 'Is the process fully online?', answer: 'Yes. Everything is handled online.' },
       { question: 'What if my documents are missing?', answer: 'Our experts give you a personalised checklist so nothing is missed.' },
     ],
+    anchorId: '',
+  },
+  CommonExploreHub: {
+    kicker: '', heading: 'Explore everything for your business', align: 'center', columns: '4',
+    sub: 'One platform — registrations, tax, compliance, legal, notices and growth. Hand-picked for this page.',
+    cards: [
+      { icon: '🛠️', title: 'Related services', url: '', links: [{ icon: '🛡️', text: 'Trust Registration', url: '/trust-registration' }, { icon: '🍽️', text: 'FSSAI Registration', url: '/fssai-registration' }, { icon: '🚢', text: 'ICEGATE Registration', url: '/icegate-registration' }, { icon: '🏅', text: 'ISO Registration', url: '/iso-registration' }, { icon: '🏦', text: 'PF Registration', url: '/pf-registration' }, { icon: '🩺', text: 'ESI Registration', url: '/esi-registration' }] },
+      { icon: '🏢', title: 'Registrations', url: '', links: [{ icon: '🏢', text: 'Private Limited Company', url: '/private-limited-company-registration' }, { icon: '🤝', text: 'Partnership', url: '/partnership-firm-registration' }, { icon: '⚖️', text: 'Limited Liability Partnership', url: '/llp-registration' }, { icon: '👤', text: 'One Person Company', url: '/one-person-company-registration' }, { icon: '🏭', text: 'MSME / Udyam', url: '/udyam-registration' }, { icon: '🌐', text: 'Import Export Code', url: '/import-export-code' }] },
+      { icon: '📜', title: 'Licenses', url: '', links: [{ icon: '🍽️', text: 'FSSAI License', url: '/fssai-license' }, { icon: '🔄', text: 'FSSAI Renewal', url: '/fssai-renewal' }, { icon: '📋', text: 'FSSAI Return Filing', url: '/fssai-return-filing' }, { icon: '🪪', text: 'Trade License', url: '/trade-license' }, { icon: '🏭', text: 'Factory License', url: '/factory-license' }] },
+      { icon: '™️', title: 'Trademark & IP', url: '', links: [{ icon: '™️', text: 'Trademark Registration', url: '/trademark-registration' }, { icon: '📝', text: 'Trademark Objection', url: '/trademark-objection' }, { icon: '🔄', text: 'Trademark Renewal', url: '/trademark-renewal' }, { icon: '©️', text: 'Copyright Registration', url: '/copyright-registration' }] },
+      { icon: '🧾', title: 'Tax & filing', url: '', links: [{ icon: '🧾', text: 'GST Registration', url: '/gst-registration' }, { icon: '📊', text: 'GST Return Filing', url: '/gst-return-filing' }, { icon: '📈', text: 'Income Tax E-Filing', url: '/income-tax-filing' }, { icon: '⚠️', text: 'Income Tax Notice', url: '/income-tax-notice' }] },
+      { icon: '🛡️', title: 'Business compliance', url: '', links: [{ icon: '🛡️', text: 'Annual Compliance Plan', url: '/annual-compliance' }, { icon: '🏛️', text: 'ROC Compliance', url: '/roc-compliance' }, { icon: '👷', text: 'Labour Law Compliance', url: '/labour-law-compliance' }] },
+      { icon: '💼', title: 'Business advisory', url: '', links: [{ icon: '💼', text: 'Business Plan', url: '/business-plan' }, { icon: '📊', text: 'Virtual CFO', url: '/virtual-cfo' }, { icon: '📒', text: 'Bookkeeping', url: '/bookkeeping' }] },
+      { icon: '🧰', title: 'Tools & calculators', url: '/tools', links: [{ icon: '🧮', text: 'GST Calculator', url: '/tool/gst-calculator' }, { icon: '💰', text: 'Income Tax Calculator', url: '/tool/income-tax-calculator' }, { icon: '🏦', text: 'EMI Calculator', url: '/tool/emi-calculator' }, { icon: '🧰', text: 'All tools', url: '/tools' }] },
+    ],
+    anchorId: '',
+  },
+  CommonQna: {
+    kicker: '', heading: 'Questions & answers', sub: '', align: 'center',
+    askPlaceholder: 'Ask a question — our experts answer within 24 hours',
+    askButton: { text: 'Post question', url: '#form' },
+    askFormHeading: 'Ask our expert',
+    askNote: '🕐 Add your contact details in the form and send it — a Tax Alphonic expert answers within 24 hours.',
+    firstOpen: 'no',
+    items: [],
+    showPanel: 'yes',
+    panelIcon: '📚', panelTitle: 'Taxpedia — everything in one place',
+    panelSub: 'Articles, news, judiciary, acts, notifications, forms, calendars & more — in one place',
+    panelButton: { text: 'Open Taxpedia', url: '/taxpedia', icon: '→', iconSide: 'right' },
+    tabs: [
+      { icon: '📚', label: 'Articles', cards: [{ title: 'The complete guide', text: 'Eligibility, documents, fees, timeline and process — explained step by step.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }, { title: 'Documents & eligibility', text: 'Exactly what you need before you apply, and who qualifies.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }, { title: 'Common mistakes', text: 'The errors that cause rejection or delay — and how to avoid them.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }, { title: 'Fees & timeline explained', text: 'Government fees versus professional fees, and realistic timelines.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }] },
+      { icon: '📰', label: 'News', cards: [{ title: 'Latest news', text: 'Policy changes, portal updates and deadlines, updated by our editorial team.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }, { title: 'What changed this quarter', text: 'A quick digest of recent changes.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }] },
+      { icon: '⚖️', label: 'Judiciary', cards: [{ title: 'Supreme Court rulings', text: 'Curated summaries of apex-court rulings.', linkText: 'View summaries →', url: '/taxpedia' }, { title: 'High Court decisions', text: 'Practical takeaways from High Court judgments.', linkText: 'View summaries →', url: '/taxpedia' }] },
+      { icon: '📜', label: 'Acts', cards: [{ title: 'The governing Act', text: 'Key sections explained in plain language.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }] },
+      { icon: '🏛️', label: 'Notifications', cards: [{ title: 'Notification tracker', text: 'Department notifications, tracked as they are issued.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }, { title: 'Rate & threshold changes', text: 'Notified changes to rates, limits and exemptions.', linkText: 'Read on Taxpedia →', url: '/taxpedia' }] },
+    ],
+    topicsLabel: 'Related topics:',
+    topics: [{ icon: '📖', text: 'Eligibility', url: '/taxpedia' }, { icon: '📖', text: 'Process', url: '/taxpedia' }, { icon: '📖', text: 'Amendment', url: '/taxpedia' }, { icon: '📖', text: 'Cancellation', url: '/taxpedia' }],
     anchorId: '',
   },
 };

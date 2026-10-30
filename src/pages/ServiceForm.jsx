@@ -11,6 +11,8 @@ import ImageSizeHint from '../components/common/ImageSizeHint';
 import SearchableSelect from '../components/common/SearchableSelect';
 import MediaPickButton from '../components/media/MediaPickButton';
 import SlugStatus from '../components/common/SlugStatus';
+import { cloneRecord } from '../utils/cloneRecord';
+import { can, M } from '../utils/permissions';
 import '../components/common/PremiumForms.css';
 
 const ServiceForm = () => {
@@ -381,6 +383,17 @@ const ServiceForm = () => {
         </div>
         <div className="d-flex gap-2 w-100 justify-content-end justify-content-md-auto" style={{ maxWidth: '100%' }}>
           <Link to="/services" className="btn btn-light border flex-grow-1 flex-md-grow-0 text-center">Cancel</Link>
+          {isEditMode && can('create', M.services) && (
+            <button
+              type="button"
+              className="btn btn-outline-primary flex-grow-1 flex-md-grow-0"
+              onClick={() => cloneRecord('service', { id, title: watch('title'), slug: watch('slug') }, navigate, { fromEditor: true })}
+              disabled={isLoading}
+              title="Make a draft copy of this service (all blocks included) to build a similar one"
+            >
+              <i className="bi bi-files me-1"></i> Clone
+            </button>
+          )}
           <button
             type="button"
             className="premium-btn-primary flex-grow-1 flex-md-grow-0"
@@ -397,7 +410,8 @@ const ServiceForm = () => {
       </div>
 
       <div className="premium-form-card mb-4">
-        <div className="bg-white border-bottom-0 pt-3 pb-2 px-4" style={{ background: 'transparent' }}>
+        {/* Sticky under the editor header (global.scss .ta-sticky-tabs). */}
+        <div className="ta-sticky-tabs border-bottom-0 px-4" style={{ borderRadius: '20px 20px 0 0' }}>
           <ul className="nav nav-tabs premium-tabs" role="tablist">
             <li className="nav-item">
               <button className={`nav-link fw-medium ${activeTab === 'general' ? 'active' : 'text-muted'}`} onClick={() => setActiveTab('general')}>

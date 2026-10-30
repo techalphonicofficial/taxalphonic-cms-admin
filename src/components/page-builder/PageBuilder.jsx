@@ -193,10 +193,11 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     setSections(initialSections);
   }, [initialSections]);
 
-  // Bring a newly added block into view once it has rendered.
+  // Bring a newly added / opened block into view once it has rendered: its editor below a two-column
+  // row when it has one there, else its card (scroll-margin keeps it under the sticky header + tabs).
   useEffect(() => {
     if (!scrollToId) return;
-    cardRefs.current[scrollToId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    (cardRefs.current[`editor:${scrollToId}`] || cardRefs.current[scrollToId])?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setScrollToId(null);
   }, [scrollToId, sections]);
 
@@ -214,7 +215,12 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     onChange?.(items);
   };
 
-  const toggleBlock = (id) => setOpenId(prev => (prev === id ? null : id));
+  // Opening a block also scrolls its editor into view (the block above may just have collapsed).
+  const toggleBlock = (id) => {
+    const opening = openId !== id;
+    setOpenId(opening ? id : null);
+    if (opening) setScrollToId(id);
+  };
 
   const newSection = (type) => ({
     id: `sec_${Date.now()}`,
@@ -308,6 +314,23 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
   const handleRemoveBlock = (section) => {
     update(sections.filter(s => s !== section));
+  };
+
+  // Copy of a block (content, placement, background) placed right below it, in the same area.
+  const handleDuplicateBlock = (section) => {
+    if (layoutSettings && !isHome && (section.type === 'HeroBanner' || isLandingRegion(section.type))) {
+      toast.warning(`A page has only one ${labelOf(section.type)} block.`);
+      return;
+    }
+    const copy = {
+      ...JSON.parse(JSON.stringify(section)),
+      id: `sec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    };
+    const items = [...sections];
+    items.splice(items.indexOf(section) + 1, 0, copy);
+    update(items);
+    reveal(copy);
+    toast.success(`${labelOf(section.type)} duplicated below.`);
   };
 
   // Up/down moves a block within its own area (column).
@@ -411,7 +434,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
             ref={(el) => { provided.innerRef(el); cardRefs.current[section.id] = el; }}
             {...provided.draggableProps}
             className={`card mb-3 border-0 shadow-sm rounded-4 ${isOpen ? 'border-start border-4 border-primary' : ''} ${snapshot.isDragging ? 'shadow-lg' : ''}`}
-            style={{ ...provided.draggableProps.style, scrollMarginTop: '90px' }}
+            style={{ ...provided.draggableProps.style, scrollMarginTop: 'calc(var(--ta-sticky-offset, 0px) + 0.75rem)' }}
           >
             <div className={`card-header d-flex justify-content-between align-items-center gap-2 bg-transparent border-bottom-0 px-3 ${isOpen && inline ? 'pt-3 pb-0 mb-2' : 'py-3'}`}>
               <div className="d-flex align-items-center gap-2 flex-grow-1" style={{ minWidth: 0 }}>
@@ -441,6 +464,9 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                 </button>
                 <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, 1)} disabled={position === column.length - 1} title="Move Down">
                   <i className="bi bi-arrow-down text-secondary"></i>
+                </button>
+                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleDuplicateBlock(section)} title="Duplicate (copy below)" aria-label={`Duplicate ${meta?.label || section.type}`}>
+                  <i className="bi bi-copy text-secondary"></i>
                 </button>
                 <button type="button" className="btn btn-sm btn-light text-danger rounded-circle p-2 d-flex align-items-center justify-content-center ms-1" style={iconButton} onClick={() => handleRemoveBlock(section)} title="Remove Block">
                   <i className="bi bi-trash"></i>
@@ -487,7 +513,11 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     const open = items.find(s => s.id === openId);
     if (!open) return null;
     return (
-      <div className="card border-0 shadow-sm rounded-4 border-start border-4 border-primary mb-4">
+      <div
+        ref={(el) => { cardRefs.current[`editor:${open.id}`] = el; }}
+        className="card border-0 shadow-sm rounded-4 border-start border-4 border-primary mb-4"
+        style={{ scrollMarginTop: 'calc(var(--ta-sticky-offset, 0px) + 0.75rem)' }}
+      >
         <div className="card-header bg-transparent border-bottom-0 px-4 pt-3 pb-0 d-flex justify-content-between align-items-center">
           <span className="fw-bold"><i className={`bi ${BLOCK_META[open.type]?.icon || 'bi-square'} text-primary me-2`}></i>Editing: {labelOf(open.type)}</span>
           <button type="button" className="btn btn-sm btn-light" onClick={() => setOpenId(null)}>Done</button>

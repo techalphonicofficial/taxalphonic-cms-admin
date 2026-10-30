@@ -76,6 +76,10 @@ export const HOME_PLACEMENT_RULES = {
   CommonTrust: { default: 'main', options: ANY },
   CommonContact: { default: 'main', options: ANY },
   CommonMiniFaq: { default: 'main', options: ANY },
+  // Cards Grid / Numbers: full width as before, or in a column (they stack there).
+  CommonCards: { default: 'full', options: ANY },
+  CommonStats: { default: 'full', options: ANY },
+  CommonButtons: { default: 'full', options: ANY },
 };
 
 // Blocks that read a CMS module, with the admin page that manages it.
@@ -311,8 +315,9 @@ export const HOME_SCHEMAS = {
     { key: 'col3Header', label: 'Column 4 header', type: 'text', width: 'col-md-3' },
     {
       key: 'rows', label: 'Rows', type: 'list', addLabel: 'Add row',
-      fields: [{ key: 'label', placeholder: 'Feature', width: 'col-md-3' }, { key: 'ours', placeholder: 'Us (✅ Upfront)', width: 'col-md-3' }, { key: 'col2', placeholder: 'Column 3', width: 'col-md-3' }, { key: 'col3', placeholder: 'Column 4', width: 'col-md-3' }],
+      fields: [{ key: 'label', placeholder: 'Feature', width: 'col-md-3' }, { key: 'ours', placeholder: 'Us (✅ Upfront)', width: 'col-md-3' }, { key: 'col2', placeholder: 'Column 3', width: 'col-md-3' }, { key: 'col3', placeholder: 'Column 4', width: 'col-md-3' }, { key: 'buttonIcon', placeholder: 'Button icon (optional)', width: 'col-md-3' }, { key: 'buttonText', placeholder: 'Button text (empty = no button)', width: 'col-md-4' }, { key: 'buttonUrl', placeholder: 'Button link (/gst-registration, #form, #form-12)', width: 'col-md-5' }],
     },
+    { key: 'buttonHeader', label: 'Last column header (button column)', type: 'text', hint: 'The button column shows only when at least one row has button text. #form opens the form of this page in a popup.' },
   ],
   HomeIndustries: [
     HEADING, SUB,

@@ -608,7 +608,9 @@ const LandingPageForm = () => {
         </div>
       )}
 
-      <ul className="nav nav-tabs mb-3">
+      {/* Sticky under the editor bar (global.scss .ta-sticky-tabs). */}
+      <div className="ta-sticky-tabs mb-3">
+      <ul className="nav nav-tabs mb-0">
         {[
           ['builder', 'bi-grid-1x2', 'Builder'],
           ['preview', 'bi-eye', 'Live Preview'],
@@ -622,6 +624,7 @@ const LandingPageForm = () => {
           </li>
         ))}
       </ul>
+      </div>
 
       <div className={tab === 'builder' ? 'd-block' : 'd-none'}>
         <div className="small text-muted mb-2">

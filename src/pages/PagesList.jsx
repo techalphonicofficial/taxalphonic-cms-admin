@@ -15,6 +15,7 @@ import { siteUrl } from '../config/siteUrl';
 import { JOURNEY_REFERENCE_STAGES, JOURNEY_SLUG_PREFIX, journeyReferencePage } from '../components/page-builder/journeyBlocks';
 import { TOOL_REFERENCE, TOOLS_HUB, TOOLS_HUB_SLUG, TOOL_SLUG_PREFIX, toolReferencePage } from '../components/page-builder/toolBlocks';
 import PermLink from '../components/common/PermLink';
+import { canClonePage, cloneRecord } from '../utils/cloneRecord';
 
 const PagesList = () => {
   const navigate = useNavigate();
@@ -266,12 +267,13 @@ const PagesList = () => {
             <ActionColumn
               row={page}
               onEdit={(r) => navigate(`/pages/edit/${r.id}`)}
+              onDuplicate={canClonePage(page) ? (r) => cloneRecord('page', r, navigate) : undefined}
               onDelete={handleDelete}
             />
           </div>
         );
       },
-      size: 150,
+      size: 185,
       enableSorting: false,
       pinned: 'right', // Handled custom in our CSS
     }

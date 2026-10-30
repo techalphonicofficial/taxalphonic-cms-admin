@@ -66,6 +66,19 @@ textarea::placeholder {
   top: calc(var(--ta-sticky-offset, 0px) - 0.5rem) !important;
 }
 
+// Editor tabs (General Info / Page Builder / Live Preview / SEO ...): stick right under the editor
+// header, so they never scroll away. AdminLayout adds their height to --ta-sticky-offset (the
+// panels above then sit under the tabs) and sets --ta-bar-h (the header alone).
+.ta-sticky-tabs {
+  position: sticky;
+  top: calc(var(--ta-bar-h, 0px) - 1.5rem);
+  z-index: 1015;
+  background: var(--cms-body-bg) !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  box-shadow: 0 8px 12px -12px rgba(0, 0, 0, 0.25);
+}
+
 // Jodit editors: content pasted with fixed widths / nowrap (older saves, or HTML typed in) must not
 // widen the editor and the Page Builder panel around it. New pastes are cleaned (cleanPastedHtml.js).
 .jodit-container:not(.jodit_inline) {

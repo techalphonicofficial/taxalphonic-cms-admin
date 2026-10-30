@@ -12,6 +12,8 @@ import './ConfirmDialog.css';
 const TONES = {
   danger: { icon: 'bi-trash3', button: 'btn-danger' },
   warning: { icon: 'bi-archive', button: 'btn-warning' },
+  // Non-destructive actions (e.g. Clone as draft).
+  primary: { icon: 'bi-copy', button: 'btn-primary' },
 };
 
 const ConfirmDialog = ({

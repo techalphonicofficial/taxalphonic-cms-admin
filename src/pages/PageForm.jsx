@@ -12,6 +12,8 @@ import { TOOL_REFERENCE, TOOL_SLUG_PREFIX, TOOLS_HUB_SLUG, isToolPage, toolPageS
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import SlugStatus from '../components/common/SlugStatus';
+import { canClonePage, cloneRecord } from '../utils/cloneRecord';
+import { can, M } from '../utils/permissions';
 import { JODIT_CLEAN_PASTE } from '../components/page-builder/cleanPastedHtml';
 
 const joditConfig = {
@@ -196,6 +198,17 @@ const PageForm = () => {
             <button type="button" className="btn btn-outline-secondary shadow-sm flex-grow-1 flex-md-grow-0" onClick={() => navigate('/pages')} disabled={isLoading}>
               Discard
             </button>
+            {isEditing && !isHome && canClonePage({ slug: watch('slug') }) && can('create', M.pages) && (
+              <button
+                type="button"
+                className="btn btn-outline-primary shadow-sm flex-grow-1 flex-md-grow-0"
+                onClick={() => cloneRecord('page', { id, title: watch('title'), slug: watch('slug') }, navigate, { fromEditor: true })}
+                disabled={isLoading}
+                title="Make a draft copy of this page (all blocks included) to build a similar one"
+              >
+                <i className="bi bi-files me-1"></i> Clone
+              </button>
+            )}
             <button type="submit" className="btn btn-primary shadow-sm flex-grow-1 flex-md-grow-0" disabled={isLoading}>
               {isLoading ? (
                 <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...</>
