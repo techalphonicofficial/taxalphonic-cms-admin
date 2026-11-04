@@ -1,4 +1,4 @@
-import { HOME_PLACEMENT_RULES } from './homeBlocks';
+import { homePlacementRule } from './homeBlocks';
 
 // Layout areas of the page builder canvas. The builder still saves one ordered list of
 // sections with section.config.placement; these helpers turn that list into the areas the
@@ -72,17 +72,15 @@ export const serviceZones = (sections) => {
 /* ---------- Homepage: full-width rows and two-column rows, in page order ---------- */
 
 export const homePlacementOf = (section) => {
-  const rule = HOME_PLACEMENT_RULES[section.type];
-  if (!rule) return 'full';
+  const rule = homePlacementRule(section.type);
   const chosen = section.config?.placement;
   return rule.options.includes(chosen) ? chosen : rule.default;
 };
 
 export const homeDropError = (type, column, label) => {
-  const rule = HOME_PLACEMENT_RULES[type];
-  if (column === 'full') return rule && !rule.options.includes('full') ? `${label} can't be full width.` : '';
+  const rule = homePlacementRule(type);
+  if (column === 'full') return !rule.options.includes('full') ? `${label} can't be full width.` : '';
   const where = column === 'sidebar' ? 'the right sidebar' : 'main content';
-  if (!rule) return `${label} is always full width, so it can't go in ${where}.`;
   if (!rule.options.includes(column)) return `${label} is too wide for ${where}. Put it in main content or a full-width row.`;
   return '';
 };
@@ -124,4 +122,42 @@ export const insertInFlat = (flat, { column, index, rowRest = [], fallbackIndex 
   else if (fallbackIndex !== null) at = Math.min(fallbackIndex, list.length);
   list.splice(at, 0, moving);
   return list;
+};
+
+/* ---------- Layout sections: repeatable full width / main + sidebar sections (every builder) ---------- */
+
+// A LayoutSection marker starts a section; the blocks after it belong to it (website: blocks/layoutSections.js).
+// Everything before the first marker is the builder's own canvas. A marker with payload.scope "base"
+// holds only the width of that canvas's main + sidebar area, and always comes first.
+export const LAYOUT_SECTION = 'LayoutSection';
+const isMarker = (s) => s.type === LAYOUT_SECTION;
+const firstMarker = (list) => {
+  const at = list.findIndex(isMarker);
+  return at < 0 ? list.length : at;
+};
+export const baseOf = (list) => list.slice(0, firstMarker(list));
+export const tailOf = (list) => list.slice(firstMarker(list));
+export const baseMarkerOf = (list) => list.find(s => isMarker(s) && s.data?.payload?.scope === 'base') || null;
+
+/** [{ marker, items }] of the sections after the builder's own canvas. */
+export const layoutGroups = (list) => {
+  const groups = [];
+  tailOf(list).forEach(s => {
+    if (isMarker(s)) {
+      if (s.data?.payload?.scope !== 'base') groups.push({ marker: s, items: [] });
+    } else groups[groups.length - 1]?.items.push(s);
+  });
+  return groups;
+};
+
+export const groupColumn = (s) => (s.config?.placement === 'sidebar' ? 'sidebar' : 'main');
+
+/** Puts the groups back in the flat list, right after the builder's own canvas. */
+export const withGroups = (list, groups) => {
+  const base = baseMarkerOf(list);
+  return [
+    ...baseOf(list),
+    ...(base ? [base] : []),
+    ...groups.flatMap(g => [g.marker, ...g.items]),
+  ];
 };

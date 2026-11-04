@@ -2,7 +2,7 @@
 
 Edit the website (../taxalphonic-dynamic-frontend) and run `npm run sync-preview`.
 
-Last sync: 2026-10-30T12:42:15.803Z
+Last sync: 2026-11-04T07:10:03.318Z
 
 - service/servicePreview.js
 - service/servicePageService.js
@@ -10,8 +10,8 @@ Last sync: 2026-10-30T12:42:15.803Z
 - service/homePageService.js
 - service/homeContentService.js
 - service/pageService.js
-- service/journeyService.js
 - service/toolsService.js
+- service/journeyService.js
 - service/siteSettingsService.js
 - components/tax-alphonic/pages/ApiServicePage.jsx
 - lib/sanitizeHtml.js
@@ -24,15 +24,21 @@ Last sync: 2026-10-30T12:42:15.803Z
 - components/tax-alphonic/packages/PackagesBlock.jsx
 - components/tax-alphonic/home/HomeSections.jsx
 - components/tax-alphonic/blocks/BlockBackground.jsx
+- components/tax-alphonic/blocks/AnyBlock.jsx
 - components/tax-alphonic/blocks/CommonBlocks.jsx
 - components/tax-alphonic/tools/calculators.jsx
 - components/tax-alphonic/tools/toolDefaults.js
 - components/tax-alphonic/blocks/ButtonLabel.jsx
+- components/tax-alphonic/blocks/ExtraBlocks.jsx
 - components/tax-alphonic/blocks/commonBlockTypes.js
+- components/tax-alphonic/journey/JourneySections.jsx
+- components/tax-alphonic/blocks/LayoutGroup.jsx
+- components/tax-alphonic/blocks/layoutSections.js
+- components/tax-alphonic/journey/journeyBlockTypes.js
+- components/tax-alphonic/tools/ToolSections.jsx
+- components/tax-alphonic/tools/toolBlockTypes.js
 - components/tax-alphonic/pages/ApiPage.jsx
 - components/seo/JsonLd.jsx
-- components/tax-alphonic/journey/JourneySections.jsx
-- components/tax-alphonic/tools/ToolSections.jsx
 - components/tax-alphonic/landing/LandingPage.jsx
 - components/tax-alphonic/forms/FormPopupHost.jsx
 - components/tax-alphonic/landing/LandingChrome.jsx
@@ -43,9 +49,10 @@ Last sync: 2026-10-30T12:42:15.803Z
 - components/tax-alphonic/forms/math-captcha.css
 - components/tax-alphonic/home/home-page.css
 - components/tax-alphonic/blocks/blocks.css
+- components/tax-alphonic/blocks/extra-blocks.css
 - components/tax-alphonic/tools/tools-page.css
-- components/tax-alphonic/service-page.css
 - components/tax-alphonic/journey/journey-page.css
+- components/tax-alphonic/service-page.css
 - components/tax-alphonic/forms/form-popup.css
 - components/tax-alphonic/landing/landing.css
 - components/tax-alphonic/landing/landing-themes.css

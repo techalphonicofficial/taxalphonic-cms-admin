@@ -416,8 +416,17 @@ const PageForm = () => {
                     onChange={onSectionsChange}
                     blockSet={isHome ? 'home' : isJourney ? 'journey' : isTool ? 'tool' : 'default'}
                     layoutSettings={!isHome && !isJourney && !isTool}
+                    previewDraft={isHome ? undefined : (sections) => ((isJourney || isTool)
+                      ? { title: watch('title'), slug: watch('slug'), sections }
+                      : { title: watch('title'), content: watch('content'), sections })}
                   />
                 </div>
+                {/* The switch above scrolls away with the page: a way back that stays on screen. */}
+                {homeView === 'preview' && (
+                  <button type="button" className="btn btn-primary rounded-pill shadow-lg px-4 py-2 fw-semibold" style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 1040 }} onClick={() => setHomeView('builder')}>
+                    <i className="bi bi-grid-1x2 me-2"></i>Back to Builder
+                  </button>
+                )}
                 {/* Mounted on first open, then kept so it follows every edit (unsaved changes included). */}
                 {previewMounted && (
                   <div className={homeView === 'preview' ? 'd-block' : 'd-none'}>

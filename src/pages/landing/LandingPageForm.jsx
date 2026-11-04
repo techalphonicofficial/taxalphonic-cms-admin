@@ -645,7 +645,7 @@ const LandingPageForm = () => {
           </div>
         </div>
         <fieldset disabled={!canUpdate} className={canUpdate ? '' : 'opacity-75'}>
-          <PageBuilder key={record.id} initialSections={initialSections} onChange={onSectionsChange} blockSet="landing" layoutSettings />
+          <PageBuilder key={record.id} initialSections={initialSections} onChange={onSectionsChange} blockSet="landing" layoutSettings previewDraft={(sections) => ({ title: settings.title, sections })} />
         </fieldset>
       </div>
 

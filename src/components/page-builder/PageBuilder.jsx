@@ -1,21 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { toast } from 'react-toastify';
 import SectionRenderer from './SectionRenderer';
-import { HOME_BLOCKS, HOME_PLACEMENTS, HOME_PLACEMENT_RULES, defaultHomeSections, homeDefaultPayload } from './homeBlocks';
+import { HOME_BLOCKS, HOME_PLACEMENTS, defaultHomeSections, homeDefaultPayload, homePlacementRule } from './homeBlocks';
 import { JOURNEY_BLOCKS, JOURNEY_REFERENCE_STAGES, journeyDefaultPayload, journeyStageSections } from './journeyBlocks';
 import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, toolsHubSections } from './toolBlocks';
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
 import BackgroundSettings from './BackgroundSettings';
+import SpacingSettings from './SpacingSettings';
 import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
   SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
-  homeDropError, homeRows, insertInFlat, serviceDropError, servicePlacementOf, serviceZones
+  LAYOUT_SECTION, baseMarkerOf, baseOf, groupColumn, homeDropError, homeRows, insertInFlat, layoutGroups, serviceDropError, servicePlacementOf, serviceZones, tailOf, withGroups
 } from './layoutZones';
 import { confirmDialog } from '../common/confirm';
-import BlockPreviewModal from './BlockPreviewModal';
+import { PaletteBlockPreviewModal, previewKindOf, singleBlockDraft } from './BlockPreviewModal';
+import LivePreviewDock from './LivePreviewDock';
 
 const AVAILABLE_BLOCKS = [
   { type: 'HeroBanner', label: 'Hero Banner', icon: 'bi-image' },
@@ -57,11 +59,19 @@ const defaultPayloadFor = (type) => (
             : {}
 );
 
-// Homepage designs offered in the other builders (the hero stays homepage-only).
-const HOME_EXTRA_BLOCKS = HOME_BLOCKS.filter(b => b.type !== 'HomeHero');
+// Blocks of one builder offered in the others. Left out, because they only work on their own kind of
+// page: the Hero Banner (uses the service), Locations We Serve (needs a service), the Journey hero, progress,
+// roadmap, flow and prev / next (need a stage; the hero makes a page a stage page), the Tool hero and
+// calculator (they make a page a tool page; use the Free Tool / Calculator general block), and the
+// landing Header / Footer.
+const SERVICE_EXTRA_BLOCKS = [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS].filter(b => b.type !== 'HeroBanner');
+const JOURNEY_EXTRA_BLOCKS = JOURNEY_BLOCKS.filter(b => !['JourneyHero', 'JourneyProgress', 'JourneyRoadmap', 'JourneyFlow', 'JourneyNav'].includes(b.type));
+const TOOL_EXTRA_BLOCKS = TOOL_BLOCKS.filter(b => !['ToolHero', 'ToolCalculator'].includes(b.type));
 const JOURNEY_ORDER = Object.fromEntries(JOURNEY_BLOCKS.map((b, i) => [b.type, i]));
 const TOOL_ORDER = Object.fromEntries(TOOL_BLOCKS.map((b, i) => [b.type, i]));
 const labelOf = (type) => BLOCK_META[type]?.label || type;
+// Width of the Live Preview panel; on small screens it covers the editor.
+const DOCK_WIDTH = 'max(46vw, min(100vw, 520px))';
 
 const PLACEMENTS = [
   { value: 'main', label: 'Main content' },
@@ -100,9 +110,7 @@ const BlockSettings = ({ section, onChange, home = false }) => {
   const set = (key, value) => onChange({ ...config, [key]: value });
 
   if (home) {
-    // Only blocks with a placement rule can move; the hero and other wide blocks stay full width.
-    const rule = HOME_PLACEMENT_RULES[section.type];
-    if (!rule) return null;
+    const rule = homePlacementRule(section.type);
     const value = rule.options.includes(config.placement) ? config.placement : rule.default;
     return (
       <div className="row g-2 mb-3 pb-3 border-bottom align-items-end">
@@ -155,7 +163,8 @@ const PALETTE_PREFIX = 'palette:';
 // blocks are dragged between them (or in from Available Blocks) and only land where they fit.
 // blockSet="journey": a Journey Stage page (journeyBlocks.js): one full-width list, blocks keep
 // the reference order when added, and a reference stage can fill the whole page.
-const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, blockSet = 'default' }) => {
+// previewKind / previewDraft: the form's own Live Preview draft for the whole page (it receives the sections).
+const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, blockSet = 'default', previewKind, previewDraft }) => {
   const isHome = blockSet === 'home';
   const isJourney = blockSet === 'journey';
   // blockSet="tool": a free tool page or the tools hub (toolBlocks.js), one full-width list like journeys.
@@ -167,14 +176,17 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   // which every builder offers (the website renders them on any page).
   const ownBlocks = isTool ? TOOL_BLOCKS : isJourney ? JOURNEY_BLOCKS : isHome ? HOME_BLOCKS
     : layoutSettings ? [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...(blockSet === 'service' ? SERVICE_ONLY_BLOCKS : [])]
-    : AVAILABLE_BLOCKS;
+    : [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS];
   const ownTitle = isTool ? 'Tool blocks' : isJourney ? 'Journey blocks' : isHome ? 'Homepage blocks' : 'Page blocks';
   const paletteGroups = [
     // Landing pages (blockSet="landing", with layoutSettings): the Header / Footer regions first.
     ...(isLanding ? [{ title: 'Header & Footer', items: LANDING_BLOCKS }] : []),
     { title: ownTitle, items: ownBlocks },
     { title: 'General blocks', items: COMMON_BLOCKS },
-    ...(isHome ? [] : [{ title: 'Homepage sections', items: HOME_EXTRA_BLOCKS }]),
+    ...(isHome ? [] : [{ title: 'Homepage sections', items: HOME_BLOCKS }]),
+    ...(isHome || isJourney || isTool ? [{ title: 'Service page blocks', items: SERVICE_EXTRA_BLOCKS }] : []),
+    ...(isJourney ? [] : [{ title: 'Journey blocks', items: JOURNEY_EXTRA_BLOCKS }]),
+    ...(isTool ? [] : [{ title: 'Tool blocks', items: TOOL_EXTRA_BLOCKS }]),
   ];
   const [paletteSearch, setPaletteSearch] = useState('');
   const query = paletteSearch.trim().toLowerCase();
@@ -182,12 +194,49 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     .map(g => ({ ...g, items: query ? g.items.filter(b => `${b.label} ${b.type}`.toLowerCase().includes(query)) : g.items }))
     .filter(g => g.items.length);
   const [sections, setSections] = useState(initialSections);
-  // Eye button on a block: that block alone in a popup, as the website renders it (unsaved edits included).
-  const [previewId, setPreviewId] = useState(null);
+  // Live Preview panel: the block being edited or the whole page, beside the editor (unsaved edits included).
+  const [dockOpen, setDockOpen] = useState(false);
+  const [dockView, setDockView] = useState('block');
+  const [focusId, setFocusId] = useState(null);
+  const [visible, setVisible] = useState(true);
+  const [dockTop, setDockTop] = useState(0);
+  const rootRef = useRef(null);
+  // Eye button in Available Blocks: a block type previewed before it is added.
+  const [paletteType, setPaletteType] = useState(null);
+  const palettePayload = useMemo(() => (paletteType ? defaultPayloadFor(paletteType) : null), [paletteType]);
   // Accordion: only one block is open at a time; null = all collapsed.
   const [openId, setOpenId] = useState(null);
   const [scrollToId, setScrollToId] = useState(null);
   const cardRefs = useRef({});
+
+  // The panel follows the block that is open in the editor.
+  useEffect(() => { if (openId) setFocusId(openId); }, [openId]);
+
+  // The floating button and panel live in <body>: hide them while this builder's tab is hidden.
+  useEffect(() => {
+    if (!rootRef.current) return undefined;
+    const observer = new ResizeObserver(() => setVisible(Boolean(rootRef.current?.offsetParent || rootRef.current?.getClientRects().length)));
+    observer.observe(rootRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // The panel starts under the sticky editor header and tabs, so Save stays reachable.
+  useEffect(() => {
+    if (!dockOpen) return undefined;
+    const place = () => {
+      if (!rootRef.current) return;
+      const main = rootRef.current.closest('main');
+      const offset = parseFloat(getComputedStyle(rootRef.current).getPropertyValue('--ta-sticky-offset')) || 0;
+      setDockTop(Math.max(0, main ? main.getBoundingClientRect().top : 0) + offset);
+    };
+    place();
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => {
+      window.removeEventListener('scroll', place, true);
+      window.removeEventListener('resize', place);
+    };
+  }, [dockOpen]);
 
   useEffect(() => {
     setSections(initialSections);
@@ -201,6 +250,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     setScrollToId(null);
   }, [scrollToId, sections]);
 
+  const blockCount = sections.filter(s => s.type !== LAYOUT_SECTION).length;
   const counts = sections.reduce((acc, s) => ({ ...acc, [s.type]: (acc[s.type] || 0) + 1 }), {});
   // "2 / 3" next to the label when a block type is used more than once.
   const ordinals = {};
@@ -283,12 +333,12 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         return;
       }
       // Lands at the end of the area the block goes to by default.
-      const zones = serviceZones(sections);
+      const zones = serviceZones(baseOf(sections));
       zones[servicePlacementOf(section)].push(section);
-      update(SERVICE_ZONES.flatMap(z => zones[z]));
+      update([...SERVICE_ZONES.flatMap(z => zones[z]), ...tailOf(sections)]);
     } else if (isHome) {
       // The hero goes first; other blocks at the end of the page, ready to be dragged.
-      update(blockType === 'HomeHero' ? [section, ...sections] : [...sections, section]);
+      update(blockType === 'HomeHero' ? [section, ...sections] : [...baseOf(sections), section, ...tailOf(sections)]);
     } else if (isJourney) {
       if (blockType === 'JourneyHero' && sections.some(s => s.type === 'JourneyHero')) {
         toast.warning('This page already has a Stage Hero: it defines the stage, keep one.');
@@ -355,9 +405,10 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     }
 
     const placed = zone === 'hero' || isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
-    const zones = serviceZones(sections.filter(s => s !== moving));
+    const rest = sections.filter(s => s !== moving);
+    const zones = serviceZones(baseOf(rest));
     zones[zone].splice(index, 0, placed);
-    update(SERVICE_ZONES.flatMap(z => zones[z]));
+    update([...SERVICE_ZONES.flatMap(z => zones[z]), ...tailOf(rest)]);
     return placed;
   };
 
@@ -365,18 +416,71 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     const error = homeDropError(moving.type, column, labelOf(moving.type));
     if (error) return toast.warning(error);
 
-    const row = homeRows(sections)[rowIndex];
+    const base = baseOf(sections);
+    const row = homeRows(base)[rowIndex];
     if (!row) return null;
-    const placed = HOME_PLACEMENT_RULES[moving.type] ? withPlacement(moving, column) : moving;
+    const placed = withPlacement(moving, column);
     const others = (list) => list.filter(s => s !== moving);
-    const oldIndex = sections.indexOf(moving);
-    update(insertInFlat(others(sections), {
+    const oldIndex = base.indexOf(moving);
+    update([...insertInFlat(others(base), {
       column: others(row[column]),
       index,
       rowRest: others([...row.full, ...row.main, ...row.sidebar]),
       fallbackIndex: row.extra || oldIndex < 0 ? null : oldIndex,
-    }, placed));
+    }, placed), ...tailOf(others(sections))]);
     return placed;
+  };
+
+  // Into a layout section (Add section): its one list, or its main / sidebar column.
+  const dropIntoSection = (markerId, column, index, moving) => {
+    if (moving.type === 'HeroBanner' || isLandingRegion(moving.type)) {
+      toast.warning(`${labelOf(moving.type)} stays in its own area.`);
+      return null;
+    }
+    if (column === 'sidebar' && !SERVICE_SIDEBAR_BLOCKS.includes(moving.type) && !homePlacementRule(moving.type).options.includes('sidebar')) {
+      toast.warning(`${labelOf(moving.type)} is too wide for the right sidebar. Put it in main content or a full-width section.`);
+      return null;
+    }
+    const placed = withPlacement(moving, column);
+    const rest = sections.filter(s => s !== moving);
+    const groups = layoutGroups(rest);
+    const group = groups.find(g => g.marker.id === markerId);
+    if (!group) return null;
+    const side = group.items.filter(s => groupColumn(s) === 'sidebar');
+    const main = group.items.filter(s => groupColumn(s) === 'main');
+    if (column === 'full') group.items.splice(index, 0, placed);
+    else {
+      (column === 'sidebar' ? side : main).splice(index, 0, placed);
+      group.items = [...main, ...side];
+    }
+    update(withGroups(rest, groups));
+    return placed;
+  };
+
+  const addLayoutSection = (layout) => update([...sections, {
+    id: `sec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    type: LAYOUT_SECTION,
+    config: {},
+    data: { payload: { layout } },
+  }]);
+  const setMarker = (marker, patch) => update(sections.map(s => (s.id === marker.id ? { ...s, data: { ...s.data, payload: { ...s.data?.payload, ...patch } } } : s)));
+  // Removing a section keeps its blocks: they join what comes before it.
+  const removeLayoutSection = (marker) => update(sections.filter(s => s.id !== marker.id));
+  const moveLayoutSection = (marker, delta) => {
+    const groups = layoutGroups(sections);
+    const at = groups.findIndex(g => g.marker.id === marker.id);
+    if (!groups[at + delta]) return;
+    [groups[at], groups[at + delta]] = [groups[at + delta], groups[at]];
+    update(withGroups(sections, groups));
+  };
+  // Width of the builder's own main + sidebar area.
+  const setBaseWidth = (mainWidth) => {
+    const marker = baseMarkerOf(sections);
+    if (marker) {
+      update(mainWidth ? sections.map(s => (s === marker ? { ...s, data: { payload: { scope: 'base', mainWidth } } } : s)) : sections.filter(s => s !== marker));
+    } else if (mainWidth) {
+      update([...baseOf(sections), { id: `sec_${Date.now()}_base`, type: LAYOUT_SECTION, config: {}, data: { payload: { scope: 'base', mainWidth } } }, ...tailOf(sections)]);
+    }
   };
 
   const onDragEnd = (result) => {
@@ -390,10 +494,19 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
     // Plain pages: one list.
     if (destination.droppableId === 'canvas') {
-      const items = sections.filter(s => s !== moving);
+      const rest = sections.filter(s => s !== moving);
+      const items = baseOf(rest);
       items.splice(destination.index, 0, moving);
-      update(items);
+      update([...items, ...tailOf(rest)]);
       if (fromPalette) reveal(moving);
+      return;
+    }
+
+    // section:<marker id>:<column> (a layout section)
+    if (destination.droppableId.startsWith('section:')) {
+      const [, markerId, column] = destination.droppableId.split(':');
+      const placed = dropIntoSection(markerId, column, destination.index, moving);
+      if (fromPalette && placed) reveal(placed);
       return;
     }
 
@@ -412,6 +525,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       {zoned && <BlockSettings home={isHome} section={section} onChange={setConfig(section)} />}
       {/* Every block, in every builder: colour, image, overlay (website: blocks/BlockBackground.jsx). */}
       <BackgroundSettings key={section.id} section={section} hero={HERO_TYPES.has(section.type)} onChange={setConfig(section)} />
+      {/* Every block, in every builder: margin and padding (website: blocks/BlockBackground.jsx). */}
+      <SpacingSettings key={`spacing-${section.id}`} section={section} onChange={setConfig(section)} />
       <SectionRenderer
         section={section}
         onChange={(id, newData) => update(sections.map(s => s.id === id ? { ...s, data: newData } : s))}
@@ -456,7 +571,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                 </button>
               </div>
               <div className="d-flex align-items-center gap-1 flex-shrink-0">
-                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => setPreviewId(section.id)} title="Preview this block" aria-label={`Preview ${meta?.label || section.type}`}>
+                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => { setOpenId(section.id); setFocusId(section.id); setDockView('block'); setDockOpen(true); }} title="Preview this block" aria-label={`Preview ${meta?.label || section.type}`}>
                   <i className="bi bi-eye text-primary"></i>
                 </button>
                 <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, -1)} disabled={position === 0} title="Move Up">
@@ -527,38 +642,101 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     );
   };
 
-  const renderTwoColumns = (mainId, sideId, main, sidebar, hints) => (
+  // Main + sidebar share: empty = the design's own columns.
+  const renderWidthControl = (value, onChange) => {
+    const main = Number(value) || 0;
+    return (
+      <div className="d-flex flex-wrap align-items-center gap-2 px-1 mb-2 small">
+        <i className="bi bi-layout-sidebar-reverse text-primary"></i>
+        <span className="fw-semibold">Column width</span>
+        <input type="range" className="form-range" style={{ width: 160 }} min="50" max="80" step="5" value={main || 70} onChange={e => onChange(Number(e.target.value))} aria-label="Main content width" />
+        <span className="text-muted">{main ? `Main ${main}% · Sidebar ${100 - main}%` : 'Automatic'}</span>
+        {main > 0 && <button type="button" className="btn btn-link btn-sm p-0" onClick={() => onChange(null)}>Automatic</button>}
+      </div>
+    );
+  };
+
+  const renderTwoColumns = (mainId, sideId, main, sidebar, hints, mainWidth) => (
     <>
       <div className="row g-3">
-        <div className="col-lg-8">{renderZone(mainId, ZONE_LABELS.main, hints[0], main, { inline: false })}</div>
-        <div className="col-lg-4">{renderZone(sideId, ZONE_LABELS.sidebar, hints[1], sidebar, { inline: false, tone: 'success' })}</div>
+        <div className="col-lg-8" style={mainWidth ? { flex: `0 0 ${mainWidth}%`, width: `${mainWidth}%` } : undefined}>{renderZone(mainId, ZONE_LABELS.main, hints[0], main, { inline: false })}</div>
+        <div className="col-lg-4" style={mainWidth ? { flex: `0 0 ${100 - mainWidth}%`, width: `${100 - mainWidth}%` } : undefined}>{renderZone(sideId, ZONE_LABELS.sidebar, hints[1], sidebar, { inline: false, tone: 'success' })}</div>
       </div>
       {renderColumnEditor([...main, ...sidebar])}
     </>
   );
 
+  // Repeatable sections below the builder's own canvas, and the buttons that add them.
+  const renderLayoutSections = () => {
+    const groups = layoutGroups(sections);
+    return (
+      <>
+        {groups.map((group, g) => {
+          const p = group.marker.data?.payload || {};
+          const full = p.layout === 'full';
+          return (
+            <div key={group.marker.id} className="border rounded-4 p-3 mb-3">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className={`bi ${full ? 'bi-square' : 'bi-layout-sidebar-reverse'} text-primary`}></i>
+                <span className="fw-bold small">Section {g + 1}: {full ? 'Full width' : 'Main content + Right sidebar'}</span>
+                <div className="ms-auto d-flex gap-1">
+                  <button type="button" className="btn btn-sm btn-light" disabled={g === 0} onClick={() => moveLayoutSection(group.marker, -1)} title="Move section up" aria-label="Move section up"><i className="bi bi-arrow-up"></i></button>
+                  <button type="button" className="btn btn-sm btn-light" disabled={g === groups.length - 1} onClick={() => moveLayoutSection(group.marker, 1)} title="Move section down" aria-label="Move section down"><i className="bi bi-arrow-down"></i></button>
+                  <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removeLayoutSection(group.marker)} title="Remove section (its blocks stay, in the section above)" aria-label="Remove section"><i className="bi bi-trash"></i></button>
+                </div>
+              </div>
+              {full
+                ? renderZone(`section:${group.marker.id}:full`, ZONE_LABELS.full, 'Blocks one under the other', group.items, { tone: 'secondary' })
+                : (
+                  <>
+                    {renderWidthControl(p.mainWidth, mainWidth => setMarker(group.marker, { mainWidth }))}
+                    {renderTwoColumns(
+                      `section:${group.marker.id}:main`,
+                      `section:${group.marker.id}:sidebar`,
+                      group.items.filter(s => groupColumn(s) === 'main'),
+                      group.items.filter(s => groupColumn(s) === 'sidebar'),
+                      ['Left column', 'Right column'],
+                      p.mainWidth,
+                    )}
+                  </>
+                )}
+            </div>
+          );
+        })}
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+          <span className="small fw-semibold text-muted">Add section:</span>
+          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('full')}><i className="bi bi-square me-1"></i>Full width</button>
+          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('split')}><i className="bi bi-layout-sidebar-reverse me-1"></i>Main content + Right sidebar</button>
+        </div>
+      </>
+    );
+  };
+
   const renderServiceCanvas = () => {
-    const zones = serviceZones(sections);
+    const zones = serviceZones(baseOf(sections));
     return (
       <>
         {isLanding && renderZone('zone:header', ZONE_LABELS.header, ZONE_HINTS.header, zones.header, { tone: 'info' })}
         {renderZone('zone:hero', ZONE_LABELS.hero, ZONE_HINTS.hero, zones.hero, { tone: 'warning' })}
         {renderZone('zone:top', ZONE_LABELS.top, ZONE_HINTS.top, zones.top)}
-        {renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar])}
+        {renderWidthControl(baseMarkerOf(sections)?.data?.payload?.mainWidth, setBaseWidth)}
+        {renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar], baseMarkerOf(sections)?.data?.payload?.mainWidth)}
         {renderZone('zone:bottom', ZONE_LABELS.bottom, ZONE_HINTS.bottom, zones.bottom)}
+        {renderLayoutSections()}
         {isLanding && renderZone('zone:footer', ZONE_LABELS.footer, ZONE_HINTS.footer, zones.footer, { tone: 'info' })}
       </>
     );
   };
 
-  const renderHomeCanvas = () => homeRows(sections).map((row, r) => (
+  const renderHomeCanvas = () => homeRows(baseOf(sections)).map((row, r) => (
     <div key={`row-${r}`} className={row.extra ? 'opacity-75' : undefined}>
+      {row.kind !== 'full' && !row.extra && renderWidthControl(baseMarkerOf(sections)?.data?.payload?.mainWidth, setBaseWidth)}
       {row.kind === 'full'
         ? renderZone(`zone:${r}:full`, row.extra ? `${ZONE_LABELS.full} (new row)` : ZONE_LABELS.full, ZONE_HINTS.full, row.full, { tone: 'secondary' })
         : renderTwoColumns(`zone:${r}:main`, `zone:${r}:sidebar`, row.main, row.sidebar, [
           row.extra ? 'New two-column row' : ZONE_HINTS.homeMain,
           ZONE_HINTS.homeSidebar,
-        ])}
+        ], baseMarkerOf(sections)?.data?.payload?.mainWidth)}
     </div>
   ));
 
@@ -571,29 +749,38 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
           ref={provided.innerRef}
           style={{ minHeight: '600px' }}
         >
-          {sections.length === 0 && (
+          {baseOf(sections).length === 0 && (
             <div className="text-center py-5 text-muted border border-dashed rounded">
               <i className="bi bi-layout-text-window display-4"></i>
               <p className="mt-3">Drag blocks here or click 'Add' from the sidebar to build your page.</p>
             </div>
           )}
-          {sections.map((section, index) => renderCard(section, index, sections))}
+          {baseOf(sections).map((section, index) => renderCard(section, index, baseOf(sections)))}
           {provided.placeholder}
         </div>
       )}
     </Droppable>
   );
 
+  const focusedSection = sections.find(s => s.id === focusId) || null;
+  // Only the preview's copy carries the mark (website BlockBackground.jsx); it is never saved.
+  const markFocused = (s) => (s.id === focusId ? { ...s, config: { ...s.config, previewMark: String(s.id) } } : s);
+  const dockDraft = dockView === 'block' && focusedSection
+    ? singleBlockDraft(markFocused(focusedSection), sections, blockSet)
+    : previewDraft ? previewDraft(sections.map(markFocused))
+      : isHome ? { sections: sections.map(markFocused) }
+        : { title: '\u200b', slug: '', content: '', sections: sections.map(markFocused) };
+
   return (
     <LinkPolicyContext.Provider value={isLanding ? 'landing' : 'any'}>
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="d-flex flex-column flex-md-row gap-4">
+      <div className="d-flex flex-column flex-md-row gap-4" ref={rootRef} style={dockOpen ? { paddingRight: DOCK_WIDTH } : undefined}>
         {/* Canvas */}
         <div className="flex-grow-1 w-100" style={{ minWidth: 0 }}>
           {sections.length > 0 && (
             <div className="d-flex justify-content-between align-items-center mb-2 px-1 small text-muted">
               <span>
-                {sections.length} block{sections.length === 1 ? '' : 's'} on this page
+                {blockCount} block{blockCount === 1 ? '' : 's'} on this page
                 {zoned && ' · drag blocks between areas; blocks only drop where they fit'}
               </span>
               <div className="d-flex gap-3 flex-shrink-0 align-items-center">
@@ -685,19 +872,21 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
           )}
 
           {isHome ? renderHomeCanvas() : layoutSettings ? renderServiceCanvas() : renderFlatCanvas()}
+          {/* The service canvas shows them itself, above a landing page's Footer area. */}
+          {(isHome || !layoutSettings) && renderLayoutSections()}
         </div>
 
-        {/* Sidebar: Available Blocks (drag one into an area, or click + to add it) */}
-        <div className="flex-shrink-0 w-100" style={{ maxWidth: '320px' }}>
+        {/* Sidebar: Available Blocks (drag one into an area, or click + to add it); the preview panel takes its place. */}
+        <div className={`flex-shrink-0 w-100 ${dockOpen ? 'd-none' : ''}`} style={{ maxWidth: '320px' }}>
           <div className="premium-form-card w-100 sticky-top ta-below-bar" style={{ zIndex: 10, maxHeight: 'calc(100vh - var(--ta-sticky-offset, 0px) - 7rem)', overflowY: 'auto' }}>
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-1">
                 <h6 className="mb-0 fw-bold text-muted text-uppercase" style={{ fontSize: '0.85rem', letterSpacing: '0.5px' }}>Available Blocks</h6>
                 <span className="badge rounded-pill bg-primary-subtle text-primary-emphasis" title="Blocks on this page">
-                  {sections.length} added
+                  {blockCount} added
                 </span>
               </div>
-              <p className="small text-muted mb-2">Drag a block onto the page, or click + to add it.</p>
+              <p className="small text-muted mb-2">Drag a block onto the page, or click + to add it. The eye shows a preview first.</p>
               <div className="input-group input-group-sm mb-3">
                 <span className="input-group-text bg-transparent"><i className="bi bi-search"></i></span>
                 <input type="search" className="form-control" placeholder="Search blocks…" value={paletteSearch} onChange={e => setPaletteSearch(e.target.value)} />
@@ -714,12 +903,15 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                       <Draggable key={block.type} draggableId={`${PALETTE_PREFIX}${block.type}`} index={all.slice(0, position).filter(b => !b.heading).length}>
                         {(drag, snapshot) => {
                           const item = (props = {}) => (
-                            <div className="premium-block-btn w-100" style={{ cursor: 'grab' }} {...props}>
+                            <div className="premium-block-btn w-100 d-flex align-items-center flex-nowrap" style={{ cursor: 'grab' }} {...props}>
                               <i className={`bi ${block.icon} me-2`}></i>
-                              <span className="flex-grow-1 text-start">{block.label}</span>
+                              <span className="flex-grow-1 text-start" style={{ minWidth: 0 }}>{block.label}</span>
                               {counts[block.type] > 0 && (
                                 <span className="badge rounded-pill bg-primary ms-2" title={`${counts[block.type]} on this page`}>{counts[block.type]}</span>
                               )}
+                              <button type="button" className="btn btn-sm btn-link p-0 ms-2 text-reset" onClick={() => setPaletteType(block.type)} title={`Preview ${block.label}`} aria-label={`Preview ${block.label}`}>
+                                <i className="bi bi-eye"></i>
+                              </button>
                               <button type="button" className="btn btn-sm btn-link p-0 ms-2 text-reset" onClick={() => handleAddBlock(block.type)} title={`Add ${block.label}`}>
                                 <i className="bi bi-plus"></i>
                               </button>
@@ -751,12 +943,38 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         </div>
       </div>
     </DragDropContext>
-    <BlockPreviewModal
-      section={sections.find((s) => s.id === previewId) || null}
+    {visible && !dockOpen && createPortal(
+      <button
+        type="button"
+        className="btn btn-primary rounded-pill shadow-lg d-inline-flex align-items-center gap-2 px-4 py-2 fw-semibold"
+        style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 1040 }}
+        onClick={() => { setDockView(focusedSection ? 'block' : 'page'); setDockOpen(true); }}
+      >
+        <i className="bi bi-eye"></i> Live Preview
+      </button>,
+      document.body
+    )}
+    {visible && dockOpen && (
+      <LivePreviewDock
+        kind={dockView === 'block' && focusedSection ? previewKindOf(blockSet) : (previewKind || previewKindOf(blockSet))}
+        draft={dockDraft}
+        view={dockView}
+        onView={setDockView}
+        label={focusedSection ? labelOf(focusedSection.type) : ''}
+        hasBlock={Boolean(focusedSection)}
+        width={DOCK_WIDTH}
+        top={dockTop}
+        onClose={() => setDockOpen(false)}
+      />
+    )}
+    <PaletteBlockPreviewModal
+      type={paletteType}
+      payload={palettePayload}
       sections={sections}
       blockSet={blockSet}
-      label={(() => { const s = sections.find((x) => x.id === previewId); return s ? (BLOCK_META[s.type]?.label || s.type) : ''; })()}
-      onHide={() => setPreviewId(null)}
+      label={paletteType ? labelOf(paletteType) : ''}
+      onAdd={() => { handleAddBlock(paletteType); setPaletteType(null); }}
+      onHide={() => setPaletteType(null)}
     />
     </LinkPolicyContext.Provider>
   );

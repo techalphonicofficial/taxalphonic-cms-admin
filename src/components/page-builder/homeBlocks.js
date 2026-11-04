@@ -53,6 +53,9 @@ export const HOME_PLACEMENTS = [
 // Keep in sync with PLACEMENT_RULES in the website's components/tax-alphonic/home/HomeSections.jsx.
 const ANY = ['full', 'main', 'sidebar'];
 const WIDE = ['full', 'main']; // multi-column grids and tables do not fit a sidebar
+// Blocks without a rule: full width by default, and they may go in main content.
+export const homePlacementRule = (type) => HOME_PLACEMENT_RULES[type] || { default: 'full', options: WIDE };
+
 export const HOME_PLACEMENT_RULES = {
   HomeForm: { default: 'sidebar', options: ANY },
   HomeTestimonials: { default: 'main', options: ANY },

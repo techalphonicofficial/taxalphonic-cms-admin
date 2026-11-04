@@ -44,7 +44,7 @@ const COLUMNS = (fallback) => ({ key: 'columns', label: 'Columns (desktop)', typ
 
 /** Field schema per block, rendered by SchemaFields.jsx. */
 export const COMMON_SCHEMAS = {
-  CommonText: [KICKER, HEADING, TEXT, ALIGN, ANCHOR, { key: 'primaryButton', label: 'Primary button', type: 'button' }, { key: 'secondaryButton', label: 'Secondary button', type: 'button' }],
+  CommonText: [KICKER, HEADING, TEXT, { ...ALIGN, label: 'Text alignment', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Centre' }, { value: 'right', label: 'Right' }, { value: 'justify', label: 'Justified (paragraphs)' }] }, ANCHOR, { key: 'primaryButton', label: 'Primary button', type: 'button' }, { key: 'secondaryButton', label: 'Secondary button', type: 'button' }],
   CommonImageText: [
     { key: 'image', label: 'Image', type: 'image', hint: imageHint('blockImage') },
     { key: 'imageSide', label: 'Image side', type: 'select', options: [{ value: 'left', label: 'Image on the left' }, { value: 'right', label: 'Image on the right' }] },
@@ -135,6 +135,8 @@ export const COMMON_SCHEMAS = {
     { key: 'points', label: 'Points (icon, title, text)', type: 'list', addLabel: 'Add point', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'text', placeholder: 'Text', width: 'col-md-6' }] },
     { key: 'chips', label: 'Trust chips', type: 'list', addLabel: 'Add chip', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'e.g. Callback within hours', width: 'col-md-9' }] },
     { key: 'rating', label: 'Rating line (after ★★★★★)', type: 'text', width: 'col-12', placeholder: '4.8/5 from 2,100+ consultations' },
+    { key: 'primaryButton', label: 'Button 1 (optional)', type: 'button' },
+    { key: 'secondaryButton', label: 'Button 2 (optional)', type: 'button' },
     { key: 'formId', label: 'CMS form', type: 'form', hint: 'Shown in the card. Leads go to CRM → Leads.' },
     { key: 'formSide', label: 'Form side', type: 'select', options: [{ value: 'right', label: 'Form on the right' }, { value: 'left', label: 'Form on the left' }] },
     { key: 'formHeading', label: 'Form card heading', type: 'text' },
@@ -286,6 +288,7 @@ const DEFAULTS = {
     ],
     chips: [{ icon: '🔒', text: '100% confidential' }, { icon: '🇮🇳', text: 'Across India' }],
     rating: '4.8/5 from 2,100+ consultations',
+    primaryButton: { text: '', url: '' }, secondaryButton: { text: '', url: '' },
     formId: '', formSide: 'right', formHeading: 'Request a callback', formSub: 'Share your details and we will call you back.', formNote: '🔒 Your details are safe. We never spam.', anchorId: '',
   },
   CommonTextSide: {

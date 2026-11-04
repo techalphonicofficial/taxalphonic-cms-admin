@@ -63,7 +63,7 @@ class RenderBoundary extends Component {
  * without saving, publishing or running the website. Forms, packages and module records the
  * blocks point to are read from the backend's public API, as the website does.
  */
-const SitePreviewFrame = ({ draft, kind = 'service', width = '100%', dark = false, reloadKey = 0, onStatus }) => {
+const SitePreviewFrame = ({ draft, kind = 'service', width = '100%', dark = false, reloadKey = 0, onStatus, frameStyle, inFrame }) => {
   const iframeRef = useRef(null);
   const [mount, setMount] = useState(null);
   const [result, setResult] = useState({ status: 'loading', data: null });
@@ -134,9 +134,10 @@ const SitePreviewFrame = ({ draft, kind = 'service', width = '100%', dark = fals
         title={`${kind} preview`}
         srcDoc={FRAME_HTML}
         onLoad={onLoad}
-        style={{ width, maxWidth: '100%', height: '80vh', border: 0, borderRadius: 8, background: '#fff', transition: 'width .2s' }}
+        style={{ width, maxWidth: '100%', height: '80vh', border: 0, borderRadius: 8, background: '#fff', transition: 'width .2s', ...frameStyle }}
       />
       {mount && createPortal(body, mount)}
+      {mount && inFrame?.(mount.ownerDocument)}
     </>
   );
 };

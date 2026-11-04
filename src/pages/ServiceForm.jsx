@@ -756,6 +756,16 @@ const ServiceForm = () => {
                   onChange={(newSections) => setPageSections(newSections)}
                   layoutSettings
                   blockSet="service"
+                  previewKind="service"
+                  previewDraft={(sections) => ({
+                    title: watch('title'),
+                    slug: watch('slug'),
+                    summary: watch('summary'),
+                    categoryId: watch('categoryId') || null,
+                    thumbImage: watch('thumbImage'),
+                    readingTime: watch('readingTime'),
+                    sections: sections.map(sec => ({ id: sec.id, type: sec.type, config: sec.config || {}, payload: sec.data?.payload || {} })),
+                  })}
                 />
               </div>
             </div>

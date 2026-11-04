@@ -15,7 +15,7 @@ export const TOOLS_HUB_SLUG = 'tools';
 export const isToolPage = (page) => {
   const slug = String(page?.slug || '');
   return slug === TOOLS_HUB_SLUG || slug.startsWith(TOOL_SLUG_PREFIX)
-    || (Array.isArray(page?.sections) && page.sections.some(s => /^Tools?[A-Z]/.test(String(s?.type || ''))));
+    || (Array.isArray(page?.sections) && page.sections.some(s => ['ToolHero', 'ToolCalculator'].includes(s?.type)));
 };
 
 export const TOOL_BLOCKS = [

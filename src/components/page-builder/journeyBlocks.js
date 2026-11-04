@@ -12,7 +12,7 @@ export const JOURNEY_SLUG_PREFIX = 'journey/';
 
 /** A page is a Journey Stage page when it has Journey blocks (or a journey/ slug). */
 export const isJourneyPage = (page) => String(page?.slug || '').startsWith(JOURNEY_SLUG_PREFIX)
-  || (Array.isArray(page?.sections) && page.sections.some(s => String(s?.type || '').startsWith('Journey')));
+  || (Array.isArray(page?.sections) && page.sections.some(s => s?.type === 'JourneyHero'));
 
 // In page order, as in the reference.
 export const JOURNEY_BLOCKS = [
