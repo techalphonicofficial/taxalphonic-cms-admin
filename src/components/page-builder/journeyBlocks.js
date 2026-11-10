@@ -134,7 +134,9 @@ export const JOURNEY_SCHEMAS = {
   ],
   JourneyResources: [
     STAGE_HINT, KICKER, HEADING, SUB,
-    { key: 'items', label: 'Resource cards', type: 'list', addLabel: 'Add card', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'url', placeholder: 'Link', width: 'col-md-6' }, { key: 'text', placeholder: 'Text', width: 'col-12' }] },
+    { key: 'showLink', label: 'Link text on the cards', type: 'select', options: [{ value: 'yes', label: 'Show' }, { value: 'no', label: 'Hide' }] },
+    { key: 'linkText', label: 'Link text (every card)', type: 'text', placeholder: '→', hint: 'Empty = "→". E.g. "Explore →", "Read more →", "Apply now". A card can set its own below.', showIf: (d) => d.showLink !== 'no' },
+    { key: 'items', label: 'Resource cards', type: 'list', addLabel: 'Add card', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'url', placeholder: 'Link', width: 'col-md-6' }, { key: 'text', placeholder: 'Text', width: 'col-md-8' }, { key: 'linkText', placeholder: 'Link text (empty = the block\'s)', width: 'col-md-4' }] },
   ],
   JourneyNav: [
     AUTO('Previous / next stage'),
@@ -209,7 +211,7 @@ const SHARED = {
     footnote: 'State-specific details are indicative — exact rules are confirmed by our experts for your state.',
   },
   JourneyResources: {
-    kicker: '🔗 Related resources', heading: 'Everything you need for this stage', sub: '',
+    kicker: '🔗 Related resources', heading: 'Everything you need for this stage', sub: '', showLink: 'yes', linkText: '→',
     items: [
       { icon: '💰', title: 'Business Loan', text: 'Funding for this stage — 22+ lenders', url: '/loan/government' },
       { icon: '📚', title: 'Taxpedia', text: '270+ expert guides & updates', url: '/taxpedia' },

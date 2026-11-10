@@ -5,7 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { FormService } from '../../services/form.service';
 import { PackageService } from '../../services/package.service';
 import FormPreview from '../forms/FormPreview';
-import { ButtonField, ICON_HINT, RepeaterField, SelectField, TextField } from './blockFields';
+import { BUTTON_LOOKS, ButtonField, ICON_HINT, RepeaterField, SelectField, TextField } from './blockFields';
 import SchemaFields from './SchemaFields';
 import SearchableSelect from '../common/SearchableSelect';
 import { HOME_SCHEMAS } from './homeBlocks';
@@ -264,6 +264,22 @@ const WhyUsForm = ({ data, onChange }) => {
       <div className="mb-4">
         <label className="form-label text-muted text-uppercase">Section Title</label>
         <input type="text" className="premium-input" value={data?.payload?.title || ''} onChange={e => onChange({ ...data, payload: { ...data.payload, title: e.target.value } })} placeholder="e.g., Why Choose Us" />
+      </div>
+      {/* Layout (website ApiServicePage.jsx WhyUsBlock: .wc-h-*, .wc-c-*, --wc-cols). */}
+      <div className="row g-2 mb-4">
+        {[
+          { key: 'headAlign', label: 'Heading alignment', options: [['left', 'Left (default)'], ['center', 'Centre'], ['right', 'Right']] },
+          { key: 'cardAlign', label: 'Card text alignment', options: [['left', 'Left, icon beside (default)'], ['center', 'Centre, icon on top'], ['right', 'Right, icon on top']] },
+          { key: 'columns', label: 'Cards per row', options: [['3', '3 (default)'], ['4', '4'], ['5', '5'], ['6', '6']] },
+        ].map(f => (
+          <div className="col-md-4" key={f.key}>
+            <label className="form-label small text-muted mb-1">{f.label}</label>
+            <select className="form-select form-select-sm" value={data?.payload?.[f.key] || f.options[0][0]} onChange={e => onChange({ ...data, payload: { ...data.payload, [f.key]: e.target.value } })}>
+              {f.options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
+        ))}
+        <div className="col-12 form-text mt-0">At least 3 per row on computers; tablets 2, phones 1.</div>
       </div>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <label className="form-label text-muted text-uppercase mb-0">Reasons</label>
@@ -625,7 +641,7 @@ const CallToActionForm = ({ data, onChange }) => {
       <TextField className="col-12" label="Heading" value={p.title} onChange={set('title')} placeholder="e.g. Ready to get started?" />
       <TextField className="col-12" label="Text" value={p.text} onChange={set('text')} textarea placeholder="e.g. Talk to an expert for free — no cost, no obligation." />
       <RepeaterField label="Buttons" items={p.buttons} onChange={set('buttons')} addLabel="Add button"
-        fields={[{ key: 'text', placeholder: 'Button text', width: 'col-md-5' }, { key: 'url', placeholder: 'Link (/talk-to-expert, tel:…, https://…)', width: 'col-md-7' }]} />
+        fields={[{ key: 'text', placeholder: 'Button text', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (/talk-to-expert, tel:…, https://…)', width: 'col-md-5' }, { key: 'style', type: 'select', options: BUTTON_LOOKS, width: 'col-md-3' }]} />
       <TextField className="col-12" label="Note under the buttons (optional)" value={p.note} onChange={set('note')} placeholder="e.g. 📞 Or call us: +91 …" />
     </div>
   );

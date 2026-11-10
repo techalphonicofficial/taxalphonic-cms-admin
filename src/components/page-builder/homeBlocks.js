@@ -308,6 +308,9 @@ export const HOME_SCHEMAS = {
   ],
   HomeWhyUs: [
     HEADING, SUB,
+    { key: 'headAlign', label: 'Heading alignment', type: 'select', options: [{ value: 'center', label: 'Centre (default)' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
+    { key: 'cardAlign', label: 'Card text alignment', type: 'select', options: [{ value: 'center', label: 'Centre (default)' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
+    { key: 'columns', label: 'Cards per row', type: 'select', options: [{ value: '4', label: '4 (default)' }, { value: '3', label: '3' }, { value: '5', label: '5' }, { value: '6', label: '6' }], hint: 'At least 3 per row on computers and tablets; phones show 2.' },
     { key: 'items', label: 'Reasons', type: 'list', addLabel: 'Add reason', fields: [ICON, { key: 'title', placeholder: 'Title', width: 'col-md-9' }, { key: 'text', placeholder: 'Text', width: 'col-12' }] },
   ],
   HomeComparison: [
@@ -334,6 +337,17 @@ export const HOME_SCHEMAS = {
     { key: 'text', label: 'Text', type: 'textarea', width: 'col-12' },
     { key: 'primaryButton', label: 'Primary button (white)', type: 'button' },
     { key: 'secondaryButton', label: 'Secondary link (e.g. WhatsApp: https://wa.me/91…)', type: 'button' },
+    {
+      key: 'ctaPosition', label: 'Button position', type: 'select',
+      options: [
+        { value: 'below', label: 'Below the text, left (default)' },
+        { value: 'below-center', label: 'Below the text, centre' },
+        { value: 'below-right', label: 'Below the text, right' },
+        { value: 'right', label: 'Right of the text (same row)' },
+        { value: 'left', label: 'Left of the text (same row)' },
+      ],
+      hint: 'Phones always show the buttons under the text.',
+    },
     { key: 'formTitle', label: 'Form title', type: 'text' },
     FORM,
     { key: 'formNote', label: 'Note under the form', type: 'text', width: 'col-12' },

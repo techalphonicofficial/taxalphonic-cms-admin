@@ -124,7 +124,7 @@ const BlockButtonsSettings = ({ section, onChange }) => {
                 </div>
               </div>
               <div className="row g-2">
-                <ButtonField className="col-12" label="Text and where it goes" value={button} onChange={b => updateItem(index, b)} />
+                <ButtonField className="col-12" look={false} label="Text and where it goes" value={button} onChange={b => updateItem(index, b)} />
                 <div className="col-6 col-md-4">
                   <label className="form-label small text-muted mb-1">Style</label>
                   <select className="form-select form-select-sm" value={button.style || 'solid'} onChange={e => updateItem(index, { style: e.target.value })}>

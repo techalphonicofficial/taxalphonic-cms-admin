@@ -4,6 +4,7 @@
 import { imageHint } from '../../config/imageSizes';
 import { CALCULATORS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 import { TAB_CARDS_DEFAULT } from './tabCardsDefaults';
+import { BUTTON_LOOKS } from './blockFields';
 
 export const COMMON_BLOCKS = [
   { type: 'CommonText', label: 'Text & Heading', icon: 'bi-text-paragraph' },
@@ -36,6 +37,7 @@ export const COMMON_BLOCKS = [
   { type: 'CommonEcosystem', label: 'Platform Pillars (centre badge + pillars)', icon: 'bi-diagram-3' },
   { type: 'CommonTabCards', label: 'Tabbed Cards (tabs, each with its own cards)', icon: 'bi-ui-radios-grid' },
   { type: 'CommonBlogPosts', label: 'Blog Posts (latest or chosen)', icon: 'bi-journal-richtext' },
+  { type: 'CommonLoanBanner', label: 'Banner with Link Cards (e.g. Business Loans)', icon: 'bi-bank' },
 ];
 
 export const isCommonType = (type) => COMMON_BLOCKS.some(b => b.type === type);
@@ -106,9 +108,9 @@ export const COMMON_SCHEMAS = {
         { key: 'text', placeholder: 'Text', width: 'col-md-8', textarea: true },
         { key: 'url', placeholder: 'Whole card link (optional)', width: 'col-md-4' },
         { key: 'linkText', placeholder: 'Link text (Learn more →)', width: 'col-md-4' },
-        { key: 'btn1', type: 'button', label: 'Button 1 (optional)', width: 'col-md-8' },
+        { key: 'btn1', type: 'button', look: false, label: 'Button 1 (optional)', width: 'col-md-8' },
         { key: 'btn1Style', type: 'select', label: 'Button 1 look', options: CARD_BUTTON_LOOKS, width: 'col-md-4' },
-        { key: 'btn2', type: 'button', label: 'Button 2 (optional)', width: 'col-md-8' },
+        { key: 'btn2', type: 'button', look: false, label: 'Button 2 (optional)', width: 'col-md-8' },
         { key: 'btn2Style', type: 'select', label: 'Button 2 look', options: CARD_BUTTON_LOOKS, width: 'col-md-4' },
       ],
     },
@@ -123,7 +125,7 @@ export const COMMON_SCHEMAS = {
   CommonButtons: [
     KICKER, HEADING,
     { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }] },
-    { key: 'buttons', label: 'Buttons', type: 'list', addLabel: 'Add button', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-3' }, { key: 'text', placeholder: 'Text', width: 'col-md-3' }, { key: 'url', placeholder: 'Link', width: 'col-md-4' }, { key: 'style', placeholder: 'primary / ghost', width: 'col-md-2' }] },
+    { key: 'buttons', label: 'Buttons', type: 'list', addLabel: 'Add button', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-3' }, { key: 'text', placeholder: 'Text', width: 'col-md-3' }, { key: 'url', placeholder: 'Link', width: 'col-md-4' }, { key: 'style', type: 'select', options: [...BUTTON_LOOKS, { value: 'primary', label: 'Filled (old "primary")' }, { value: 'ghost', label: 'Outline (old "ghost")' }], width: 'col-md-2' }] },
     ANCHOR,
   ],
   CommonSpacer: [
@@ -341,6 +343,32 @@ export const COMMON_SCHEMAS = {
     { key: 'scope', label: 'A close counts for', type: 'select', options: [{ value: 'page', label: 'This page only' }, { value: 'site', label: 'Every page with this popup form' }] },
     { key: 'device', label: 'Show on', type: 'select', options: [{ value: 'all', label: 'Phones and computers' }, { value: 'desktop', label: 'Computers / tablets only' }, { value: 'mobile', label: 'Phones only' }] },
     { key: 'previewNote', type: 'note', label: 'Live Preview shows a dashed note with a "Test now" button instead of opening it by itself.' },
+  ],
+  // Reference .hloan ("Business Loans"): colour panel with text, numbers, two buttons and link cards beside it.
+  CommonLoanBanner: [
+    KICKER, HEADING,
+    { key: 'text', label: 'Text', type: 'textarea', width: 'col-12' },
+    { key: 'stats', label: 'Numbers', type: 'list', addLabel: 'Add number', fields: [{ key: 'value', placeholder: 'Number (7.25%)', width: 'col-md-5' }, { key: 'label', placeholder: 'Label (rates from)', width: 'col-md-7' }] },
+    { key: 'primaryButton', label: 'Main button', type: 'button' },
+    { key: 'secondaryButton', label: 'Second button', type: 'button' },
+    {
+      key: 'cards', label: 'Link cards (beside the text)', type: 'list', addLabel: 'Add card',
+      fields: [
+        { key: 'icon', placeholder: 'Icon (emoji or image)', width: 'col-md-3' },
+        { key: 'iconAlt', placeholder: 'Icon alt text (images)', width: 'col-md-3' },
+        { key: 'title', placeholder: 'Title (Government Banks)', width: 'col-md-6' },
+        { key: 'meta', placeholder: 'Small text (6 lenders)', width: 'col-md-4' },
+        { key: 'linkText', placeholder: 'Link text (empty = the block\'s)', width: 'col-md-4' },
+        { key: 'url', placeholder: 'Link (/loan/government, #form)', width: 'col-md-4' },
+      ],
+    },
+    { key: 'cardLink', label: 'Link text on the cards', type: 'select', options: SHOW_HIDE },
+    { key: 'cardLinkText', label: 'Card link text (every card)', type: 'text', placeholder: 'View →', showIf: (d) => d.cardLink !== 'no' },
+    { key: 'cardsSide', label: 'Cards side', type: 'select', options: [{ value: 'right', label: 'Right (default)' }, { value: 'left', label: 'Left' }] },
+    { key: 'colorFrom', label: 'Background colour (start)', type: 'color' },
+    { key: 'colorTo', label: 'Background colour (end)', type: 'color' },
+    ANCHOR,
+    { key: 'loanNote', type: 'note', label: 'Wide block: full width works best (service pages: Bottom). No cards = text only, full width. In a narrow column the cards go under the text.' },
   ],
   // Website blocks/ExtraBlocks.jsx BlogPosts; posts / categories are filled on the website server
   // (service/homeContentService.js attachBlogPosts): the newest live posts, or the posts picked here.
@@ -608,6 +636,22 @@ const DEFAULTS = {
     layout: 'grid', columns: '3', excerpt: 'yes', readMore: 'Read guide →',
     button: { text: 'View all blogs', url: '/blog', icon: '→', iconSide: 'right' }, buttonPlace: 'under',
     chips: 'auto', chipsLimit: '8', chipItems: [],
+    anchorId: '',
+  },
+  // Same content as the reference design (uirefrence.html "Business Loans"). Card links open the
+  // page's enquiry form until loan pages exist: change them to the right pages.
+  CommonLoanBanner: {
+    kicker: '💰 Business Loans', heading: 'Get the right loan to grow your business',
+    text: 'Compare business loans from 22+ government banks, private banks and NBFCs. Check your eligibility, see interest rates, and get expert help from application to disbursal — all free.',
+    stats: [{ value: '7.25%', label: 'rates from' }, { value: '₹2 Cr+', label: 'loan amounts' }, { value: '24–48 hr', label: 'fast disbursal' }],
+    primaryButton: { text: 'Explore business loans →', url: '#form' },
+    secondaryButton: { text: '🎧 Talk to loan expert', url: '#form' },
+    cards: [
+      { icon: '🏛️', iconAlt: '', title: 'Government Banks', meta: '6 lenders', linkText: '', url: '#form' },
+      { icon: '🏦', iconAlt: '', title: 'Private Banks', meta: '9 lenders', linkText: '', url: '#form' },
+      { icon: '⚡', iconAlt: '', title: 'NBFCs', meta: '7 lenders', linkText: '', url: '#form' },
+    ],
+    cardLink: 'yes', cardLinkText: 'View →', cardsSide: 'right', colorFrom: '#0e96ac', colorTo: '#1e293b',
     anchorId: '',
   },
 };

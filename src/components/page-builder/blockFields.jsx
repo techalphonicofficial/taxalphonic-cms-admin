@@ -118,7 +118,7 @@ const ButtonIconInput = ({ button, set }) => (
 );
 
 /** ButtonField on a landing page: only actions that keep the visitor on the page. */
-const LandingButtonField = ({ label, button, set, className }) => {
+const LandingButtonField = ({ label, button, set, className, look = true }) => {
   const action = landingActionOf(button.url);
   const url = String(button.url || '').trim();
   const outbound = !isInPageLink(url);
@@ -152,6 +152,7 @@ const LandingButtonField = ({ label, button, set, className }) => {
         </div>
       )}
       <ButtonIconInput button={button} set={set} />
+      {look && <ButtonLookSelect value={button.style} onChange={(style) => set({ style })} className="form-select form-select-sm mt-2" style={{ maxWidth: 240 }} />}
       <div className={`form-text ${outbound ? 'text-danger' : ''}`}>
         {outbound
           ? 'This link leaves the landing page, which is not allowed (ads): on the website it opens the form popup instead. Pick one of the actions above.'
@@ -162,14 +163,39 @@ const LandingButtonField = ({ label, button, set, className }) => {
 };
 
 /** A CMS button { text, url }: opens a link, or (on the website) a CMS form in a popup. */
-export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) => {
+// How a CMS button looks (saved as button.style; website: blocks.css .ta-look-*). "" = the block's own design.
+// "primary" / "ghost" are older values of the Buttons block, still shown and rendered.
+export const BUTTON_LOOKS = [
+  { value: '', label: 'Look: as designed' },
+  { value: 'solid', label: 'Filled' },
+  { value: 'outline', label: 'Outline' },
+  { value: 'soft', label: 'Soft (light colour)' },
+  { value: 'gradient', label: 'Gradient' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'white', label: 'White' },
+  { value: 'link', label: 'Text link →' },
+];
+const LEGACY_LOOKS = { primary: 'Filled (old "primary")', ghost: 'Outline (old "ghost")' };
+
+/** The "Look" select of a button (every ButtonField, list fields of type "buttonLook"). */
+export const ButtonLookSelect = ({ value, onChange, className = 'form-select form-select-sm', style }) => {
+  const current = value || '';
+  const options = [...BUTTON_LOOKS, ...(LEGACY_LOOKS[current] ? [{ value: current, label: LEGACY_LOOKS[current] }] : [])];
+  return (
+    <select className={className} style={style} value={current} onChange={e => onChange(e.target.value)} title="How the button looks">
+      {options.map(o => <option key={o.value || 'design'} value={o.value}>{o.label}</option>)}
+    </select>
+  );
+};
+
+export const ButtonField = ({ label, value, onChange, className = 'col-md-6', look = true }) => {
   const policy = useContext(LinkPolicyContext);
   const button = value || {};
   const set = (patch) => onChange({ ...button, ...patch });
   const popupForm = popupFormOf(button.url);
   const popup = popupForm !== null;
 
-  if (policy === 'landing') return <LandingButtonField label={label} button={button} set={set} className={className} />;
+  if (policy === 'landing') return <LandingButtonField label={label} button={button} set={set} className={className} look={look} />;
 
   return (
     <div className={className}>
@@ -194,6 +220,7 @@ export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) 
         </div>
       )}
       <ButtonIconInput button={button} set={set} />
+      {look && <ButtonLookSelect value={button.style} onChange={(style) => set({ style })} className="form-select form-select-sm mt-2" style={{ maxWidth: 240 }} />}
       <div className="form-text">
         {popup ? 'A click opens the chosen form in a popup (submissions go to CRM Leads). ' : ''}Leave the text empty to hide this button.
       </div>
@@ -248,7 +275,7 @@ export const RepeaterField = ({ label, items, onChange, fields, addLabel = 'Add 
                   </div>
                 ) : field.type === 'button' ? (
                   // A full button editor (text, link / form popup / #section / phone, icon) inside the item.
-                  <div className="row"><ButtonField className="col-12" label={field.label || field.placeholder} value={item?.[field.key]} onChange={value => update(index, field.key, value)} /></div>
+                  <div className="row"><ButtonField className="col-12" look={field.look !== false} label={field.label || field.placeholder} value={item?.[field.key]} onChange={value => update(index, field.key, value)} /></div>
                 ) : field.type === 'select' ? (
                   <div title={field.placeholder}>
                     {field.label && <label className="form-label small text-muted mb-1">{field.label}</label>}
