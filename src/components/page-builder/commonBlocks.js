@@ -88,7 +88,7 @@ export const COMMON_SCHEMAS = {
   ],
   CommonStats: [
     KICKER, HEADING, SUB,
-    { key: 'columns', label: 'Numbers per row (desktop)', type: 'select', options: [{ value: '', label: 'Automatic: all in one row (max 6)' }, ...['1', '2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))], hint: 'Narrow columns show 3 per row, phones 2.' },
+    { key: 'columnsNote', type: 'note', label: 'Always 6 numbers per row; fewer numbers keep that size and sit in the middle. Narrow columns show 3 per row, phones 2.' },
     { key: 'items', label: 'Numbers', type: 'list', addLabel: 'Add number', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-2' }, { key: 'value', placeholder: 'Value (12,400+)', width: 'col-md-4' }, { key: 'label', placeholder: 'Label', width: 'col-md-6' }] },
     ANCHOR,
   ],
@@ -326,7 +326,7 @@ export const COMMON_SCHEMAS = {
     { key: 'ringColor', label: 'Ring colour', type: 'color', showIf: (d) => d.showRings !== 'no' },
     { key: 'ringsButton', label: 'Rings card button', type: 'button', showIf: (d) => d.showRings !== 'no' },
     { key: 'stats', label: 'Key numbers strip (under the cards)', type: 'list', addLabel: 'Add number', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-2' }, { key: 'value', placeholder: 'Number (12,400+)', width: 'col-md-3' }, { key: 'label', placeholder: 'Label (Businesses served)', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-3' }] },
-    { key: 'statColumns', label: 'Numbers per row (desktop)', type: 'select', options: [{ value: '', label: 'Automatic (one row, max 6)' }, ...['2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))] },
+    { key: 'statColumnsNote', type: 'note', label: 'Key numbers: always 6 per row; fewer numbers keep that size and sit in the middle.' },
     { key: 'disclaimer', label: 'Small note at the bottom', type: 'text', width: 'col-12' },
     ANCHOR,
     { key: 'placementNote', type: 'note', label: 'Wide block: use it full width (service pages: Bottom). In a narrow column the cards stack. Hide a card with its Show / Hide switch; empty lists are not shown.' },
