@@ -701,8 +701,13 @@ function ServiceBlock({ section, placement, firstOverviewId, packageCtaHref, loc
   }
 }
 
+// Blocks the admin may put in the Hero area (config.placement "hero"; the Hero Banner is always
+// there). Keep in sync with SERVICE_HERO_BLOCKS in the admin's layoutZones.js.
+const HERO_BLOCKS = new Set(["HomeHero", "CommonFormHero", "HomeBanners"]);
+
 function placementOf(section) {
   const placement = section.config?.placement;
+  if (placement === "hero" && HERO_BLOCKS.has(section.type)) return "hero";
   // Homepage blocks are full-width designs: below the columns unless placed elsewhere.
   return PLACEMENTS.includes(placement) ? placement : DEFAULT_PLACEMENT[section.type] || (isHomeSection(section) ? "bottom" : "main");
 }
@@ -723,7 +728,7 @@ export default function ApiServicePage({ service }) {
   const sections = layout.base.filter((section) => section.type !== "HeroBanner" && hasContent(section, locations));
   const hasLocationsBlock = service.sections.some((section) => section.type === "LocationsServed");
 
-  const groups = { top: [], main: [], sidebar: [], bottom: [] };
+  const groups = { hero: [], top: [], main: [], sidebar: [], bottom: [] };
   sections.forEach((section) => groups[placementOf(section)].push(section));
   if (!hasLocationsBlock && hasContent(AUTO_LOCATIONS, locations)) groups.bottom.unshift(AUTO_LOCATIONS);
   // Sidebar-only content with nothing in main: let it use the full width instead.
@@ -740,7 +745,7 @@ export default function ApiServicePage({ service }) {
   // Every block may have its own background (admin: the block's Background panel).
   const render = (section, placement) => (
     <Fragment key={section.id}>
-      <BlockBackground config={section.config}>
+      <BlockBackground config={section.config} hero={placement === "hero"}>
         <ServiceBlock
           section={section}
           placement={placement}
@@ -769,6 +774,8 @@ export default function ApiServicePage({ service }) {
             ) : !service.sections.some((section) => OWN_H1_BLOCKS.has(section.type)) && (
               <h1 className="svc-sr-only">{service.title}</h1>
             )}
+            {/* Another hero block placed in the Hero area (Homepage Hero, Hero with Form, Banners Slider). */}
+            {groups.hero.length > 0 && <div className="svc-hero-slot">{groups.hero.map((section) => render(section, "hero"))}</div>}
 
             {groups.top.length > 0 && <div className="svc-top">{groups.top.map((section) => render(section, "top"))}</div>}
 
