@@ -122,3 +122,50 @@ textarea::placeholder {
   --bs-modal-width: min(1400px, 96vw);
   max-width: min(1400px, 96vw);
 }
+
+// Rich text inserts inside the Jodit editor (SmartRichEditor.jsx); same look as the website (blocks.css).
+.jodit-wysiwyg {
+  .ta-rt-checks { --rt-tick: #0e96ac; display: grid; grid-template-columns: repeat(var(--rt-cols, 2), minmax(0, 1fr)); gap: 18px 32px; margin: 18px 0 22px; padding: 0; }
+  .ta-rt-checks.ta-rt-cols-1 { --rt-cols: 1; }
+  .ta-rt-checks.ta-rt-cols-2 { --rt-cols: 2; }
+  .ta-rt-checks.ta-rt-cols-3 { --rt-cols: 3; }
+  .ta-rt-check { display: flex; gap: 14px; align-items: flex-start; min-width: 0; }
+  .ta-rt-tick { flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--rt-tick); color: #fff; font-weight: 800; font-size: 17px; line-height: 1; user-select: none; }
+  .ta-rt-tick-soft .ta-rt-tick { background: color-mix(in srgb, var(--rt-tick) 14%, #fff); color: var(--rt-tick); }
+  .ta-rt-tick-plain .ta-rt-tick { background: none; color: var(--rt-tick); flex-basis: 22px; width: 22px; font-size: 20px; }
+  .ta-rt-check-body { min-width: 0; }
+  .ta-rt-check-body strong { display: block; font-size: 16px; font-weight: 700; color: #0a0e1a; line-height: 1.35; margin: 4px 0 4px; }
+  .ta-rt-check-body p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #5b6478; }
+  .ta-rt-note { border-radius: 14px; padding: 16px 20px; margin: 18px 0; border: 1px solid; border-left-width: 4px; }
+  .ta-rt-note strong { display: block; margin-bottom: 4px; font-size: 15px; }
+  .ta-rt-note p { margin: 0; font-size: 14.5px; line-height: 1.6; }
+  .ta-rt-note-info { background: #eef7fb; border-color: #bfe3ee; border-left-color: #0e96ac; color: #134e5e; }
+  .ta-rt-note-success { background: #effaf3; border-color: #c4ead2; border-left-color: #16a34a; color: #14532d; }
+  .ta-rt-note-warning { background: #fff7ed; border-color: #fbd9b4; border-left-color: #ea580c; color: #7c2d12; }
+  .ta-rt-note :is(strong, p) { color: inherit; }
+  .ta-rt-figure { margin: 18px 0; }
+  .ta-rt-figure img { display: block; width: 100%; height: auto; border-radius: 12px; margin: 0; }
+  .ta-rt-figure figcaption { font-size: 13px; color: #5b6478; text-align: center; margin-top: 8px; }
+  .ta-rt-img-large { width: 75%; margin-left: auto; margin-right: auto; }
+  .ta-rt-img-half { width: 48%; }
+  .ta-rt-img-small { width: 35%; }
+  .ta-rt-figure.ta-rt-align-center { margin-left: auto; margin-right: auto; }
+  .ta-rt-figure.ta-rt-align-left { float: left; margin: 6px 22px 12px 0; }
+  .ta-rt-figure.ta-rt-align-right { float: right; margin: 6px 0 12px 22px; }
+  .ta-rt-btn-row { margin: 18px 0; }
+  .ta-rt-btn-row-center { text-align: center; }
+  a.ta-rt-btn { --rt-b: #0e96ac; display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 11px; border: 2px solid var(--rt-b); font-weight: 700; font-size: 15px; text-decoration: none; transition: .18s; }
+  a.ta-rt-btn-solid { background: var(--rt-b); color: #fff; }
+  a.ta-rt-btn-outline { background: transparent; color: var(--rt-b); }
+  a.ta-rt-btn-soft { background: color-mix(in srgb, var(--rt-b) 12%, #fff); border-color: transparent; color: var(--rt-b); }
+  a.ta-rt-btn-link { border: 0; padding: 0; color: var(--rt-b); text-decoration: underline; text-underline-offset: 4px; }
+  a.ta-rt-btn-link::after { content: " →"; }
+  a.ta-rt-btn:hover { transform: translateY(-2px); }
+  a.ta-rt-btn-solid:hover { color: #fff; box-shadow: 0 10px 22px rgba(14, 150, 172, .3); }
+  a.ta-rt-btn-outline:hover { background: var(--rt-b); color: #fff; }
+    @media (max-width: 640px) {
+    .ta-rt-checks { grid-template-columns: minmax(0, 1fr); }
+    .ta-rt-figure.ta-rt-align-left, .ta-rt-figure.ta-rt-align-right { float: none; margin: 18px auto; }
+    .ta-rt-img-large, .ta-rt-img-half, .ta-rt-img-small { width: 100%; }
+  }
+}

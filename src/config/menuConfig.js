@@ -215,6 +215,7 @@ export const secondaryMenuData = {
         { label: 'New Inquiries', path: '/crm/leads?status=NEW', icon: 'bi-bell', permission: { action: 'read', module: 'CRM' } },
         { label: 'In Follow-Up', path: '/crm/leads?status=IN_PROGRESS', icon: 'bi-hourglass-split', permission: { action: 'read', module: 'CRM' } },
         { label: 'Converted', path: '/crm/leads?status=CONVERTED', icon: 'bi-check2-circle', permission: { action: 'read', module: 'CRM' } },
+        { label: 'Newsletter Subscribers', path: '/crm/newsletter', icon: 'bi-envelope-paper', permission: { action: 'read', module: ['Newsletter', 'CRM'] } },
       ]
     }
   ]

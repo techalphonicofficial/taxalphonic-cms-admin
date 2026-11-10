@@ -9,6 +9,7 @@ import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, tool
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
 import BackgroundSettings from './BackgroundSettings';
 import SpacingSettings from './SpacingSettings';
+import BlockButtonsSettings from './BlockButtonsSettings';
 import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
@@ -527,6 +528,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       <BackgroundSettings key={section.id} section={section} hero={HERO_TYPES.has(section.type)} onChange={setConfig(section)} />
       {/* Every block, in every builder: margin and padding (website: blocks/BlockBackground.jsx). */}
       <SpacingSettings key={`spacing-${section.id}`} section={section} onChange={setConfig(section)} />
+      {/* Every block, in every builder: extra buttons (website: blocks/BlockBackground.jsx BlockButtons). */}
+      <BlockButtonsSettings key={`buttons-${section.id}`} section={section} onChange={setConfig(section)} />
       <SectionRenderer
         section={section}
         onChange={(id, newData) => update(sections.map(s => s.id === id ? { ...s, data: newData } : s))}
@@ -763,8 +766,24 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   );
 
   const focusedSection = sections.find(s => s.id === focusId) || null;
-  // Only the preview's copy carries the mark (website BlockBackground.jsx); it is never saved.
-  const markFocused = (s) => (s.id === focusId ? { ...s, config: { ...s.config, previewMark: String(s.id) } } : s);
+  // Only the preview's copy carries these (website BlockBackground.jsx); they are never saved.
+  // previewMark: the block being edited (spacing overlay); previewId: every block (click to select).
+  const markFocused = (s) => ({
+    ...s,
+    config: { ...s.config, previewId: String(s.id), ...(s.id === focusId ? { previewMark: String(s.id) } : {}) },
+  });
+  // A block clicked in the Live Preview panel: open it here, scroll its editor into view.
+  const pickBlock = (id) => {
+    const section = sections.find(s => String(s.id) === String(id));
+    if (!section) return;
+    setOpenId(section.id);
+    setFocusId(section.id);
+    setScrollToId(section.id);
+  };
+  const pickLabel = (id) => {
+    const section = sections.find(s => String(s.id) === String(id));
+    return section ? `${labelOf(section.type)}${ordinals[section.id] ? ` ${ordinals[section.id]}` : ''}` : '';
+  };
   const dockDraft = dockView === 'block' && focusedSection
     ? singleBlockDraft(markFocused(focusedSection), sections, blockSet)
     : previewDraft ? previewDraft(sections.map(markFocused))
@@ -965,6 +984,9 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         width={DOCK_WIDTH}
         top={dockTop}
         onClose={() => setDockOpen(false)}
+        onPick={pickBlock}
+        labelOf={pickLabel}
+        selectedId={openId}
       />
     )}
     <PaletteBlockPreviewModal

@@ -20,3 +20,8 @@ export async function loadPublicForm(identifier) {
     return null;
   }
 }
+
+// The Newsletter block's email box, for the preview: nothing is stored.
+export async function subscribeNewsletter() {
+  return { status: 'error', message: 'Preview only: sign-ups are not sent from the admin. The box works on the live website.' };
+}

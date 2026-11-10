@@ -28,6 +28,7 @@ export const DEFAULT_PLACEMENT = {
   LocationsServed: 'bottom',
   CommonFormHero: 'top', // hero with a form: full width under the hero
   CommonExploreHub: 'bottom', // explore links grid: full width under the page body
+  CommonDataBand: 'bottom', // numbers dashboard: full width under the page body
 };
 
 // Blocks the website has a sidebar design for (lead card, side-trust grid, side-why, side CTA).

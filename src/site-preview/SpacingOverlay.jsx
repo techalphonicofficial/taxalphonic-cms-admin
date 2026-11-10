@@ -9,11 +9,14 @@ import { createPortal } from 'react-dom';
  */
 export const OVERLAY_COLORS = { margin: 'rgba(249, 115, 22, .38)', padding: 'rgba(34, 197, 94, .35)', border: '#6366f1' };
 
+// The block's own root: the block's extra buttons (.ta-blk-btns, "Buttons" panel) may come first.
+const firstBlock = (parent) => [...(parent?.children || [])].find((c) => !c.classList.contains('ta-blk-btns')) || null;
+
 function rootOf(mark) {
-  let el = mark.firstElementChild;
+  let el = firstBlock(mark);
   if (!el) return null;
   const wrapper = el.classList.contains('ta-sp') ? el : null;
-  if (wrapper) el = wrapper.firstElementChild;
+  if (wrapper) el = firstBlock(wrapper);
   if (!el) return null;
   if (el.classList.contains('ta-bg')) return { outer: wrapper || el, box: el, inner: el.querySelector(':scope > .ta-bg-content') || el };
   if (el.classList.contains('ta-svc-embed')) el = el.firstElementChild;
@@ -44,7 +47,11 @@ function read(doc) {
     innerW: Math.round(innerRect.width),
     innerH: Math.round(innerRect.height),
     radius: box.borderTopLeftRadius,
-    margin: { top: px(box.marginTop) + px(outer?.marginTop), bottom: px(box.marginBottom) + px(outer?.marginBottom) },
+    // The Spacing panel's margin is the .ta-sp wrapper's padding (blocks.css: a real margin collapsed).
+    margin: {
+      top: px(box.marginTop) + px(outer?.marginTop) + px(outer?.paddingTop),
+      bottom: px(box.marginBottom) + px(outer?.marginBottom) + px(outer?.paddingBottom),
+    },
     padding: { top: px(inner.paddingTop), right: px(inner.paddingRight), bottom: px(inner.paddingBottom), left: px(inner.paddingLeft) },
     border: px(box.borderTopWidth),
   };

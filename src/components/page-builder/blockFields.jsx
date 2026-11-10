@@ -202,7 +202,9 @@ export const ButtonField = ({ label, value, onChange, className = 'col-md-6' }) 
 };
 
 /**
- * Editable list of objects. `fields`: [{ key, placeholder, textarea?, type: 'checkbox' | 'color' | 'list'?, width?, media? }]
+ * Editable list of objects. `fields`: [{ key, placeholder, textarea?, type: 'checkbox' | 'color' | 'list' | 'select' | 'button'?, width?, media? }]
+ * type 'select' takes `options` [{ value, label }] (+ optional `label`); type 'button' is a full ButtonField
+ * (text, link / form popup / #section / tel, icon) stored as { text, url, ... } under the key.
  * Fields named icon / image / logo / avatar / photo (or media: true) get the Media picker.
  * where width is a Bootstrap column class (default col-12).
  * type 'list' (with its own `fields`, `label`, `addLabel`) is a list inside each item, e.g. the
@@ -243,6 +245,16 @@ export const RepeaterField = ({ label, items, onChange, fields, addLabel = 'Add 
                       fields={field.fields}
                       addLabel={field.addLabel}
                     />
+                  </div>
+                ) : field.type === 'button' ? (
+                  // A full button editor (text, link / form popup / #section / phone, icon) inside the item.
+                  <div className="row"><ButtonField className="col-12" label={field.label || field.placeholder} value={item?.[field.key]} onChange={value => update(index, field.key, value)} /></div>
+                ) : field.type === 'select' ? (
+                  <div title={field.placeholder}>
+                    {field.label && <label className="form-label small text-muted mb-1">{field.label}</label>}
+                    <select className="form-select" value={item?.[field.key] || field.options?.[0]?.value || ''} onChange={e => update(index, field.key, e.target.value)}>
+                      {(field.options || []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
                   </div>
                 ) : field.type === 'checkbox' ? (
                   <label className="form-check h-100 d-flex align-items-center gap-2 mb-0">

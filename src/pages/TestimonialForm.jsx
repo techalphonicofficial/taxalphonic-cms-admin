@@ -207,7 +207,7 @@ const TestimonialForm = () => {
                     style={{ width: '120px', height: '120px', flexShrink: 0 }}
                   >
                     {typeof avatarUrl === 'string' && avatarUrl ? (
-                      <img src={avatarUrl.startsWith('http') ? avatarUrl : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${avatarUrl}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
+                      <img src={avatarUrl.startsWith('http') ? avatarUrl : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${avatarUrl}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
                     ) : (
                       <>
                         <i className="bi bi-image text-muted fs-3 mb-1"></i>

@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import SitePreviewFrame from '../../site-preview/SitePreviewFrame';
 import { clearApiCache } from '../../site-preview/shims/apiClient';
 import SpacingOverlay, { OVERLAY_COLORS } from '../../site-preview/SpacingOverlay';
+// "Click to select": clicking a block in the preview opens it in the editor (onPick).
+import BlockPicker from '../../site-preview/BlockPicker';
 
 /*
  * Live preview beside the Page Builder (floating button in PageBuilder.jsx): the block being edited,
@@ -25,9 +27,10 @@ const Swatch = ({ color, label, value }) => (
 
 const sides = (list) => list.map(([icon, v]) => `${icon} ${v}`).join('  ');
 
-const LivePreviewDock = ({ kind, draft, view, onView, label, hasBlock, width, top, onClose }) => {
+const LivePreviewDock = ({ kind, draft, view, onView, label, hasBlock, width, top, onClose, onPick, labelOf, selectedId }) => {
   const [device, setDevice] = useState('desktop');
   const [showSpacing, setShowSpacing] = useState(true);
+  const [picking, setPicking] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [measure, setMeasure] = useState(null);
   const [area, setArea] = useState({ width: 0, height: 0 });
@@ -77,6 +80,12 @@ const LivePreviewDock = ({ kind, draft, view, onView, label, hasBlock, width, to
           <input id="ta-dock-spacing" className="form-check-input" type="checkbox" checked={showSpacing} onChange={e => setShowSpacing(e.target.checked)} />
           <label className="form-check-label" htmlFor="ta-dock-spacing">Show spacing</label>
         </div>
+        {onPick && (
+          <div className="form-check form-switch mb-0" title="Click a block in the preview to open it in the editor. Off: links, tabs and buttons work as on the website.">
+            <input id="ta-dock-pick" className="form-check-input" type="checkbox" checked={picking} onChange={e => setPicking(e.target.checked)} />
+            <label className="form-check-label" htmlFor="ta-dock-pick">Click to select</label>
+          </div>
+        )}
         {measure ? (
           <>
             <Swatch color={OVERLAY_COLORS.margin} label="Margin" value={sides([['↑', measure.margin.top], ['↓', measure.margin.bottom]])} />
@@ -98,7 +107,12 @@ const LivePreviewDock = ({ kind, draft, view, onView, label, hasBlock, width, to
               kind={kind}
               reloadKey={reloadKey}
               frameStyle={{ width: deviceWidth, maxWidth: 'none', height: frameHeight, borderRadius: 0, transform: `scale(${scale})`, transformOrigin: 'top left', transition: 'none' }}
-              inFrame={(doc) => <SpacingOverlay doc={doc} show={showSpacing} onMeasure={setMeasure} />}
+              inFrame={(doc) => (
+                <>
+                  <SpacingOverlay doc={doc} show={showSpacing} onMeasure={setMeasure} />
+                  {onPick && <BlockPicker doc={doc} enabled={picking} onPick={onPick} labelOf={labelOf} selectedId={selectedId} />}
+                </>
+              )}
             />
           </div>
         )}

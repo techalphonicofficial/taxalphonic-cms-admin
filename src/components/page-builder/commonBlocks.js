@@ -3,6 +3,7 @@
 // components/tax-alphonic/blocks/CommonBlocks.jsx (types in commonBlockTypes.js: keep in sync).
 import { imageHint } from '../../config/imageSizes';
 import { CALCULATORS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
+import { TAB_CARDS_DEFAULT } from './tabCardsDefaults';
 
 export const COMMON_BLOCKS = [
   { type: 'CommonText', label: 'Text & Heading', icon: 'bi-text-paragraph' },
@@ -30,6 +31,11 @@ export const COMMON_BLOCKS = [
   { type: 'CommonMiniFaq', label: 'Quick FAQ', icon: 'bi-patch-question' },
   { type: 'CommonExploreHub', label: 'Explore Links Grid', icon: 'bi-grid-1x2' },
   { type: 'CommonQna', label: 'Questions & Answers + Knowledge Tabs', icon: 'bi-chat-square-text' },
+  { type: 'CommonDataBand', label: 'Numbers Dashboard (charts)', icon: 'bi-pie-chart' },
+  { type: 'CommonAutoPopup', label: 'Auto Popup Form (opens after a few seconds)', icon: 'bi-window-stack' },
+  { type: 'CommonEcosystem', label: 'Platform Pillars (centre badge + pillars)', icon: 'bi-diagram-3' },
+  { type: 'CommonTabCards', label: 'Tabbed Cards (tabs, each with its own cards)', icon: 'bi-ui-radios-grid' },
+  { type: 'CommonBlogPosts', label: 'Blog Posts (latest or chosen)', icon: 'bi-journal-richtext' },
 ];
 
 export const isCommonType = (type) => COMMON_BLOCKS.some(b => b.type === type);
@@ -40,6 +46,9 @@ const SUB = { key: 'sub', label: 'Sub text', type: 'text', width: 'col-12' };
 const ANCHOR = { key: 'anchorId', label: 'Anchor id (optional, for #links)', type: 'text' };
 const TEXT = { key: 'text', label: 'Text', type: 'textarea', hint: 'A blank line starts a new paragraph; **double asterisks** make words bold.' };
 const ALIGN = { key: 'align', label: 'Alignment', type: 'select', options: [{ value: 'left', label: 'Left' }, { value: 'center', label: 'Centre' }] };
+const SHOW_HIDE = [{ value: 'yes', label: 'Show' }, { value: 'no', label: 'Hide' }];
+// How a button inside a card looks (website blocks.css .ta-blk-btn-*).
+const CARD_BUTTON_LOOKS = [{ value: 'link', label: 'Text link →' }, { value: 'solid', label: 'Filled button' }, { value: 'outline', label: 'Outline button' }, { value: 'soft', label: 'Soft button' }];
 const COLUMNS = (fallback) => ({ key: 'columns', label: 'Columns (desktop)', type: 'select', options: ['1', '2', '3', '4', '5', '6'].map(v => ({ value: v, label: v })).map(o => (o.value === fallback ? { ...o, label: `${o.label} (default)` } : o)) });
 
 /** Field schema per block, rendered by SchemaFields.jsx. */
@@ -76,7 +85,8 @@ export const COMMON_SCHEMAS = {
     ANCHOR,
   ],
   CommonStats: [
-    KICKER, HEADING, SUB, COLUMNS('4'),
+    KICKER, HEADING, SUB,
+    { key: 'columns', label: 'Numbers per row (desktop)', type: 'select', options: [{ value: '', label: 'Automatic: all in one row (max 6)' }, ...['1', '2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))], hint: 'Narrow columns show 3 per row, phones 2.' },
     { key: 'items', label: 'Numbers', type: 'list', addLabel: 'Add number', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-2' }, { key: 'value', placeholder: 'Value (12,400+)', width: 'col-md-4' }, { key: 'label', placeholder: 'Label', width: 'col-md-6' }] },
     ANCHOR,
   ],
@@ -86,7 +96,22 @@ export const COMMON_SCHEMAS = {
     ALIGN,
     { key: 'columns', label: 'Cards per row (laptop / desktop)', type: 'select', hint: 'At least 4 per row at 100% zoom (fewer only when the block has fewer cards); 3 on small laptops, 2 on tablets, 1 on phones, 1 in a sidebar.', options: [{ value: '4', label: '4 (default)' }, { value: '5', label: '5' }, { value: '6', label: '6' }] },
     { key: 'style', label: 'Card style', type: 'select', options: [{ value: 'card', label: 'Cards with border' }, { value: 'plain', label: 'Plain (no box)' }] },
-    { key: 'items', label: 'Cards', type: 'list', addLabel: 'Add card', fields: [{ key: 'icon', placeholder: 'Icon / image', width: 'col-md-3' }, { key: 'title', placeholder: 'Title', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-5' }, { key: 'text', placeholder: 'Text', width: 'col-md-8', textarea: true }, { key: 'linkText', placeholder: 'Link text (Learn more →)', width: 'col-md-4' }] },
+    {
+      key: 'items', label: 'Cards', type: 'list', addLabel: 'Add card',
+      hint: 'Buttons: up to 2 per card; empty text = no button. A card with buttons is not one big link (its buttons are the links).',
+      fields: [
+        { key: 'icon', placeholder: 'Icon / image', width: 'col-md-3' },
+        { key: 'iconAlt', placeholder: 'Icon alt text (image icons)', width: 'col-md-3' },
+        { key: 'title', placeholder: 'Title', width: 'col-md-6' },
+        { key: 'text', placeholder: 'Text', width: 'col-md-8', textarea: true },
+        { key: 'url', placeholder: 'Whole card link (optional)', width: 'col-md-4' },
+        { key: 'linkText', placeholder: 'Link text (Learn more →)', width: 'col-md-4' },
+        { key: 'btn1', type: 'button', label: 'Button 1 (optional)', width: 'col-md-8' },
+        { key: 'btn1Style', type: 'select', label: 'Button 1 look', options: CARD_BUTTON_LOOKS, width: 'col-md-4' },
+        { key: 'btn2', type: 'button', label: 'Button 2 (optional)', width: 'col-md-8' },
+        { key: 'btn2Style', type: 'select', label: 'Button 2 look', options: CARD_BUTTON_LOOKS, width: 'col-md-4' },
+      ],
+    },
     ANCHOR,
   ],
   CommonLogos: [
@@ -204,6 +229,8 @@ export const COMMON_SCHEMAS = {
     { key: 'heading', label: 'Heading', type: 'text', width: 'col-md-9' },
     { key: 'text', label: 'Text', type: 'textarea' },
     { key: 'button', label: 'Main button', type: 'button', width: 'col-12' },
+    { key: 'button2', label: 'Second button (optional, empty = hidden)', type: 'button', width: 'col-md-8' },
+    { key: 'button2Style', label: 'Second button look', type: 'select', width: 'col-md-4', options: [{ value: 'outline', label: 'Outline (default)' }, { value: 'solid', label: 'Filled' }, { value: 'soft', label: 'Soft' }, { value: 'link', label: 'Text link' }] },
     { key: 'phone', label: 'Phone number', type: 'text', placeholder: '+91 88826 75689' },
     { key: 'phoneText', label: 'Call link text (empty = the number)', type: 'text' },
     { key: 'whatsapp', label: 'WhatsApp number (with country code)', type: 'text', placeholder: '918882675689' },
@@ -261,6 +288,138 @@ export const COMMON_SCHEMAS = {
     { key: 'topics', label: 'Related topics (chips)', type: 'list', addLabel: 'Add topic', showIf: (d) => d.showPanel !== 'no', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-3' }, { key: 'text', placeholder: 'Topic', width: 'col-md-4' }, { key: 'url', placeholder: 'Link', width: 'col-md-5' }] },
     ANCHOR,
   ],
+  // Reference .databand: donut + bar chart + percentage rings in three cards, then a key-numbers strip.
+  // The charts are drawn from the numbers typed here ("200+" counts as 200, "96%" fills 96% of a ring).
+  CommonDataBand: [
+    KICKER, HEADING, SUB,
+    { ...ALIGN, label: 'Heading alignment', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }] },
+    { key: 'donutHelp', type: 'note', label: 'Card 1: donut chart. Each part\'s size comes from its number (200+ counts as 200), or from the optional "Size" column.' },
+    { key: 'showDonut', label: 'Donut card', type: 'select', options: SHOW_HIDE },
+    { key: 'donutTitle', label: 'Donut card title', type: 'text', showIf: (d) => d.showDonut !== 'no' },
+    { key: 'donutValue', label: 'Number in the middle (700+)', type: 'text', showIf: (d) => d.showDonut !== 'no' },
+    { key: 'donutLabel', label: 'Text under it (services)', type: 'text', showIf: (d) => d.showDonut !== 'no' },
+    {
+      key: 'segments', label: 'Donut parts', type: 'list', addLabel: 'Add part', showIf: (d) => d.showDonut !== 'no',
+      fields: [
+        { key: 'label', placeholder: 'Label (Registrations)', width: 'col-md-4' },
+        { key: 'value', placeholder: 'Number (200+)', width: 'col-md-3' },
+        { key: 'color', type: 'color', placeholder: 'Colour', width: 'col-md-2' },
+        { key: 'amount', placeholder: 'Size (optional)', width: 'col-md-3' },
+        { key: 'url', placeholder: 'Link (optional)', width: 'col-12' },
+      ],
+    },
+    { key: 'barsHelp', type: 'note', label: 'Card 2: bar chart. The biggest number is the tallest bar; a bar\'s number shows when it is hovered.' },
+    { key: 'showBars', label: 'Bar chart card', type: 'select', options: SHOW_HIDE },
+    { key: 'barsTitle', label: 'Bar card title', type: 'text', showIf: (d) => d.showBars !== 'no' },
+    { key: 'barsTag', label: 'Small text after the title ("(illustrative)")', type: 'text', showIf: (d) => d.showBars !== 'no' },
+    { key: 'bars', label: 'Bars', type: 'list', addLabel: 'Add bar', showIf: (d) => d.showBars !== 'no', fields: [{ key: 'label', placeholder: 'Label under the bar (2021)', width: 'col-md-6' }, { key: 'value', placeholder: 'Number (2,400)', width: 'col-md-6' }] },
+    { key: 'barColor', label: 'Bar colour (top)', type: 'color', showIf: (d) => d.showBars !== 'no' },
+    { key: 'barColor2', label: 'Bar colour (bottom)', type: 'color', showIf: (d) => d.showBars !== 'no' },
+    { key: 'barsNote', label: 'Text under the chart', type: 'textarea', showIf: (d) => d.showBars !== 'no' },
+    { key: 'barsButton', label: 'Bar card button', type: 'button', showIf: (d) => d.showBars !== 'no' },
+    { key: 'ringsHelp', type: 'note', label: 'Card 3: percentage rings. "96%" fills 96% of the ring.' },
+    { key: 'showRings', label: 'Rings card', type: 'select', options: SHOW_HIDE },
+    { key: 'ringsTitle', label: 'Rings card title (optional)', type: 'text', showIf: (d) => d.showRings !== 'no' },
+    { key: 'rings', label: 'Rings', type: 'list', addLabel: 'Add ring', showIf: (d) => d.showRings !== 'no', fields: [{ key: 'value', placeholder: 'Percent (96%)', width: 'col-md-3' }, { key: 'label', placeholder: 'Label (Customer satisfaction)', width: 'col-md-5' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-4' }] },
+    { key: 'ringColor', label: 'Ring colour', type: 'color', showIf: (d) => d.showRings !== 'no' },
+    { key: 'ringsButton', label: 'Rings card button', type: 'button', showIf: (d) => d.showRings !== 'no' },
+    { key: 'stats', label: 'Key numbers strip (under the cards)', type: 'list', addLabel: 'Add number', fields: [{ key: 'icon', placeholder: 'Icon (optional)', width: 'col-md-2' }, { key: 'value', placeholder: 'Number (12,400+)', width: 'col-md-3' }, { key: 'label', placeholder: 'Label (Businesses served)', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-3' }] },
+    { key: 'statColumns', label: 'Numbers per row (desktop)', type: 'select', options: [{ value: '', label: 'Automatic (one row, max 6)' }, ...['2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))] },
+    { key: 'disclaimer', label: 'Small note at the bottom', type: 'text', width: 'col-12' },
+    ANCHOR,
+    { key: 'placementNote', type: 'note', label: 'Wide block: use it full width (service pages: Bottom). In a narrow column the cards stack. Hide a card with its Show / Hide switch; empty lists are not shown.' },
+  ],
+  // Website blocks/AutoPopup.jsx: opens the form in the site's form popup; nothing shows on the page itself.
+  CommonAutoPopup: [
+    { key: 'about', type: 'note', label: 'Opens the form in a popup a few seconds after a visitor lands on this page. Once the visitor closes it, it does not come back (see "After the visitor closes it"). Nothing else shows on the page, so its position in the builder does not matter. Add it once per page.' },
+    { key: 'formId', label: 'Form', type: 'form', hint: 'Leads go to CRM → Leads. Landing pages: leave empty to use the page\'s own enquiry form.' },
+    { key: 'delay', label: 'Open after (seconds)', type: 'text', hint: 'Empty = 5 seconds. 0 = straight away.' },
+    { key: 'heading', label: 'Popup heading (optional)', type: 'text', hint: 'Empty = the form\'s name.' },
+    { key: 'sub', label: 'Text under the heading (optional)', type: 'text', hint: 'Empty = the form\'s description.' },
+    { key: 'remember', label: 'After the visitor closes it', type: 'select', options: [{ value: 'forever', label: 'Never show it again' }, { value: 'days', label: 'Show again after some days' }, { value: 'session', label: 'Show again on the next visit (after the browser tab is closed)' }] },
+    { key: 'days', label: 'Days', type: 'text', hint: 'Empty = 7.', showIf: (d) => d.remember === 'days' },
+    { key: 'scope', label: 'A close counts for', type: 'select', options: [{ value: 'page', label: 'This page only' }, { value: 'site', label: 'Every page with this popup form' }] },
+    { key: 'device', label: 'Show on', type: 'select', options: [{ value: 'all', label: 'Phones and computers' }, { value: 'desktop', label: 'Computers / tablets only' }, { value: 'mobile', label: 'Phones only' }] },
+    { key: 'previewNote', type: 'note', label: 'Live Preview shows a dashed note with a "Test now" button instead of opening it by itself.' },
+  ],
+  // Website blocks/ExtraBlocks.jsx BlogPosts; posts / categories are filled on the website server
+  // (service/homeContentService.js attachBlogPosts): the newest live posts, or the posts picked here.
+  CommonBlogPosts: [
+    KICKER, HEADING, SUB,
+    { ...ALIGN, label: 'Heading alignment', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }] },
+    { key: 'source', label: 'Which posts', type: 'select', options: [{ value: 'latest', label: 'Latest posts (updates by itself)' }, { value: 'pick', label: 'Posts I choose' }] },
+    { key: 'limit', label: 'How many', type: 'select', options: ['1', '2', '3', '4', '6', '8', '9', '12'].map(v => ({ value: v, label: v === '3' ? '3 (default)' : v })), showIf: (d) => d.source !== 'pick' },
+    { key: 'category', label: 'Only from category', type: 'blogCategory', hint: 'Empty = every category.', showIf: (d) => d.source !== 'pick' },
+    { key: 'picked', label: 'Posts to show (in this order)', type: 'blogPosts', max: 12, hint: 'Only published posts show on the website.', showIf: (d) => d.source === 'pick' },
+    { key: 'layout', label: 'Layout', type: 'select', options: [{ value: 'grid', label: 'Grid of image cards' }, { value: 'featured', label: 'One big post + list beside it' }] },
+    { key: 'columns', label: 'Cards per row', type: 'select', options: ['2', '3', '4'].map(v => ({ value: v, label: v })), showIf: (d) => d.layout !== 'featured' },
+    { key: 'excerpt', label: 'Short text on the cards', type: 'select', options: [{ value: 'yes', label: 'Show' }, { value: 'no', label: 'Hide' }] },
+    { key: 'readMore', label: 'Card link text', type: 'text', hint: 'Empty = "Read article →".' },
+    { key: 'button', label: '"View all" link', type: 'button', hint: 'Empty text = hidden.' },
+    { key: 'buttonPlace', label: '"View all" position', type: 'select', options: [{ value: 'under', label: 'Under the heading' }, { value: 'side', label: 'Right of the heading' }, { value: 'bottom', label: 'Under the cards' }] },
+    { key: 'chips', label: 'Category chips', type: 'select', options: [{ value: 'auto', label: 'Blog categories (automatic)' }, { value: 'manual', label: 'My own chips' }, { value: 'no', label: 'Hide' }] },
+    { key: 'chipsLimit', label: 'Max chips', type: 'select', options: ['4', '6', '8', '10', '12'].map(v => ({ value: v, label: v })), showIf: (d) => d.chips === 'auto' || !d.chips },
+    { key: 'chipItems', label: 'Chips', type: 'list', addLabel: 'Add chip', showIf: (d) => d.chips === 'manual', fields: [{ key: 'icon', placeholder: 'Icon', width: 'col-md-2' }, { key: 'text', placeholder: 'Text (GST)', width: 'col-md-4' }, { key: 'url', placeholder: 'Link (/blog?category=gst)', width: 'col-md-6' }] },
+    ANCHOR,
+  ],
+  // Reference .lc (labour law section): tabs, each with its own grid of cards (badge, top colour, chip, link).
+  CommonTabCards: [
+    KICKER,
+    { ...HEADING, hint: 'Put *stars* around words to show them in the brand gradient (e.g. India\'s *labour laws*).' },
+    SUB,
+    { ...ALIGN, label: 'Heading alignment', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }] },
+    { key: 'columns', label: 'Cards per row (desktop)', type: 'select', options: ['2', '3', '4', '5', '6'].map(v => ({ value: v, label: v === '4' ? '4 (default)' : v })), hint: 'A tab can set its own. Narrow columns: 3, tablets 2, phones 1.' },
+    {
+      key: 'tabs', label: 'Tabs', type: 'list', addLabel: 'Add tab',
+      hint: 'One tab = no tab bar, just the cards. Card text: **double stars** make words bold, each line is a new line. Empty card link = no "Details" link.',
+      fields: [
+        { key: 'icon', placeholder: 'Tab icon', width: 'col-md-2' },
+        { key: 'label', placeholder: 'Tab name (By State)', width: 'col-md-6' },
+        { key: 'columns', type: 'select', label: 'Cards per row', options: [{ value: '', label: 'As the block' }, ...['2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))], width: 'col-md-4' },
+        {
+          key: 'cards', type: 'list', label: 'Cards in this tab', addLabel: 'Add card',
+          fields: [
+            { key: 'icon', placeholder: 'Icon / image', width: 'col-md-3' },
+            { key: 'iconAlt', placeholder: 'Icon alt text (images)', width: 'col-md-3' },
+            { key: 'tag', placeholder: 'Badge (EPFO)', width: 'col-md-3' },
+            { key: 'color', type: 'color', placeholder: 'Colour', width: 'col-md-3' },
+            { key: 'title', placeholder: 'Title', width: 'col-md-6' },
+            { key: 'chip', placeholder: 'Small chip (20+ employees)', width: 'col-md-6' },
+            { key: 'text', placeholder: 'Text', width: 'col-12', textarea: true },
+            { key: 'url', placeholder: 'Link (optional)', width: 'col-md-6' },
+            { key: 'linkText', placeholder: 'Link text (Details →)', width: 'col-md-6' },
+          ],
+        },
+      ],
+    },
+    ANCHOR,
+  ],
+  // Reference .eco3d ("One platform, every need covered"): a 3D centre badge with the pillars under it.
+  CommonEcosystem: [
+    KICKER, HEADING, SUB,
+    { ...ALIGN, label: 'Heading alignment', options: [{ value: 'center', label: 'Centre' }, { value: 'left', label: 'Left' }] },
+    { key: 'showCenter', label: 'Centre badge', type: 'select', options: SHOW_HIDE },
+    { key: 'centerText', label: 'Badge text', type: 'textarea', hint: 'Each line is a new line in the badge (e.g. Tax / Alphonic).', showIf: (d) => d.showCenter !== 'no' },
+    { key: 'centerImage', label: 'Badge logo instead of text (optional)', type: 'image', showIf: (d) => d.showCenter !== 'no' },
+    { key: 'centerImageAlt', label: 'Logo description (alt text)', type: 'text', hint: 'Empty = the badge text.', showIf: (d) => d.showCenter !== 'no' && Boolean(d.centerImage) },
+    { key: 'centerUrl', label: 'Badge link (optional)', type: 'text', showIf: (d) => d.showCenter !== 'no' },
+    { key: 'centerColor', label: 'Badge colour (light side)', type: 'color', showIf: (d) => d.showCenter !== 'no' },
+    { key: 'centerColor2', label: 'Badge colour (dark side)', type: 'color', showIf: (d) => d.showCenter !== 'no' },
+    {
+      key: 'pillars', label: 'Pillars', type: 'list', addLabel: 'Add pillar',
+      fields: [
+        { key: 'icon', placeholder: 'Icon (emoji or image)', width: 'col-md-3' },
+        { key: 'iconAlt', placeholder: 'Icon alt text (image icons)', width: 'col-md-3' },
+        { key: 'title', placeholder: 'Title (Registrations)', width: 'col-md-3' },
+        { key: 'url', placeholder: 'Link (optional)', width: 'col-md-3' },
+        { key: 'text', placeholder: 'Short text under the title (optional)', width: 'col-12' },
+      ],
+    },
+    { key: 'iconSize', label: 'Icon size', type: 'select', options: [{ value: 'small', label: 'Small' }, { value: 'medium', label: 'Medium (default)' }, { value: 'large', label: 'Large' }, { value: 'xl', label: 'Extra large' }] },
+    { key: 'columns', label: 'Pillars per row (desktop)', type: 'select', options: [{ value: '', label: 'Automatic: all in one row (max 6)' }, ...['2', '3', '4', '5', '6'].map(v => ({ value: v, label: v }))], hint: 'Narrow columns show 3 per row, phones 2.' },
+    { key: 'boxed', label: 'White box around it', type: 'select', options: [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No (plain)' }] },
+    ANCHOR,
+  ],
 };
 
 // Starting content, so a new block shows something sensible straight away.
@@ -270,7 +429,7 @@ const DEFAULTS = {
   CommonImage: { image: '', alt: '', size: 'wide', caption: '', link: '', anchorId: '' },
   CommonVideo: { url: '', kicker: '', heading: '', sub: '', caption: '', poster: '', anchorId: '' },
   CommonGallery: { kicker: '', heading: 'Gallery', sub: '', columns: '3', items: [], anchorId: '' },
-  CommonStats: { kicker: '', heading: '', sub: '', columns: '4', items: [{ icon: '🏢', value: '12,400+', label: 'Businesses served' }, { icon: '⭐', value: '4.8/5', label: 'Average rating' }, { icon: '⚡', value: '7–10 days', label: 'Average turnaround' }, { icon: '🧑‍💼', value: '700+', label: 'Expert services' }], anchorId: '' },
+  CommonStats: { kicker: '', heading: '', sub: '', columns: '', items: [{ icon: '🏢', value: '12,400+', label: 'Businesses served' }, { icon: '⭐', value: '4.8/5', label: 'Average rating' }, { icon: '⚡', value: '7–10 days', label: 'Average turnaround' }, { icon: '🧑‍💼', value: '700+', label: 'Expert services' }], anchorId: '' },
   CommonCards: { kicker: '', heading: 'What we offer', sub: 'Everything your business needs, handled by experts.', subLink: { text: 'View all services', url: '/services', icon: '→', iconSide: 'right' }, align: 'center', columns: '4', style: 'card', items: [{ icon: '📝', title: 'Registrations', text: 'Company, GST, MSME and 28+ registrations.', url: '', linkText: '' }, { icon: '🧾', title: 'Tax & filing', text: 'GST, income tax and TDS returns on time.', url: '', linkText: '' }, { icon: '⚖️', title: 'Legal', text: 'Agreements, notices and lawyer support.', url: '', linkText: '' }, { icon: '📊', title: 'Advisory', text: 'CFO, fundraising and growth advice.', url: '', linkText: '' }], anchorId: '' },
   CommonLogos: { kicker: '', heading: 'Trusted by', grayscale: 'yes', items: [], anchorId: '' },
   CommonButtons: { kicker: '', heading: '', align: 'center', buttons: [{ icon: '🎧', text: 'Talk to an expert', url: '/talk-to-expert', style: 'primary' }, { icon: '📅', text: 'Book a meeting', url: '/book-meeting', style: 'ghost' }], anchorId: '' },
@@ -346,7 +505,7 @@ const DEFAULTS = {
   },
   CommonContact: {
     icon: '🎧', heading: 'Need help right now?', text: 'Talk to an expert for free. No cost, no obligation.',
-    button: { text: 'Get a call back', url: '#form' }, phone: '', phoneText: '', whatsapp: '', whatsappText: 'Chat on WhatsApp', whatsappMessage: 'Hi, I need help', note: '', anchorId: '',
+    button: { text: 'Get a call back', url: '#form' }, button2: { text: 'Book a free consultation', url: '#form' }, button2Style: 'outline', phone: '', phoneText: '', whatsapp: '', whatsappText: 'Chat on WhatsApp', whatsappMessage: 'Hi, I need help', note: '', anchorId: '',
   },
   CommonMiniFaq: {
     heading: '❓ Quick answers', firstOpen: 'no',
@@ -393,6 +552,62 @@ const DEFAULTS = {
     ],
     topicsLabel: 'Related topics:',
     topics: [{ icon: '📖', text: 'Eligibility', url: '/taxpedia' }, { icon: '📖', text: 'Process', url: '/taxpedia' }, { icon: '📖', text: 'Amendment', url: '/taxpedia' }, { icon: '📖', text: 'Cancellation', url: '/taxpedia' }],
+    anchorId: '',
+  },
+  // Same content as the reference design (uirefrence.html "Tax Alphonic by the numbers").
+  CommonDataBand: {
+    kicker: '📊 Tax Alphonic by the numbers', heading: 'The numbers behind our work', align: 'center',
+    sub: 'A snapshot of how we help businesses across India — explore any area to learn more.',
+    showDonut: 'yes', donutTitle: 'Where we help most', donutValue: '700+', donutLabel: 'services',
+    segments: [
+      { label: 'Registrations', value: '200+', color: '#0E96AC', amount: '', url: '' },
+      { label: 'Tax & GST', value: '150+', color: '#E8521E', amount: '', url: '' },
+      { label: 'Compliance', value: '140+', color: '#F5A623', amount: '', url: '' },
+      { label: 'Legal & IP', value: '100+', color: '#7C3AED', amount: '', url: '' },
+    ],
+    showBars: 'yes', barsTitle: 'Businesses served', barsTag: '(illustrative)',
+    bars: [{ label: '2021', value: '2,400' }, { label: '2022', value: '4,100' }, { label: '2023', value: '6,800' }, { label: '2024', value: '9,200' }, { label: '2025', value: '11,500' }, { label: '2026', value: '12,400' }],
+    barColor: '#0E96AC', barColor2: '#E8521E',
+    barsNote: 'Steady year-on-year growth — 12,400+ businesses now choose Tax Alphonic.',
+    barsButton: { text: 'See how we help →', url: '/journey/idea' },
+    showRings: 'yes', ringsTitle: '',
+    rings: [{ value: '96%', label: 'Customer satisfaction', url: '' }, { value: '98%', label: 'On-time delivery', url: '' }, { value: '92%', label: 'Repeat & referrals', url: '' }],
+    ringColor: '#0E96AC',
+    ringsButton: { text: '🎧 Talk to an expert', url: '/talk-to-expert' },
+    stats: [
+      { icon: '', value: '700+', label: 'Expert services', url: '' },
+      { icon: '', value: '12,400+', label: 'Businesses served', url: '' },
+      { icon: '', value: '36', label: 'States & UTs covered', url: '' },
+      { icon: '', value: '7-10', label: 'Days avg turnaround', url: '' },
+      { icon: '', value: '270+', label: 'Taxpedia guides', url: '' },
+      { icon: '', value: '22+', label: 'Loan partners', url: '' },
+    ],
+    statColumns: '',
+    disclaimer: '📊 Figures shown are illustrative of our scale and service quality. Verified live metrics are available on request.',
+    anchorId: '',
+  },
+  CommonAutoPopup: { formId: '', delay: '5', heading: '', sub: '', remember: 'forever', days: '7', scope: 'page', device: 'all' },
+  // Same content as the reference design (uirefrence.html "One platform, every need covered").
+  CommonEcosystem: {
+    kicker: '', heading: 'One platform, every need covered', sub: 'Six pillars working together — click any pillar to explore', align: 'center',
+    showCenter: 'yes', centerText: 'Tax\nAlphonic', centerImage: '', centerImageAlt: '', centerUrl: '', centerColor: '#0e96ac', centerColor2: '#0a1840',
+    pillars: [
+      { icon: '🏢', iconAlt: '', title: 'Registrations', text: '', url: '/explore/registrations' },
+      { icon: '🧾', iconAlt: '', title: 'Tax & GST', text: '', url: '/explore/gst' },
+      { icon: '💼', iconAlt: '', title: 'Advisory', text: '', url: '/explore/business-advisory' },
+      { icon: '📚', iconAlt: '', title: 'Taxpedia', text: '', url: '/explore/taxpedia' },
+      { icon: '⚖️', iconAlt: '', title: 'Legal', text: '', url: '/explore/lawyer-services' },
+      { icon: '🏛️', iconAlt: '', title: 'GeM', text: '', url: '/explore/gem-services' },
+    ],
+    iconSize: 'medium', columns: '', boxed: 'yes', anchorId: '',
+  },
+  CommonTabCards: TAB_CARDS_DEFAULT,
+  CommonBlogPosts: {
+    kicker: '', heading: '📝 Latest from our blog', sub: '', align: 'center',
+    source: 'latest', limit: '3', category: '', picked: [],
+    layout: 'grid', columns: '3', excerpt: 'yes', readMore: 'Read guide →',
+    button: { text: 'View all blogs', url: '/blog', icon: '→', iconSide: 'right' }, buttonPlace: 'under',
+    chips: 'auto', chipsLimit: '8', chipItems: [],
     anchorId: '',
   },
 };

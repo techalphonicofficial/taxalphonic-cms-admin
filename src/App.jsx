@@ -86,6 +86,7 @@ import SeoPageEditForm from './pages/SeoPageEditForm';
 import StatesList from './pages/StatesList';
 import StateForm from './pages/StateForm';
 import LeadsList from './pages/crm/LeadsList';
+import NewsletterSubscribers from './pages/crm/NewsletterSubscribers';
 import FormsList from './pages/forms/FormsList';
 import FormBuilder from './pages/forms/FormBuilder';
 import AiSettings from './pages/seo/AiSettings';
@@ -252,6 +253,7 @@ function App() {
             {/* CRM / Lead Management Routes */}
             <Route path="crm" element={<LeadsList />} />
             <Route path="crm/leads" element={<LeadsList />} />
+            <Route path="crm/newsletter" element={<NewsletterSubscribers />} />
 
             {/* Form Builder Routes */}
             <Route path="forms" element={<RoutePermission action="read" module="Forms"><FormsList /></RoutePermission>} />

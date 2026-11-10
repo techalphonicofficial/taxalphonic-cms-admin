@@ -44,6 +44,7 @@ export const M = {
   technologies: ['SEO', 'Technologies'],
   problems: ['SEO', 'Problems'],
   leads: ['CRM', 'Inquiries'],
+  newsletter: ['Newsletter', 'CRM'],
   media: 'Media',
   settings: 'Settings',
   users: 'Users',
@@ -131,6 +132,7 @@ export const ROUTES = [
   { path: '/settings/:group', action: 'read', module: M.settings },
   { path: '/crm', action: 'read', module: M.leads },
   { path: '/crm/leads', action: 'read', module: M.leads },
+  { path: '/crm/newsletter', action: 'read', module: M.newsletter },
 ];
 
 const COMPILED = ROUTES.map((route) => ({

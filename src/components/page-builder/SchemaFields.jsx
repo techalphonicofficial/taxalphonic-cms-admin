@@ -7,7 +7,7 @@ import MediaPickerModal from '../media/MediaPickerModal';
 import SearchableSelect from '../common/SearchableSelect';
 import api from '../../services/api';
 
-const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com').replace(/\/$/, '');
+const MEDIA_BASE = (import.meta.env.VITE_APP_URL || 'http://localhost:5000').replace(/\/$/, '');
 const previewUrl = (url) => (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') ? url : `${MEDIA_BASE}/${url.replace(/^\/+/, '')}`);
 
 // An image from the Media library (or a pasted URL), with a small preview.
@@ -120,6 +120,99 @@ const ToolPagePicker = ({ label, hint, value, onChange, className = 'col-md-6' }
   );
 };
 
+// Live blog posts (the website's public list, so only posts that can show are offered), up to 500.
+const useLiveBlogPosts = () => useQuery({
+  queryKey: ['blogs', 'public-all'],
+  queryFn: async () => {
+    const all = [];
+    for (let page = 1; page <= 10; page += 1) {
+      const res = (await api.get('/blogs/public', { params: { page, limit: 50 } })).data;
+      const rows = res?.data || [];
+      all.push(...rows);
+      if (rows.length < 50) break;
+    }
+    return all;
+  },
+  staleTime: 60 * 1000,
+});
+
+/** Several blog posts in a chosen order: [{ slug, title }] (field.max, default 6). */
+const BlogPostsPicker = ({ label, hint, value, onChange, max = 6, className = 'col-12' }) => {
+  const { data: posts = [], isLoading } = useLiveBlogPosts();
+  const chosen = Array.isArray(value) ? value.filter(p => p?.slug) : [];
+  const live = new Set(posts.map(p => p.slug));
+  const set = (next) => onChange(next);
+  const move = (index, delta) => {
+    const next = [...chosen];
+    const [item] = next.splice(index, 1);
+    next.splice(index + delta, 0, item);
+    set(next);
+  };
+  return (
+    <div className={className}>
+      <label className="form-label">{label} <span className="text-muted small">({chosen.length} / {max})</span></label>
+      {chosen.length > 0 && (
+        <ol className="list-group list-group-numbered mb-2">
+          {chosen.map((p, i) => (
+            <li key={p.slug} className="list-group-item d-flex align-items-center gap-2">
+              <span className="flex-grow-1 text-truncate">
+                {p.title || p.slug}
+                {!isLoading && !live.has(p.slug) && <span className="badge bg-warning-subtle text-warning-emphasis ms-2">not live (hidden on the website)</span>}
+              </span>
+              <div className="btn-group btn-group-sm">
+                <button type="button" className="btn btn-light border" disabled={i === 0} onClick={() => move(i, -1)} title="Move up"><i className="bi bi-arrow-up"></i></button>
+                <button type="button" className="btn btn-light border" disabled={i === chosen.length - 1} onClick={() => move(i, 1)} title="Move down"><i className="bi bi-arrow-down"></i></button>
+                <button type="button" className="btn btn-light border text-danger" onClick={() => set(chosen.filter((_, j) => j !== i))} title="Remove"><i className="bi bi-x-lg"></i></button>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {chosen.length < max && (
+        <SearchableSelect
+          value=""
+          onChange={(slug) => {
+            const post = posts.find(p => p.slug === slug);
+            if (post) set([...chosen, { slug: post.slug, title: post.title }]);
+          }}
+          loading={isLoading}
+          spaced={false}
+          placeholder="+ Add a blog post…"
+          emptyLabel="+ Add a blog post…"
+          searchPlaceholder="Search blog posts..."
+          options={posts.filter(p => !chosen.some(c => c.slug === p.slug)).map(p => ({ value: p.slug, label: p.title, sub: p.category?.name || '' }))}
+        />
+      )}
+      {hint && <div className="form-text">{hint}</div>}
+    </div>
+  );
+};
+
+/** One blog category (slug); '' = every category. */
+const BlogCategoryPicker = ({ label, hint, value, onChange, className = 'col-md-6' }) => {
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['blogs', 'public-categories'],
+    queryFn: async () => (await api.get('/blogs/public/categories')).data?.data || [],
+    staleTime: 60 * 1000,
+  });
+  return (
+    <div className={className}>
+      <label className="form-label">{label}</label>
+      <SearchableSelect
+        value={value || ''}
+        onChange={(v) => onChange(v || '')}
+        loading={isLoading}
+        spaced={false}
+        placeholder="All categories"
+        emptyLabel="All categories"
+        searchPlaceholder="Search categories..."
+        options={categories.map(c => ({ value: c.slug, label: c.name, sub: `${c.count ?? 0} posts` }))}
+      />
+      {hint && <div className="form-text">{hint}</div>}
+    </div>
+  );
+};
+
 /**
  * Renders a block editor from a field schema (see HOME_SCHEMAS in homeBlocks.js).
  * Field types: text, textarea, button, list, group, form, select, note, image, color; any field may set showIf(data).
@@ -161,6 +254,10 @@ const SchemaFields = ({ fields, value, onChange }) => {
             return <ButtonField key={field.key} className={field.width || 'col-md-6'} label={field.label} value={data[field.key]} onChange={set(field.key)} />;
           case 'portfolioCategory':
             return <PortfolioCategoryPicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
+          case 'blogPosts':
+            return <BlogPostsPicker key={field.key} className={field.width || 'col-12'} label={field.label} hint={field.hint} max={field.max || 6} value={data[field.key]} onChange={set(field.key)} />;
+          case 'blogCategory':
+            return <BlogCategoryPicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
           case 'toolPage':
             return <ToolPagePicker key={field.key} className={field.width || 'col-md-6'} label={field.label} hint={field.hint} value={data[field.key]} onChange={set(field.key)} />;
           case 'form':

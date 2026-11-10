@@ -2,7 +2,7 @@
 
 Edit the website (../taxalphonic-dynamic-frontend) and run `npm run sync-preview`.
 
-Last sync: 2026-11-04T07:10:03.318Z
+Last sync: 2026-11-10T09:14:15.647Z
 
 - service/servicePreview.js
 - service/servicePageService.js
@@ -24,11 +24,12 @@ Last sync: 2026-11-04T07:10:03.318Z
 - components/tax-alphonic/packages/PackagesBlock.jsx
 - components/tax-alphonic/home/HomeSections.jsx
 - components/tax-alphonic/blocks/BlockBackground.jsx
+- components/tax-alphonic/blocks/ButtonLabel.jsx
 - components/tax-alphonic/blocks/AnyBlock.jsx
 - components/tax-alphonic/blocks/CommonBlocks.jsx
 - components/tax-alphonic/tools/calculators.jsx
 - components/tax-alphonic/tools/toolDefaults.js
-- components/tax-alphonic/blocks/ButtonLabel.jsx
+- components/tax-alphonic/blocks/AutoPopup.jsx
 - components/tax-alphonic/blocks/ExtraBlocks.jsx
 - components/tax-alphonic/blocks/commonBlockTypes.js
 - components/tax-alphonic/journey/JourneySections.jsx
@@ -37,6 +38,7 @@ Last sync: 2026-11-04T07:10:03.318Z
 - components/tax-alphonic/journey/journeyBlockTypes.js
 - components/tax-alphonic/tools/ToolSections.jsx
 - components/tax-alphonic/tools/toolBlockTypes.js
+- components/tax-alphonic/home/NewsletterBox.jsx
 - components/tax-alphonic/pages/ApiPage.jsx
 - components/seo/JsonLd.jsx
 - components/tax-alphonic/landing/LandingPage.jsx
@@ -47,6 +49,7 @@ Last sync: 2026-11-04T07:10:03.318Z
 - components/tax-alphonic/landing/landingThemes.js
 - app/globals.css
 - components/tax-alphonic/forms/math-captcha.css
+- components/tax-alphonic/forms/cms-form.css
 - components/tax-alphonic/home/home-page.css
 - components/tax-alphonic/blocks/blocks.css
 - components/tax-alphonic/blocks/extra-blocks.css

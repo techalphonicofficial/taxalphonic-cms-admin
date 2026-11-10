@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import JoditEditor from 'jodit-react';
+import SmartRichEditor from './SmartRichEditor';
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../../context/ThemeContext';
 import { FormService } from '../../services/form.service';
@@ -15,40 +15,6 @@ import { LANDING_SCHEMAS } from './landingBlocks';
 import { TOOL_SCHEMAS, toolSchemaFor } from './toolBlocks';
 import { DEFAULT_SETTINGS } from '../../site-preview/website/components/tax-alphonic/tools/toolDefaults';
 import { imageHint } from '../../config/imageSizes';
-import { JODIT_CLEAN_PASTE } from './cleanPastedHtml';
-
-const joditConfig = {
-  enter: 'P',
-  toolbarAdaptive: false,
-  toolbarSticky: false,
-  showCharsCounter: false,
-  showWordsCounter: false,
-  showXPathInStatusbar: false,
-  height: 400,
-  buttons: [
-    'paragraph', '|',
-    'bold', 'italic', 'underline', 'brush', '|',
-    'ul', 'ol', '|',
-    'outdent', 'indent', '|',
-    'link', 'image', '|',
-    'align', 'undo', 'redo'
-  ],
-  controls: {
-    paragraph: {
-      text: 'Format',
-      icon: false,
-      list: {
-        p: 'Normal',
-        h1: 'Heading 1',
-        h2: 'Heading 2',
-        h3: 'Heading 3',
-        h4: 'Heading 4',
-        h5: 'Heading 5',
-        h6: 'Heading 6'
-      }
-    }
-  }
-};
 
 // Helper: editor props bound to one payload key.
 const usePayload = (data, onChange) => {
@@ -258,11 +224,6 @@ const FaqForm = ({ data, onChange }) => {
 // New form for Overview
 const OverviewForm = ({ data, onChange }) => {
   const { theme } = useTheme();
-  const editorConfig = useMemo(() => ({
-    ...joditConfig,
-    ...JODIT_CLEAN_PASTE,
-    theme: theme === 'dark' ? 'dark' : 'default'
-  }), [theme]);
 
   return (
     <div className="row g-3">
@@ -277,12 +238,13 @@ const OverviewForm = ({ data, onChange }) => {
         />
       </div>
       <div className="col-12">
-        <label className="form-label">Content (HTML)</label>
+        <label className="form-label">Content</label>
         <div>
-          <JoditEditor 
-            value={data?.payload?.content || ''} 
-            config={editorConfig}
-            onBlur={(content) => onChange({ ...data, payload: { ...data.payload, content } })} 
+          {/* Images, tables, check points, note boxes, buttons: SmartRichEditor.jsx */}
+          <SmartRichEditor
+            value={data?.payload?.content || ''}
+            theme={theme === 'dark' ? 'dark' : 'default'}
+            onChange={(content) => onChange({ ...data, payload: { ...data.payload, content } })}
           />
         </div>
       </div>

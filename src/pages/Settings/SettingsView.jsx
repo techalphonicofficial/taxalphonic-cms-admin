@@ -214,7 +214,7 @@ const SettingsView = () => {
                                       {(field.name.toLowerCase().includes('logo') || field.name.toLowerCase().includes('icon') || field.name.toLowerCase().includes('image')) && formData[field.name] && (
                                         <div className="mt-2">
                                           <img
-                                            src={formData[field.name].startsWith('http') ? formData[field.name] : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'https://api.taxalphonic.com')}${formData[field.name].startsWith('/') ? '' : '/'}${formData[field.name]}`}
+                                            src={formData[field.name].startsWith('http') ? formData[field.name] : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${formData[field.name].startsWith('/') ? '' : '/'}${formData[field.name]}`}
                                             alt={`${field.label} Preview`}
                                             style={{ maxHeight: '60px', maxWidth: '100%', objectFit: 'contain' }}
                                             className="rounded border bg-body-tertiary p-1 shadow-sm"
