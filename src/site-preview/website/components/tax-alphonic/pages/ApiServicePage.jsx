@@ -711,6 +711,9 @@ function placementOf(section) {
 // first in the full-width bottom area, with the default texts.
 const AUTO_LOCATIONS = { id: "auto-locations", type: "LocationsServed", config: { placement: "bottom" }, payload: {} };
 
+// Blocks that render the page's own <h1> (homepage hero, hero with form, journey / tool heroes).
+const OWN_H1_BLOCKS = new Set(["HomeHero", "CommonFormHero", "JourneyHero", "ToolHero"]);
+
 export default function ApiServicePage({ service }) {
   const locations = list(service.locations);
   const heroSection = service.sections.find((section) => section.type === "HeroBanner");
@@ -758,7 +761,14 @@ export default function ApiServicePage({ service }) {
       <div className="view">
         <div className="svc">
           <div className="wrap">
-            <BlockBackground config={heroSection?.config} hero><Hero service={service} hero={hero} config={heroSection?.config} /></BlockBackground>
+            {/* Only the blocks the editor added: without a Hero Banner block there is no automatic hero
+                (category / title / summary). The title stays as a hidden h1 for search engines, unless
+                another block already has the page's h1. */}
+            {heroSection ? (
+              <BlockBackground config={heroSection.config} hero><Hero service={service} hero={hero} config={heroSection.config} /></BlockBackground>
+            ) : !service.sections.some((section) => OWN_H1_BLOCKS.has(section.type)) && (
+              <h1 className="svc-sr-only">{service.title}</h1>
+            )}
 
             {groups.top.length > 0 && <div className="svc-top">{groups.top.map((section) => render(section, "top"))}</div>}
 

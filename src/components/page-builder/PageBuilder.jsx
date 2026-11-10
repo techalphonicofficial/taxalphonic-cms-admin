@@ -13,7 +13,7 @@ import BlockButtonsSettings from './BlockButtonsSettings';
 import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
-  SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
+  SERVICE_HERO_BLOCKS, SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
   LAYOUT_SECTION, baseMarkerOf, baseOf, groupColumn, homeDropError, homeRows, insertInFlat, layoutGroups, serviceDropError, servicePlacementOf, serviceZones, tailOf, withGroups
 } from './layoutZones';
 import { confirmDialog } from '../common/confirm';
@@ -85,7 +85,7 @@ const PLACEMENTS = [
 const ZONE_HINTS = {
   header: 'Header block only (website header, landing header or none)',
   footer: 'Footer block only (website footer, landing footer or none)',
-  hero: 'Hero Banner only',
+  hero: 'One hero block: Hero Banner, Homepage Hero, Hero with Form, Banners Slider',
   top: 'Full width, under the hero',
   main: 'Left column',
   sidebar: 'Form, Highlights, Checklist, Call to Action',
@@ -105,7 +105,7 @@ const summarize = (section) => {
 };
 
 // Per-block layout options stored in section.config (services, and placement on the homepage).
-const BlockSettings = ({ section, onChange, home = false }) => {
+const BlockSettings = ({ section, onChange, home = false, heroTaken = false }) => {
   if (section.type === 'HeroBanner' || isLandingRegion(section.type)) return null;
   const config = section.config || {};
   const set = (key, value) => onChange({ ...config, [key]: value });
@@ -130,7 +130,11 @@ const BlockSettings = ({ section, onChange, home = false }) => {
 
   // Only blocks with a sidebar design may go there (an old value stays selectable).
   const value = servicePlacementOf(section);
-  const options = PLACEMENTS.filter(p => p.value !== 'sidebar' || SERVICE_SIDEBAR_BLOCKS.includes(section.type) || value === 'sidebar');
+  const options = [
+    // Hero blocks may also fill the Hero area, when it is free (or it is this block).
+    ...(SERVICE_HERO_BLOCKS.includes(section.type) && (value === 'hero' || !heroTaken) ? [{ value: 'hero', label: 'Hero (top of the page)' }] : []),
+    ...PLACEMENTS.filter(p => p.value !== 'sidebar' || SERVICE_SIDEBAR_BLOCKS.includes(section.type) || value === 'sidebar'),
+  ];
 
   return (
     <div className="row g-2 mb-3 pb-3 border-bottom">
@@ -320,13 +324,15 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     setScrollToId(section.id);
   };
 
-  const hasServiceHero = () => sections.some(s => s.type === 'HeroBanner');
+  // The service canvas Hero area holds one block (the Hero Banner or another hero block placed there).
+  const heroOf = (except) => sections.find(s => s !== except && servicePlacementOf(s) === 'hero') || null;
+  const hasServiceHero = () => Boolean(heroOf());
 
   const handleAddBlock = (blockType) => {
     const section = newSection(blockType);
     if (layoutSettings && !isHome) {
       if (blockType === 'HeroBanner' && hasServiceHero()) {
-        toast.warning('This page already has a Hero Banner.');
+        toast.warning(`The Hero area already has ${labelOf(heroOf().type)}. Remove it or move it out first.`);
         return;
       }
       if (isLandingRegion(blockType) && sections.some(s => s.type === blockType)) {
@@ -377,6 +383,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       ...JSON.parse(JSON.stringify(section)),
       id: `sec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     };
+    // The Hero area holds one block: a copy of the hero goes to the Top area instead.
+    if (layoutSettings && !isHome && copy.config?.placement === 'hero') copy.config.placement = 'top';
     const items = [...sections];
     items.splice(items.indexOf(section) + 1, 0, copy);
     update(items);
@@ -400,12 +408,13 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   const dropIntoService = (zone, index, moving, fromPalette) => {
     const error = serviceDropError(moving.type, zone, labelOf(moving.type));
     if (error) return toast.warning(error);
-    if (fromPalette && zone === 'hero' && hasServiceHero()) return toast.warning('This page already has a Hero Banner.');
+    if (zone === 'hero' && heroOf(moving)) return toast.warning(`The Hero area already has ${labelOf(heroOf(moving).type)}. Move it to another area or remove it first.`);
     if (fromPalette && isLandingRegion(moving.type) && sections.some(s => s.type === moving.type)) {
       return toast.warning(`This page already has a ${labelOf(moving.type)} block.`);
     }
 
-    const placed = zone === 'hero' || isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
+    // The Hero Banner and landing regions have a fixed area; every other block remembers its area.
+    const placed = moving.type === 'HeroBanner' || isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
     const rest = sections.filter(s => s !== moving);
     const zones = serviceZones(baseOf(rest));
     zones[zone].splice(index, 0, placed);
@@ -523,7 +532,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
   const editorFor = (section) => (
     <>
-      {zoned && <BlockSettings home={isHome} section={section} onChange={setConfig(section)} />}
+      {zoned && <BlockSettings home={isHome} section={section} onChange={setConfig(section)} heroTaken={Boolean(heroOf(section))} />}
       {/* Every block, in every builder: colour, image, overlay (website: blocks/BlockBackground.jsx). */}
       <BackgroundSettings key={section.id} section={section} hero={HERO_TYPES.has(section.type)} onChange={setConfig(section)} />
       {/* Every block, in every builder: margin and padding (website: blocks/BlockBackground.jsx). */}

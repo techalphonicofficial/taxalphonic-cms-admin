@@ -43,10 +43,16 @@ export const SERVICE_ZONES = ['header', 'hero', 'top', 'main', 'sidebar', 'botto
 const SERVICE_PLACEMENTS = ['top', 'main', 'sidebar', 'bottom'];
 const REGION_ZONE = { LandingHeader: 'header', LandingFooter: 'footer' };
 
+// Blocks that may fill the Hero area (one block there). The Hero Banner always stays there; the others
+// go there with config.placement "hero". Keep in sync with HERO_BLOCKS in the website's ApiServicePage.jsx.
+export const SERVICE_HERO_BLOCKS = ['HeroBanner', 'HomeHero', 'CommonFormHero', 'HomeBanners'];
+export const SERVICE_HERO_LABEL = 'Hero Banner, Homepage Hero, Hero with Form, Banners Slider';
+
 export const servicePlacementOf = (section) => {
   if (REGION_ZONE[section.type]) return REGION_ZONE[section.type];
   if (section.type === 'HeroBanner') return 'hero';
   const placement = section.config?.placement;
+  if (placement === 'hero' && SERVICE_HERO_BLOCKS.includes(section.type)) return 'hero';
   // Homepage blocks are full-width designs: the Bottom area unless placed elsewhere (website: same rule).
   return SERVICE_PLACEMENTS.includes(placement) ? placement : DEFAULT_PLACEMENT[section.type] || (/^Home[A-Z]/.test(section.type) ? 'bottom' : 'main');
 };
@@ -57,7 +63,7 @@ export const serviceDropError = (type, zone, label) => {
   if (REGION_ZONE[type] && zone !== REGION_ZONE[type]) return `The ${label} block stays in the ${ZONE_LABELS[REGION_ZONE[type]]} area.`;
   if (!REGION_ZONE[type] && (zone === 'header' || zone === 'footer')) return `Only the ${zone === 'header' ? 'Header' : 'Footer'} block goes in the ${ZONE_LABELS[zone]} area.`;
   if (type === 'HeroBanner' && zone !== 'hero') return `${label} always stays at the top of the page.`;
-  if (type !== 'HeroBanner' && zone === 'hero') return 'Only the Hero Banner goes in the Hero area.';
+  if (zone === 'hero' && !SERVICE_HERO_BLOCKS.includes(type)) return `Only a hero block goes in the Hero area (${SERVICE_HERO_LABEL}).`;
   if (zone === 'sidebar' && !SERVICE_SIDEBAR_BLOCKS.includes(type)) {
     return `${label} can't go in the right sidebar. Sidebar blocks: Form, Highlights, Checklist, Call to Action, Free Tool / Calculator, Trust Badges, Contact Card, Quick FAQ.`;
   }
