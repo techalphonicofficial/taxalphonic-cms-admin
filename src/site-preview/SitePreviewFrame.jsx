@@ -7,7 +7,8 @@ import HomeSections from './website/components/tax-alphonic/home/HomeSections';
 import JourneySections from './website/components/tax-alphonic/journey/JourneySections';
 import ToolSections from './website/components/tax-alphonic/tools/ToolSections';
 import LandingPage from './website/components/tax-alphonic/landing/LandingPage';
-import { buildHomePreview, buildJourneyPreview, buildLandingPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
+import { BlogPostPage } from './website/components/tax-alphonic/blog/BlogPages';
+import { buildBlogPreview, buildHomePreview, buildJourneyPreview, buildLandingPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
 import { setPreviewFrame } from './shims/frameGlobals';
 import { layoutCss } from './website/service/siteSettingsService';
 import SettingService from '../services/setting.service';
@@ -26,6 +27,8 @@ const KINDS = {
   home: { build: buildHomePreview, render: (data) => <HomeSections sections={data} /> },
   journey: { build: buildJourneyPreview, render: (data) => <JourneySections sections={data.sections} stages={data.stages} page={data.page} /> },
   tool: { build: buildToolPreview, render: (data) => <ToolSections sections={data.sections} tools={data.tools} page={data.page} /> },
+  // Blog post: the website's post page (no view count, likes or comments); single = one block alone.
+  blog: { build: buildBlogPreview, render: (data) => <BlogPostPage post={data.post} url={`https://taxalphonic.com/blog/${data.post.slug}`} preview single={data.single} /> },
   // Landing pages: the "Website header / footer" style is the live site's own Header / Footer
   // (not part of this preview copy), shown here as a labelled bar.
   landing: {

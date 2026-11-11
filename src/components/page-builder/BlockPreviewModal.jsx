@@ -9,7 +9,7 @@ import { sampleSection } from './blockSamples';
  * alone, rendered with the website's own components like Live Preview (unsaved edits included,
  * nothing saved). Landing pages keep their Header block so the page theme's colours apply.
  */
-const KIND = { home: 'home', journey: 'journey', tool: 'tool', landing: 'landing' };
+const KIND = { home: 'home', journey: 'journey', tool: 'tool', landing: 'landing', blog: 'blog' };
 
 export const previewKindOf = (blockSet) => KIND[blockSet] || 'page';
 
@@ -23,6 +23,8 @@ export const singleBlockDraft = (section, sections, blockSet) => {
   }
   // A page without a Hero block shows its title as the hero ("Untitled page" in a preview): an
   // invisible title keeps that hero empty, so only the block shows.
+  // Blog: the block alone, without the post's title, author and comments.
+  if (kind === 'blog') return { single: true, title: '', sections: list };
   return kind === 'home' ? { sections: list } : { title: '\u200b', slug: '', content: '', sections: list };
 };
 

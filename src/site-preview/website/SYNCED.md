@@ -2,7 +2,7 @@
 
 Edit the website (../taxalphonic-dynamic-frontend) and run `npm run sync-preview`.
 
-Last sync: 2026-11-11T07:59:51.967Z
+Last sync: 2026-11-11T10:09:28.384Z
 
 - service/servicePreview.js
 - service/servicePageService.js
@@ -47,6 +47,13 @@ Last sync: 2026-11-11T07:59:51.967Z
 - components/tax-alphonic/landing/LandingLinkGuard.jsx
 - components/tax-alphonic/landing/landingBlockTypes.js
 - components/tax-alphonic/landing/landingThemes.js
+- components/tax-alphonic/blog/BlogPages.jsx
+- components/tax-alphonic/blog/BlogClient.jsx
+- service/blogView.js
+- components/tax-alphonic/blog/BlogEngagement.jsx
+- service/blogEngagement.js
+- components/tax-alphonic/blog/BlogBlocks.jsx
+- components/tax-alphonic/blog/blogLayout.js
 - app/globals.css
 - components/tax-alphonic/forms/math-captcha.css
 - components/tax-alphonic/forms/cms-form.css
@@ -60,3 +67,4 @@ Last sync: 2026-11-11T07:59:51.967Z
 - components/tax-alphonic/forms/form-popup.css
 - components/tax-alphonic/landing/landing.css
 - components/tax-alphonic/landing/landing-themes.css
+- components/tax-alphonic/blog/blog.css

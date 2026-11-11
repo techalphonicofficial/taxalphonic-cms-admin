@@ -29,13 +29,17 @@ export const DEFAULT_PLACEMENT = {
   CommonFormHero: 'top', // hero with a form: full width under the hero
   CommonExploreHub: 'bottom', // explore links grid: full width under the page body
   CommonDataBand: 'bottom', // numbers dashboard: full width under the page body
+  // Blog post cards (blogBlocks.js; website blog/blogLayout.js puts them in the sidebar too).
+  BlogToc: 'sidebar',
+  BlogShare: 'sidebar',
+  BlogExpertCta: 'sidebar',
 };
 
 // Blocks the website has a sidebar design for (lead card, side-trust grid, side-why, side CTA).
 // CommonTool: a free tool's calculator, which stacks into one column there.
 // CommonCards / CommonStats: one card per row / two numbers per row in the sidebar (website blocks.css).
 // CommonButtons: stacked full-width buttons in the sidebar.
-export const SERVICE_SIDEBAR_BLOCKS = ['Form', 'Highlights', 'Checklist', 'CallToAction', 'CommonTool', 'CommonTrust', 'CommonContact', 'CommonMiniFaq', 'CommonCards', 'CommonStats', 'CommonButtons'];
+export const SERVICE_SIDEBAR_BLOCKS = ['Form', 'Highlights', 'Checklist', 'CallToAction', 'CommonTool', 'CommonTrust', 'CommonContact', 'CommonMiniFaq', 'CommonCards', 'CommonStats', 'CommonButtons', 'BlogToc', 'BlogShare', 'BlogExpertCta'];
 
 // header / footer: the landing page regions (LandingHeader / LandingFooter blocks, landingBlocks.js);
 // empty on every other builder. They stay first / last in the saved list.

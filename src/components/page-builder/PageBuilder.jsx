@@ -7,6 +7,7 @@ import { HOME_BLOCKS, HOME_PLACEMENTS, defaultHomeSections, homeDefaultPayload, 
 import { JOURNEY_BLOCKS, JOURNEY_REFERENCE_STAGES, journeyDefaultPayload, journeyStageSections } from './journeyBlocks';
 import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, toolsHubSections } from './toolBlocks';
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
+import { BLOG_BLOCKS, blogDefaultPayload, isBlogType } from './blogBlocks';
 import BackgroundSettings from './BackgroundSettings';
 import SpacingSettings from './SpacingSettings';
 import CardLayoutSettings from './CardLayoutSettings';
@@ -44,7 +45,7 @@ const SERVICE_ONLY_BLOCKS = [
   { type: 'LocationsServed', label: 'Locations We Serve', icon: 'bi-geo-alt' }
 ];
 
-const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS, ...JOURNEY_BLOCKS, ...TOOL_BLOCKS, ...COMMON_BLOCKS, ...LANDING_BLOCKS].map(b => [b.type, b]));
+const BLOCK_META = Object.fromEntries([...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...SERVICE_ONLY_BLOCKS, ...HOME_BLOCKS, ...JOURNEY_BLOCKS, ...TOOL_BLOCKS, ...COMMON_BLOCKS, ...LANDING_BLOCKS, ...BLOG_BLOCKS].map(b => [b.type, b]));
 const HOME_TYPES = new Set(HOME_BLOCKS.map(b => b.type));
 const JOURNEY_TYPES = new Set(JOURNEY_BLOCKS.map(b => b.type));
 const TOOL_TYPES = new Set(TOOL_BLOCKS.map(b => b.type));
@@ -57,6 +58,7 @@ const defaultPayloadFor = (type) => (
     : JOURNEY_TYPES.has(type) ? journeyDefaultPayload(type)
       : TOOL_TYPES.has(type) ? toolDefaultPayload(type)
         : isCommonType(type) ? commonDefaultPayload(type)
+          : isBlogType(type) ? blogDefaultPayload(type)
           : isLandingRegion(type) ? landingDefaultPayload(type)
             : {}
 );
@@ -170,20 +172,24 @@ const PALETTE_PREFIX = 'palette:';
 // blockSet="journey": a Journey Stage page (journeyBlocks.js): one full-width list, blocks keep
 // the reference order when added, and a reference stage can fill the whole page.
 // previewKind / previewDraft: the form's own Live Preview draft for the whole page (it receives the sections).
-const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, blockSet = 'default', previewKind, previewDraft }) => {
+// blockSet="blog" (with layoutSettings): the service canvas plus the blog's own blocks (blogBlocks.js);
+// sidebarSide (right | left | none) only changes how the Sidebar area is labelled and placed.
+const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, blockSet = 'default', previewKind, previewDraft, sidebarSide = 'right' }) => {
   const isHome = blockSet === 'home';
   const isJourney = blockSet === 'journey';
   // blockSet="tool": a free tool page or the tools hub (toolBlocks.js), one full-width list like journeys.
   const isTool = blockSet === 'tool';
   // blockSet="landing" (Landing Pages): the service canvas plus Header and Footer areas.
   const isLanding = blockSet === 'landing';
+  const isBlog = blockSet === 'blog';
   const zoned = isHome || layoutSettings;
   // Palette groups: the builder's own blocks first, then general-purpose and homepage blocks,
   // which every builder offers (the website renders them on any page).
   const ownBlocks = isTool ? TOOL_BLOCKS : isJourney ? JOURNEY_BLOCKS : isHome ? HOME_BLOCKS
+    : isBlog ? [...BLOG_BLOCKS, ...SERVICE_EXTRA_BLOCKS]
     : layoutSettings ? [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS, ...(blockSet === 'service' ? SERVICE_ONLY_BLOCKS : [])]
     : [...AVAILABLE_BLOCKS, ...SERVICE_BLOCKS];
-  const ownTitle = isTool ? 'Tool blocks' : isJourney ? 'Journey blocks' : isHome ? 'Homepage blocks' : 'Page blocks';
+  const ownTitle = isTool ? 'Tool blocks' : isJourney ? 'Journey blocks' : isHome ? 'Homepage blocks' : isBlog ? 'Blog blocks' : 'Page blocks';
   const paletteGroups = [
     // Landing pages (blockSet="landing", with layoutSettings): the Header / Footer regions first.
     ...(isLanding ? [{ title: 'Header & Footer', items: LANDING_BLOCKS }] : []),
@@ -671,11 +677,11 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     );
   };
 
-  const renderTwoColumns = (mainId, sideId, main, sidebar, hints, mainWidth) => (
+  const renderTwoColumns = (mainId, sideId, main, sidebar, hints, mainWidth, { sideFirst = false, sideLabel = ZONE_LABELS.sidebar } = {}) => (
     <>
-      <div className="row g-3">
+      <div className={`row g-3${sideFirst ? ' flex-row-reverse' : ''}`}>
         <div className="col-lg-8" style={mainWidth ? { flex: `0 0 ${mainWidth}%`, width: `${mainWidth}%` } : undefined}>{renderZone(mainId, ZONE_LABELS.main, hints[0], main, { inline: false })}</div>
-        <div className="col-lg-4" style={mainWidth ? { flex: `0 0 ${100 - mainWidth}%`, width: `${100 - mainWidth}%` } : undefined}>{renderZone(sideId, ZONE_LABELS.sidebar, hints[1], sidebar, { inline: false, tone: 'success' })}</div>
+        <div className="col-lg-4" style={mainWidth ? { flex: `0 0 ${100 - mainWidth}%`, width: `${100 - mainWidth}%` } : undefined}>{renderZone(sideId, sideLabel, hints[1], sidebar, { inline: false, tone: 'success' })}</div>
       </div>
       {renderColumnEditor([...main, ...sidebar])}
     </>
@@ -734,8 +740,16 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
         {isLanding && renderZone('zone:header', ZONE_LABELS.header, ZONE_HINTS.header, zones.header, { tone: 'info' })}
         {renderZone('zone:hero', ZONE_LABELS.hero, ZONE_HINTS.hero, zones.hero, { tone: 'warning' })}
         {renderZone('zone:top', ZONE_LABELS.top, ZONE_HINTS.top, zones.top)}
-        {renderWidthControl(baseMarkerOf(sections)?.data?.payload?.mainWidth, setBaseWidth)}
-        {renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar], baseMarkerOf(sections)?.data?.payload?.mainWidth)}
+        {!isBlog && renderWidthControl(baseMarkerOf(sections)?.data?.payload?.mainWidth, setBaseWidth)}
+        {isBlog
+          ? renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [
+            'The article: text and blocks, in order',
+            sidebarSide === 'none' ? 'Sidebar is off (Blog layout): these blocks show at the end of the article' : 'On this page, Share, Expert help, Form, Trust, Contact…',
+          ], undefined, {
+            sideFirst: sidebarSide === 'left',
+            sideLabel: sidebarSide === 'left' ? 'Left sidebar' : sidebarSide === 'none' ? 'Sidebar (off)' : 'Right sidebar',
+          })
+          : renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar], baseMarkerOf(sections)?.data?.payload?.mainWidth)}
         {renderZone('zone:bottom', ZONE_LABELS.bottom, ZONE_HINTS.bottom, zones.bottom)}
         {renderLayoutSections()}
         {isLanding && renderZone('zone:footer', ZONE_LABELS.footer, ZONE_HINTS.footer, zones.footer, { tone: 'info' })}

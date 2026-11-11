@@ -12,5 +12,6 @@ import css9 from './components/tax-alphonic/service-page.css?inline';
 import css10 from './components/tax-alphonic/forms/form-popup.css?inline';
 import css11 from './components/tax-alphonic/landing/landing.css?inline';
 import css12 from './components/tax-alphonic/landing/landing-themes.css?inline';
+import css13 from './components/tax-alphonic/blog/blog.css?inline';
 
-export default [css0, css1, css2, css3, css4, css5, css6, css7, css8, css9, css10, css11, css12];
+export default [css0, css1, css2, css3, css4, css5, css6, css7, css8, css9, css10, css11, css12, css13];

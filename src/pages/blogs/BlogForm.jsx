@@ -14,7 +14,22 @@ import PageBuilder from '../../components/page-builder/PageBuilder';
 import MediaPickerModal from '../../components/media/MediaPickerModal';
 import ImageSizeHint from '../../components/common/ImageSizeHint';
 import SlugStatus from '../../components/common/SlugStatus';
+import ServicePreviewPane from '../../components/page-builder/ServicePreviewPane';
+import { BLOG_SETTINGS_DEFAULT, readBlogContent, writeBlogContent } from '../../components/page-builder/blogBlocks';
+import { mediaUrl } from '../../utils/mediaUrl';
+import BlogLayoutSettings from './BlogLayoutSettings';
 import '../../components/common/PremiumForms.css';
+
+const toSlug = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+// A title typed like a URL ("income-tax-return-guide") reads badly as the page heading.
+const looksLikeSlug = (text) => /^[a-z0-9]+(-[a-z0-9]+)+$/.test(String(text || '').trim());
+// Words in the builder blocks (text, headings, lists), for the reading-time suggestion.
+const wordsIn = (value) => {
+  if (typeof value === 'string') return value.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(w => /[a-z0-9]/i.test(w)).length;
+  if (Array.isArray(value)) return value.reduce((n, v) => n + wordsIn(v), 0);
+  if (value && typeof value === 'object') return Object.entries(value).reduce((n, [k, v]) => (/^(id|url|icon|image|formId|style|type)$/i.test(k) ? n : n + wordsIn(v)), 0);
+  return 0;
+};
 
 const BlogForm = () => {
   const { id } = useParams();
@@ -24,6 +39,10 @@ const BlogForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [pageSections, setPageSections] = useState([]);
+  // Blog layout (sidebar side / width, sticky, cover…), saved with the sections (blogBlocks.js).
+  const [blogSettings, setBlogSettings] = useState(BLOG_SETTINGS_DEFAULT);
+  // The URL follows the title only on a new post, until the editor types a URL of their own.
+  const [slugEdited, setSlugEdited] = useState(false);
 
   const [categories, setCategories] = useState([]);
   const [authors, setAuthors] = useState([]);
@@ -64,13 +83,10 @@ const BlogForm = () => {
   const featuredImage = watch('featuredImage');
   const selectedTags = watch('tags');
 
-  // Auto-generate slug from title
+  // New post: the URL follows the title (a saved post keeps its URL, so links to it never break).
   useEffect(() => {
-    if (title) {
-      const generatedSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      setValue('slug', generatedSlug, { shouldValidate: true, shouldDirty: true });
-    }
-  }, [title, setValue]);
+    if (!isEditMode && !slugEdited && title) setValue('slug', toSlug(title), { shouldValidate: true, shouldDirty: true });
+  }, [title, setValue, isEditMode, slugEdited]);
 
   useEffect(() => {
     fetchOptions();
@@ -101,7 +117,11 @@ const BlogForm = () => {
         twitterCard: 'summary_large_image',
         schemaMarkup: ''
       });
-      setPageSections([]);
+      // A new post starts with the sidebar cards (On this page, Share, Expert help).
+      const fresh = readBlogContent([]);
+      setPageSections(fresh.sections);
+      setBlogSettings(fresh.settings);
+      setSlugEdited(false);
     }
   }, [id, isEditMode, reset]);
 
@@ -169,7 +189,10 @@ const BlogForm = () => {
         try {
           const sections = JSON.parse(blog.content);
           if (Array.isArray(sections)) {
-            setPageSections(sections);
+            // Takes the Blog layout entry out; an older post gets its sidebar cards as blocks.
+            const read = readBlogContent(sections);
+            setPageSections(read.sections);
+            setBlogSettings(read.settings);
           }
         } catch (e) {
           console.error("Could not parse blog content as page builder sections");
@@ -188,7 +211,7 @@ const BlogForm = () => {
     try {
       const payload = {
         ...data,
-        content: JSON.stringify(pageSections) // Save builder sections as stringified JSON
+        content: JSON.stringify(writeBlogContent(pageSections, blogSettings)) // builder sections + Blog layout, as JSON
       };
 
       // Convert empty strings to null for foreign keys to prevent constraint errors
@@ -221,9 +244,31 @@ const BlogForm = () => {
     }
   };
 
-  const handleTagChange = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-    setValue('tags', selectedOptions);
+  const toggleTag = (tagId) => {
+    const current = selectedTags || [];
+    setValue('tags', current.includes(tagId) ? current.filter(t => t !== tagId) : [...current, tagId], { shouldDirty: true });
+  };
+
+  const words = wordsIn(pageSections.map(s => s.data?.payload));
+  const suggestedReadTime = Math.max(1, Math.round(words / 200));
+
+  // The post as the website draws it (Live Preview tab and the builder's Live Preview panel).
+  const blogDraft = (sections) => {
+    const values = watch();
+    const category = categories.find(c => c.id === values.categoryId);
+    const author = authors.find(a => a.id === values.authorId);
+    return {
+      title: values.title,
+      slug: values.slug,
+      excerpt: values.excerpt,
+      image: values.featuredImage,
+      readTime: values.readTime || suggestedReadTime,
+      date: values.publishDate || new Date().toISOString(),
+      category: category ? { name: category.name, slug: category.slug } : null,
+      author: author ? { name: author.name, bio: author.bio, avatar: author.avatar } : null,
+      tags: tags.filter(t => (values.tags || []).includes(t.id)).map(t => ({ name: t.name, slug: t.slug })),
+      sections: writeBlogContent(sections, blogSettings),
+    };
   };
 
   return (
@@ -268,6 +313,11 @@ const BlogForm = () => {
               </button>
             </li>
             <li className="nav-item">
+              <button className={`nav-link fw-medium ${activeTab === 'preview' ? 'active' : 'text-muted'}`} onClick={() => setActiveTab('preview')}>
+                <i className="bi bi-eye me-1"></i> Live Preview
+              </button>
+            </li>
+            <li className="nav-item">
               <button className={`nav-link fw-medium ${activeTab === 'seo' ? 'active' : 'text-muted'}`} onClick={() => setActiveTab('seo')}>
                 SEO Settings
               </button>
@@ -296,6 +346,12 @@ const BlogForm = () => {
                           })}
                         />
                         {errors.title && <div className="invalid-feedback">{errors.title.message}</div>}
+                        {!errors.title && looksLikeSlug(title) && (
+                          <div className="form-text text-warning-emphasis">
+                            <i className="bi bi-exclamation-triangle me-1"></i>
+                            This title looks like a web address. It is the big heading of the post, so write it as a sentence, e.g. "{title.split('-').join(' ').replace(/^./, c => c.toUpperCase())}".
+                          </div>
+                        )}
                       </div>
 
                       <div className="mb-3">
@@ -307,10 +363,16 @@ const BlogForm = () => {
                             className={`form-control ${errors.slug ? 'is-invalid' : ''}`}
                             {...register('slug', {
                               required: 'Slug is required',
-                              maxLength: { value: 255, message: 'Slug must be at most 255 characters' }
+                              maxLength: { value: 255, message: 'Slug must be at most 255 characters' },
+                              onChange: (e) => { setSlugEdited(true); setValue('slug', toSlug(e.target.value.replace(/\s+/g, '-')) + (/[-\s]$/.test(e.target.value) ? '-' : ''), { shouldValidate: true }); }
                             })}
-                            disabled
                           />
+                          <button type="button" className="btn btn-outline-secondary" title="Make the URL from the title" onClick={() => { setSlugEdited(true); setValue('slug', toSlug(title), { shouldValidate: true, shouldDirty: true }); }}>
+                            <i className="bi bi-arrow-repeat me-1"></i>From title
+                          </button>
+                        </div>
+                        <div className="form-text">
+                          {isEditMode ? 'Changing the URL of a live post breaks links people already have to it.' : 'Follows the title until you change it.'}
                         </div>
                         {errors.slug && <div className="invalid-feedback d-block">{errors.slug.message}</div>}
                         <SlugStatus
@@ -318,7 +380,7 @@ const BlogForm = () => {
                           slug={watch('slug')}
                           id={id}
                           prefix="/blog/"
-                          onUseSuggestion={(next) => setValue('slug', next, { shouldValidate: true, shouldDirty: true })}
+                          onUseSuggestion={(next) => { setSlugEdited(true); setValue('slug', next, { shouldValidate: true, shouldDirty: true }); }}
                         />
                       </div>
 
@@ -332,6 +394,10 @@ const BlogForm = () => {
                           })}
                         ></textarea>
                         {errors.excerpt && <div className="invalid-feedback">{errors.excerpt.message}</div>}
+                        <div className="form-text d-flex justify-content-between">
+                          <span>Shown under the title and on blog cards.</span>
+                          <span>{(watch('excerpt') || '').length} / 500</span>
+                        </div>
                       </div>
 
                       <div className="mb-3">
@@ -343,7 +409,7 @@ const BlogForm = () => {
                             style={{ width: '120px', height: '120px', flexShrink: 0 }}
                           >
                             {featuredImage ? (
-                              <img src={featuredImage.startsWith('http') ? featuredImage : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${featuredImage}`} alt="Featured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={mediaUrl(featuredImage)} alt="Featured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               <i className="bi bi-image text-muted fs-1"></i>
                             )}
@@ -376,7 +442,7 @@ const BlogForm = () => {
                         <div className="d-flex flex-wrap gap-2 mb-2">
                           {(watch('gallery') || []).map((imgUrl, idx) => (
                             <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px' }}>
-                              <img src={imgUrl.startsWith('http') ? imgUrl : `${import.meta.env.VITE_APP_URL || (import.meta.env.VITE_APP_URL || 'http://localhost:5000')}${imgUrl}`} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={mediaUrl(imgUrl)} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               <button
                                 type="button"
                                 className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 p-0 rounded-circle d-flex align-items-center justify-content-center"
@@ -455,23 +521,29 @@ const BlogForm = () => {
 
                       <div className="mb-3">
                         <label className="form-label fw-medium">Reading Time (mins)</label>
-                        <input type="number" className="form-control" {...register('readTime')} />
+                        <div className="input-group">
+                          <input type="number" min="1" className="form-control" placeholder={String(suggestedReadTime)} {...register('readTime')} />
+                          <button type="button" className="btn btn-outline-secondary" onClick={() => setValue('readTime', suggestedReadTime, { shouldDirty: true })} title="Use the time worked out from the content">
+                            Use {suggestedReadTime}
+                          </button>
+                        </div>
+                        <div className="form-text">About {words.toLocaleString()} words in the blocks ≈ {suggestedReadTime} min. Empty = {suggestedReadTime}.</div>
                       </div>
 
                       <div className="mb-3">
                         <label className="form-label fw-medium">Tags</label>
-                        <select
-                          className="form-select"
-                          multiple
-                          value={selectedTags}
-                          onChange={handleTagChange}
-                          style={{ height: '120px' }}
-                        >
-                          {tags.map(tag => (
-                            <option key={tag.id} value={tag.id}>{tag.name}</option>
-                          ))}
-                        </select>
-                        <div className="form-text">Hold Ctrl/Cmd to select multiple</div>
+                        <div className="d-flex flex-wrap gap-2">
+                          {tags.map(tag => {
+                            const on = (selectedTags || []).includes(tag.id);
+                            return (
+                              <button key={tag.id} type="button" className={`btn btn-sm rounded-pill ${on ? 'btn-primary' : 'btn-outline-secondary'}`} onClick={() => toggleTag(tag.id)} aria-pressed={on}>
+                                {on && <i className="bi bi-check-lg me-1"></i>}#{tag.name}
+                              </button>
+                            );
+                          })}
+                          {!tags.length && <span className="small text-muted">No tags yet (Blog → Tags).</span>}
+                        </div>
+                        <div className="form-text">Click to add or remove. {(selectedTags || []).length} selected.</div>
                       </div>
 
                       <hr />
@@ -497,11 +569,22 @@ const BlogForm = () => {
             {/* Page Builder Tab */}
             <div className={`tab-pane-transition ${activeTab === 'builder' ? 'd-block' : 'd-none'}`}>
               <div style={{ minHeight: '700px' }}>
+                <BlogLayoutSettings value={blogSettings} onChange={setBlogSettings} />
                 <PageBuilder
                   initialSections={pageSections}
                   onChange={(newSections) => setPageSections(newSections)}
+                  layoutSettings
+                  blockSet="blog"
+                  sidebarSide={blogSettings.sidebar}
+                  previewKind="blog"
+                  previewDraft={blogDraft}
                 />
               </div>
+            </div>
+
+            {/* Live Preview: the post as the website draws it, unsaved changes included. */}
+            <div className={`tab-pane-transition ${activeTab === 'preview' ? 'd-block' : 'd-none'}`}>
+              {activeTab === 'preview' && <ServicePreviewPane kind="blog" draft={blogDraft(pageSections)} />}
             </div>
 
             {/* SEO Tab */}
