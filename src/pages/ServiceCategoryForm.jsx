@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'react-toastify';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import SearchableSelect from '../components/common/SearchableSelect';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -106,12 +108,14 @@ const ServiceCategoryForm = () => {
         parentId: formData.parentId === '' ? null : formData.parentId
       };
 
+      let __savedRecord = null;
       if (isEditMode) {
         await ServiceCategoryService.update(id, submitData);
       } else {
-        await ServiceCategoryService.create(submitData);
+        __savedRecord = await ServiceCategoryService.create(submitData);
       }
-      navigate('/service-categories');
+      toast.success(isEditMode ? 'Category updated successfully.' : 'Category created successfully.');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/service-categories/edit', listPath: '/service-categories' });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save category');
     } finally {

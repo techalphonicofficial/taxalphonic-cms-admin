@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { useTheme } from '../context/ThemeContext';
@@ -176,18 +177,19 @@ const BannerForm = () => {
         formData.append('removeMobileImage', 'true'); // Tell backend to clear it
       }
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/banners/${id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Banner updated successfully.');
       } else {
-        await api.post('/banners', formData, {
+        __savedRecord = await api.post('/banners', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Banner created successfully.');
       }
-      navigate('/cms/banners');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/banners/edit', listPath: '/cms/banners' });
     } catch (error) {
       console.error(error);
       toast.error('An error occurred while saving the banner.');

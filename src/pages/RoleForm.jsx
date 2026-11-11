@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { RoleService } from '../services/role.service';
 import { PermissionService } from '../services/permission.service';
@@ -118,14 +119,15 @@ const RoleForm = () => {
     }
     setLoading(true);
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await RoleService.update(id, formData);
         toast.success('Role updated successfully');
       } else {
-        await RoleService.create(formData);
+        __savedRecord = await RoleService.create(formData);
         toast.success('Role created successfully');
       }
-      navigate('/roles');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/roles/edit', listPath: '/roles' });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error saving role');
     } finally {

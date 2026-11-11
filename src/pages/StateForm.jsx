@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -42,14 +43,15 @@ const StateForm = () => {
             if (!data.slug) {
                 data.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
             }
+            let __savedRecord = null;
             if (isEdit) {
                 await api.put(`/states/${id}`, data);
                 toast.success('State updated successfully');
             } else {
-                await api.post('/states', data);
+                __savedRecord = await api.post('/states', data);
                 toast.success('State created successfully');
             }
-            navigate('/states');
+            stayAfterSave(navigate, { isEdit: isEdit, result: __savedRecord, editPath: '/states/edit', listPath: '/states' });
         } catch (error) {
             toast.error(error.response?.data?.message || 'Action failed');
         } finally {

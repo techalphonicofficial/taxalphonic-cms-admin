@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -65,14 +66,15 @@ const PartnerForm = () => {
       if (logoUrl) formData.append('logoUrl', logoUrl);
 
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/partners/${id}`, formData, config);
         toast.success('Partner updated successfully');
       } else {
-        await api.post('/partners', formData, config);
+        __savedRecord = await api.post('/partners', formData, config);
         toast.success('Partner added successfully');
       }
-      navigate('/cms/partners');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/partners/edit', listPath: '/cms/partners' });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error saving partner');
     } finally {

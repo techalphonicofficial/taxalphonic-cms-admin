@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -59,14 +60,15 @@ const CountryForm = () => {
       if (flagUrl) formData.append('flagUrl', flagUrl);
 
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/countries/${id}`, formData, config);
         toast.success('Country updated successfully');
       } else {
-        await api.post('/countries', formData, config);
+        __savedRecord = await api.post('/countries', formData, config);
         toast.success('Country added successfully');
       }
-      navigate('/cms/countries');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/countries/edit', listPath: '/cms/countries' });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error saving country');
     } finally {

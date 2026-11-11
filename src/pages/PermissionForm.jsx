@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { PermissionService } from '../services/permission.service';
 import { toast } from 'react-toastify';
@@ -52,14 +53,15 @@ const PermissionForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await PermissionService.update(id, formData);
         toast.success('Permission updated successfully');
       } else {
-        await PermissionService.create(formData);
+        __savedRecord = await PermissionService.create(formData);
         toast.success('Permission created successfully');
       }
-      navigate('/permissions');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/permissions/edit', listPath: '/permissions' });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error saving permission');
     } finally {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import SlugStatus from '../components/common/SlugStatus';
@@ -263,13 +264,14 @@ const PortfolioItemForm = () => {
         });
       }
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/portfolio-items/${id}`, payload);
         toast.success('Item updated successfully.');
       } else {
-        await api.post('/portfolio-items', payload);
+        __savedRecord = await api.post('/portfolio-items', payload);
         toast.success('Item created successfully.');
-        navigate('/portfolio-items');
+        stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/portfolio-items/edit', listPath: '/portfolio-items' });
       }
     } catch (error) {
       console.error('Error saving portfolio item:', error);

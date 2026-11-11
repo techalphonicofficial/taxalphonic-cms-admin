@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import SlugStatus from '../components/common/SlugStatus';
@@ -72,13 +73,14 @@ const PortfolioCategoryForm = () => {
       const payload = { ...data };
       if (!payload.parentId) payload.parentId = null;
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/portfolio-categories/${id}`, payload);
         toast.success('Category updated successfully.');
       } else {
-        await api.post('/portfolio-categories', payload);
+        __savedRecord = await api.post('/portfolio-categories', payload);
         toast.success('Category created successfully.');
-        navigate('/portfolio-categories');
+        stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/portfolio-categories/edit', listPath: '/portfolio-categories' });
       }
     } catch (error) {
       console.error('Error saving portfolio category:', error);

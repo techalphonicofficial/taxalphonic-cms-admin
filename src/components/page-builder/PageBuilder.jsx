@@ -9,6 +9,7 @@ import { TOOL_BLOCKS, TOOL_REFERENCE, toolDefaultPayload, toolPageSections, tool
 import { COMMON_BLOCKS, commonDefaultPayload, isCommonType } from './commonBlocks';
 import BackgroundSettings from './BackgroundSettings';
 import SpacingSettings from './SpacingSettings';
+import CardLayoutSettings from './CardLayoutSettings';
 import BlockButtonsSettings from './BlockButtonsSettings';
 import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
@@ -537,6 +538,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       <BackgroundSettings key={section.id} section={section} hero={HERO_TYPES.has(section.type)} onChange={setConfig(section)} />
       {/* Every block, in every builder: margin and padding (website: blocks/BlockBackground.jsx). */}
       <SpacingSettings key={`spacing-${section.id}`} section={section} onChange={setConfig(section)} />
+      {/* Every block with a heading / cards: alignment, cards per row, gaps (website: BlockBackground.jsx + center-grids.css). */}
+      <CardLayoutSettings key={`layout-${section.id}`} section={section} onChange={setConfig(section)} />
       {/* Every block, in every builder: extra buttons (website: blocks/BlockBackground.jsx BlockButtons). */}
       <BlockButtonsSettings key={`buttons-${section.id}`} section={section} onChange={setConfig(section)} />
       <SectionRenderer

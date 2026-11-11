@@ -9,6 +9,15 @@ import ToolSections from './website/components/tax-alphonic/tools/ToolSections';
 import LandingPage from './website/components/tax-alphonic/landing/LandingPage';
 import { buildHomePreview, buildJourneyPreview, buildLandingPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
 import { setPreviewFrame } from './shims/frameGlobals';
+import { layoutCss } from './website/service/siteSettingsService';
+import SettingService from '../services/setting.service';
+
+// Settings → Website Layout (page width, side space…) as the website's :root variables, loaded once.
+let layoutPromise = null;
+const loadLayoutCss = () => {
+  layoutPromise ||= SettingService.getGroupSettings('layout').then((res) => layoutCss(res?.data || {})).catch(() => '');
+  return layoutPromise;
+};
 
 // Same draft kinds and builders as the website's /cms-preview page.
 const KINDS = {
@@ -78,6 +87,13 @@ const SitePreviewFrame = ({ draft, kind = 'service', width = '100%', dark = fals
     if (!doc) return;
     styles.forEach((css) => {
       const tag = doc.createElement('style');
+      tag.textContent = css;
+      doc.head.appendChild(tag);
+    });
+    loadLayoutCss().then((css) => {
+      if (!css || !doc.head) return;
+      const tag = doc.createElement('style');
+      tag.id = 'ta-layout';
       tag.textContent = css;
       doc.head.appendChild(tag);
     });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { useForm } from 'react-hook-form';
@@ -60,13 +61,14 @@ const TestimonialForm = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/testimonials/${id}`, data);
         toast.success('Testimonial updated successfully.');
       } else {
-        await api.post('/testimonials', data);
+        __savedRecord = await api.post('/testimonials', data);
         toast.success('Testimonial created successfully.');
-        navigate('/cms/testimonials');
+        stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/testimonials/edit', listPath: '/cms/testimonials' });
       }
     } catch (error) {
       console.error('Error saving testimonial:', error);

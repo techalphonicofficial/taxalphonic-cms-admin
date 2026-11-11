@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -36,10 +37,11 @@ const LocationForm = () => {
 
   const onSubmit = async (data) => {
     try {
+      let __savedRecord = null;
       if (isEdit) await api.put(`/locations/${id}`, data);
-      else await api.post('/locations', data);
+      else __savedRecord = await api.post('/locations', data);
       toast.success('Saved successfully');
-      navigate('/locations');
+      stayAfterSave(navigate, { isEdit: isEdit, result: __savedRecord, editPath: '/locations/edit', listPath: '/locations' });
     } catch {
       toast.error('Failed to save');
     }

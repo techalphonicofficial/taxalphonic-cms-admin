@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { useForm } from 'react-hook-form';
@@ -51,13 +52,14 @@ const FaqForm = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/faqs/${id}`, data);
         toast.success('FAQ updated successfully.');
       } else {
-        await api.post('/faqs', data);
+        __savedRecord = await api.post('/faqs', data);
         toast.success('FAQ created successfully.');
-        navigate('/cms/faqs');
+        stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/faqs/edit', listPath: '/cms/faqs' });
       }
     } catch (error) {
       console.error('Error saving FAQ:', error);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { useForm, Controller } from 'react-hook-form';
@@ -356,7 +357,9 @@ const ServiceForm = () => {
         }
       }
 
-      navigate('/services');
+      // The menu link is done; a second save must not add it again.
+      setLinkToMenu(false);
+      stayAfterSave(navigate, { isEdit: isEditMode, result: savedService, editPath: '/services/edit', listPath: '/services' });
     } catch (error) {
       console.error('Error saving service:', error);
       const errData = error.response?.data;

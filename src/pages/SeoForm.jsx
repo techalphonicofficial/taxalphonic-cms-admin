@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { toast } from 'react-toastify';
@@ -204,10 +205,11 @@ const SeoForm = () => {
     setSaving(true);
     try {
       const payload = { ...form, targetId: form.targetType === 'custom' ? null : form.targetId };
+      let __savedRecord = null;
       if (isEdit) await api.put(`/seo/${id}`, payload);
-      else await api.post('/seo', payload);
+      else __savedRecord = await api.post('/seo', payload);
       toast.success(isEdit ? 'SEO configuration updated' : 'SEO configuration created');
-      navigate('/cms/seo');
+      stayAfterSave(navigate, { isEdit: isEdit, result: __savedRecord, editPath: '/cms/seo/edit', listPath: '/cms/seo' });
     } catch (error) {
       const apiErrors = error.response?.data?.errors;
       if (Array.isArray(apiErrors)) setErrors(Object.fromEntries(apiErrors.map(er => [er.field, er.message])));

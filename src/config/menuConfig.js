@@ -119,6 +119,7 @@ export const secondaryMenuData = {
         { label: 'Address', path: '/settings/address', icon: 'bi-geo-alt', permission: { action: 'read', module: 'Settings' } },
         { label: 'Social Media', path: '/settings/social', icon: 'bi-share', permission: { action: 'read', module: 'Settings' } },
         { label: 'Website', path: '/settings/website', icon: 'bi-globe', permission: { action: 'read', module: 'Settings' } },
+        { label: 'Website Layout', path: '/settings/layout', icon: 'bi-aspect-ratio', permission: { action: 'read', module: 'Settings' } },
       ]
     },
     {

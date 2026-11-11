@@ -131,6 +131,9 @@ const FORM = { key: 'formId', label: 'CMS form', type: 'form', hint: 'Pick an ac
  * Types: text, textarea, select, button ({text,url}), list (repeater of `fields`), group (nested object), form (CMS form picker), portfolioCategory (portfolio category picker).
  * List fields: { key, placeholder, width?, textarea?, type: 'checkbox' | 'color' }.
  */
+// Comparison table: number of columns (2–7, empty = 4), same rule as the website cmpColumnCount.
+const cmpCols = (d) => Math.min(7, Math.max(2, parseInt(d?.columns, 10) || 4));
+
 export const HOME_SCHEMAS = {
   HomeHero: [
     { ...EYEBROW, width: 'col-12' },
@@ -165,6 +168,22 @@ export const HOME_SCHEMAS = {
       options: [
         { value: 'show', label: 'Show' },
         { value: 'hide', label: 'Hide (text uses the full width)' },
+      ],
+    },
+    {
+      // Website home-page.css .hh-tw-wide / .hh-tw-full; "" = Settings → Website Layout "Hero text width".
+      key: 'textWidth', label: 'Text width (heading + intro)', type: 'select',
+      options: [
+        { value: '', label: 'Site setting (Website Layout)' },
+        { value: 'wide', label: 'Wide (heading up to 1100 px)' },
+        { value: 'full', label: 'Full (whole text column)' },
+      ],
+    },
+    {
+      key: 'textAlign', label: 'Text alignment', type: 'select',
+      options: [
+        { value: '', label: 'Left' },
+        { value: 'center', label: 'Centre' },
       ],
     },
     {
@@ -275,6 +294,8 @@ export const HOME_SCHEMAS = {
     ...sourceFields('partners'),
     { key: 'items', label: 'Manual clients', type: 'list', addLabel: 'Add client', hint: `Logo image: ${imageHint('clientLogo')}`, fields: [{ key: 'logo', placeholder: 'Logo (emoji or image URL)', width: 'col-md-4' }, { key: 'name', placeholder: 'Name', width: 'col-md-4' }, { key: 'url', placeholder: 'Website (optional)', width: 'col-md-4' }] },
     { key: 'note', label: 'Note under the logos', type: 'text', width: 'col-12' },
+    // Website home-page.css .clients-gray. Empty = logos in their own colours.
+    { key: 'logoColors', label: 'Logo colours', type: 'select', options: [{ value: '', label: 'In colour (always)' }, { value: 'gray', label: 'Grey, colour on hover' }] },
   ],
   HomeHowItWorks: [
     EYEBROW, HEADING,
@@ -315,15 +336,90 @@ export const HOME_SCHEMAS = {
   ],
   HomeComparison: [
     HEADING, SUB,
+    {
+      // Website HomeSections.jsx CMP_KEYS: columns 1–7 = label, ours, col2 … col6.
+      key: 'columns', label: 'Number of columns', type: 'select', width: 'col-md-3',
+      options: [2, 3, 4, 5, 6, 7].map(n => ({ value: n === 4 ? '' : String(n), label: `${n} columns${n === 4 ? ' (default)' : ''}` })),
+    },
     { key: 'labelHeader', label: 'Column 1 header', type: 'text', width: 'col-md-3' },
     { key: 'oursHeader', label: 'Column 2 header (highlighted)', type: 'text', width: 'col-md-3' },
-    { key: 'col2Header', label: 'Column 3 header', type: 'text', width: 'col-md-3' },
-    { key: 'col3Header', label: 'Column 4 header', type: 'text', width: 'col-md-3' },
+    { key: 'col2Header', label: 'Column 3 header', type: 'text', width: 'col-md-3', showIf: (d) => cmpCols(d) >= 3 },
+    { key: 'col3Header', label: 'Column 4 header', type: 'text', width: 'col-md-3', showIf: (d) => cmpCols(d) >= 4 },
+    { key: 'col4Header', label: 'Column 5 header', type: 'text', width: 'col-md-3', showIf: (d) => cmpCols(d) >= 5 },
+    { key: 'col5Header', label: 'Column 6 header', type: 'text', width: 'col-md-3', showIf: (d) => cmpCols(d) >= 6 },
+    { key: 'col6Header', label: 'Column 7 header', type: 'text', width: 'col-md-3', showIf: (d) => cmpCols(d) >= 7 },
     {
       key: 'rows', label: 'Rows', type: 'list', addLabel: 'Add row',
-      fields: [{ key: 'label', placeholder: 'Feature', width: 'col-md-3' }, { key: 'ours', placeholder: 'Us (✅ Upfront)', width: 'col-md-3' }, { key: 'col2', placeholder: 'Column 3', width: 'col-md-3' }, { key: 'col3', placeholder: 'Column 4', width: 'col-md-3' }, { key: 'buttonIcon', placeholder: 'Button icon (optional)', width: 'col-md-3' }, { key: 'buttonText', placeholder: 'Button text (empty = no button)', width: 'col-md-4' }, { key: 'buttonUrl', placeholder: 'Button link (/gst-registration, #form, #form-12)', width: 'col-md-5' }],
+      // One box per column (follows "Number of columns"), then the optional row button.
+      fields: (d) => [
+        { key: 'label', placeholder: 'Feature', width: 'col-md-3' },
+        { key: 'ours', placeholder: 'Us (✅ Upfront)', width: 'col-md-3' },
+        ...['col2', 'col3', 'col4', 'col5', 'col6'].slice(0, cmpCols(d) - 2).map((key, i) => ({ key, placeholder: `Column ${i + 3}`, width: 'col-md-3' })),
+        { key: 'buttonIcon', placeholder: 'Button icon (optional)', width: 'col-md-3' },
+        { key: 'buttonText', placeholder: 'Button text (empty = no button)', width: 'col-md-4' },
+        { key: 'buttonUrl', placeholder: 'Button link (/gst-registration, #form, #form-12)', width: 'col-md-5' },
+      ],
     },
     { key: 'buttonHeader', label: 'Last column header (button column)', type: 'text', hint: 'The button column shows only when at least one row has button text. #form opens the form of this page in a popup.' },
+    // Table layout: website HomeSections.jsx compareLayout + home-page.css (.cmp-*).
+    { key: 'layoutNote', type: 'note', label: 'Table layout: width, column sizes and text wrapping. Empty = as designed.' },
+    {
+      key: 'tableWidth', label: 'Table width', type: 'select', width: 'col-md-4',
+      options: [
+        { value: '', label: 'As designed (920 px)' },
+        { value: 'medium', label: 'Medium (1100 px)' },
+        { value: 'wide', label: 'Wide (1300 px)' },
+        { value: 'full', label: 'Full width of the section' },
+        { value: 'custom', label: 'Custom…' },
+      ],
+    },
+    { key: 'tableWidthPx', label: 'Custom width (px)', type: 'text', width: 'col-md-4', placeholder: 'e.g. 1200', showIf: (d) => d.tableWidth === 'custom' },
+    { key: 'featureCol', label: 'First column width (%)', type: 'text', width: 'col-md-4', placeholder: 'Auto (≈ 32%)', hint: '10–70. The other columns share the rest.' },
+    { key: 'oursCol', label: 'Highlighted column width (%)', type: 'text', width: 'col-md-4', placeholder: 'Auto', hint: '10–60' },
+    {
+      key: 'textWrap', label: 'Text in cells', type: 'select', width: 'col-md-4',
+      options: [
+        { value: '', label: 'Wrap onto more lines' },
+        { value: 'nowrap', label: 'One line (table scrolls sideways if needed)' },
+      ],
+    },
+    {
+      key: 'cellAlign', label: 'Cell text alignment', type: 'select', width: 'col-md-4',
+      options: [{ value: '', label: 'Centre (first column left)' }, { value: 'left', label: 'Left' }],
+    },
+    {
+      key: 'textSize', label: 'Text size', type: 'select', width: 'col-md-4',
+      options: [{ value: 'sm', label: 'Small' }, { value: '', label: 'Normal' }, { value: 'lg', label: 'Large' }],
+    },
+    {
+      key: 'rowSize', label: 'Row height', type: 'select', width: 'col-md-4',
+      options: [{ value: 'compact', label: 'Compact' }, { value: '', label: 'Normal' }, { value: 'roomy', label: 'Roomy' }],
+    },
+    {
+      key: 'mobile', label: 'On phones', type: 'select', width: 'col-md-4',
+      options: [{ value: '', label: 'Squeeze to fit the screen' }, { value: 'scroll', label: 'Scroll sideways (readable columns)' }],
+    },
+    // Beside the table: website CompareSide + .cmp-layout (stacks under 900 px).
+    { key: 'sideNote', type: 'note', label: 'Beside the table: add text, an image and a button on the left or right of the table (fills the empty space).' },
+    {
+      key: 'sidePosition', label: 'Show beside the table', type: 'select', width: 'col-md-4',
+      options: [{ value: '', label: 'Nothing (table only)' }, { value: 'left', label: 'On the left' }, { value: 'right', label: 'On the right' }],
+    },
+    { key: 'sideWidth', label: 'Side width (%)', type: 'text', width: 'col-md-4', placeholder: '30', hint: '15–50 % of the row', showIf: (d) => Boolean(d.sidePosition) },
+    {
+      key: 'sideAlign', label: 'Vertical position', type: 'select', width: 'col-md-4', showIf: (d) => Boolean(d.sidePosition),
+      options: [{ value: '', label: 'Top' }, { value: 'center', label: 'Middle' }],
+    },
+    {
+      key: 'sideStyle', label: 'Look', type: 'select', width: 'col-md-4', showIf: (d) => Boolean(d.sidePosition),
+      options: [{ value: '', label: 'White card' }, { value: 'plain', label: 'Plain (no card)' }],
+    },
+    { key: 'sideImage', label: 'Image', type: 'image', showIf: (d) => Boolean(d.sidePosition) },
+    { key: 'sideImageAlt', label: 'Image alt text', type: 'text', showIf: (d) => Boolean(d.sidePosition) && Boolean(String(d.sideImage || '').trim()) },
+    { key: 'sideKicker', label: 'Small label', type: 'text', width: 'col-md-4', showIf: (d) => Boolean(d.sidePosition) },
+    { key: 'sideHeading', label: 'Heading', type: 'text', width: 'col-md-8', showIf: (d) => Boolean(d.sidePosition) },
+    { key: 'sideText', label: 'Text (**bold**, one paragraph per line)', type: 'textarea', width: 'col-12', showIf: (d) => Boolean(d.sidePosition) },
+    { key: 'sideButton', label: 'Button', type: 'button', showIf: (d) => Boolean(d.sidePosition) },
   ],
   HomeIndustries: [
     HEADING, SUB,

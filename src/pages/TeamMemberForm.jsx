@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -112,14 +113,15 @@ const TeamMemberForm = () => {
         formData.append('imageUrl', pickedImageUrl);
       }
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/team/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         toast.success('Team member updated successfully');
       } else {
-        await api.post('/team', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        __savedRecord = await api.post('/team', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         toast.success('Team member created successfully');
       }
-      navigate('/cms/team');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/team/edit', listPath: '/cms/team' });
     } catch (err) {
       console.error(err);
       toast.error('Error saving team member');

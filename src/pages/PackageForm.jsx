@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { toast } from 'react-toastify';
@@ -137,14 +138,15 @@ const PackageForm = () => {
         payload.keywordTiers = null;
       }
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/packages/${id}`, payload);
         toast.success('Package updated successfully');
       } else {
-        await api.post('/packages', payload);
+        __savedRecord = await api.post('/packages', payload);
         toast.success('Package created successfully');
       }
-      navigate('/packages');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/packages/edit', listPath: '/packages' });
     } catch (error) {
       console.error('Failed to save package:', error);
       toast.error(error.response?.data?.message || 'Failed to save package');

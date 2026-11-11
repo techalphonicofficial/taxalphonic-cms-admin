@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -40,14 +41,15 @@ const PageCategoryForm = () => {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/page-categories/${id}`, data);
         toast.success('Category updated successfully');
       } else {
-        await api.post('/page-categories', data);
+        __savedRecord = await api.post('/page-categories', data);
         toast.success('Category created successfully');
       }
-      navigate('/pages/categories');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/pages/categories/edit', listPath: '/pages/categories' });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error saving category');
     } finally {

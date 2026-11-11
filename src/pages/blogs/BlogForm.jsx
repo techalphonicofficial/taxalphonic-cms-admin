@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { useForm } from 'react-hook-form';
@@ -203,13 +204,14 @@ const BlogForm = () => {
         }
       }
 
+      let __savedRecord = null;
       if (isEditMode) {
         await BlogService.update(id, payload);
         toast.success('Blog post updated successfully.');
       } else {
-        await BlogService.create(payload);
+        __savedRecord = await BlogService.create(payload);
         toast.success('Blog post created successfully.');
-        navigate('/blogs');
+        stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/blogs/edit', listPath: '/blogs' });
       }
     } catch (error) {
       console.error('Error saving blog:', error);

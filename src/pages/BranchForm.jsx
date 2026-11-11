@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -73,14 +74,15 @@ const BranchForm = () => {
         displayOrder: parseInt(data.displayOrder) || 0,
       };
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/branches/${id}`, payload);
         toast.success('Branch updated successfully');
       } else {
-        await api.post('/branches', payload);
+        __savedRecord = await api.post('/branches', payload);
         toast.success('Branch created successfully');
       }
-      navigate('/cms/branches');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/cms/branches/edit', listPath: '/cms/branches' });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error saving branch');
     } finally {

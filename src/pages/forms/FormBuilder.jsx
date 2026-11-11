@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../../utils/stayAfterSave';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -437,14 +438,15 @@ const FormBuilder = () => {
     setIsSaving(true);
     try {
       const payload = { ...meta, settings, fields };
+      let __savedRecord = null;
       if (isEditMode) {
         await FormService.update(id, payload);
         toast.success('Form updated successfully.');
       } else {
-        await FormService.create(payload);
+        __savedRecord = await FormService.create(payload);
         toast.success('Form created successfully.');
       }
-      navigate('/forms');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/forms/edit', listPath: '/forms' });
     } catch (err) {
       const res = err.response?.data;
       const errors = Array.isArray(res?.errors) ? res.errors : [];

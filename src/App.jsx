@@ -42,6 +42,7 @@ import SeoList from './pages/SeoList';
 import RobotsTxt from './pages/RobotsTxt';
 import SeoForm from './pages/SeoForm';
 import SettingsView from './pages/Settings/SettingsView';
+import WebsiteLayoutSettings from './pages/Settings/WebsiteLayoutSettings';
 import AboutView from './pages/About/AboutView';
 import NotFound from './pages/NotFound';
 import Unauthorized from './pages/Unauthorized';
@@ -215,6 +216,7 @@ function App() {
 
             {/* Settings Routes */}
             <Route path="about-page" element={<AboutView />} />
+            <Route path="settings/layout" element={<RoutePermission action="read" module="Settings"><WebsiteLayoutSettings /></RoutePermission>} />
             <Route path="settings/:group" element={<SettingsView />} />
             <Route path="settings" element={<SettingsView />} />
 

@@ -118,7 +118,7 @@ export const COMMON_SCHEMAS = {
   ],
   CommonLogos: [
     KICKER, HEADING,
-    { key: 'grayscale', label: 'Logos in grey (colour on hover)', type: 'select', options: [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No, always in colour' }] },
+    { key: 'grayscale', label: 'Logo colours', type: 'select', options: [{ value: 'no', label: 'In colour (always)' }, { value: 'yes', label: 'Grey, colour on hover' }] },
     { key: 'items', label: 'Logos', type: 'list', addLabel: 'Add logo', hint: imageHint('clientLogo'), fields: [{ key: 'image', placeholder: 'Logo', width: 'col-md-5' }, { key: 'name', placeholder: 'Name', width: 'col-md-3' }, { key: 'url', placeholder: 'Link (optional)', width: 'col-md-4' }] },
     ANCHOR,
   ],
@@ -459,7 +459,7 @@ const DEFAULTS = {
   CommonGallery: { kicker: '', heading: 'Gallery', sub: '', columns: '3', items: [], anchorId: '' },
   CommonStats: { kicker: '', heading: '', sub: '', columns: '', items: [{ icon: '🏢', value: '12,400+', label: 'Businesses served' }, { icon: '⭐', value: '4.8/5', label: 'Average rating' }, { icon: '⚡', value: '7–10 days', label: 'Average turnaround' }, { icon: '🧑‍💼', value: '700+', label: 'Expert services' }], anchorId: '' },
   CommonCards: { kicker: '', heading: 'What we offer', sub: 'Everything your business needs, handled by experts.', subLink: { text: 'View all services', url: '/services', icon: '→', iconSide: 'right' }, align: 'center', columns: '4', style: 'card', items: [{ icon: '📝', title: 'Registrations', text: 'Company, GST, MSME and 28+ registrations.', url: '', linkText: '' }, { icon: '🧾', title: 'Tax & filing', text: 'GST, income tax and TDS returns on time.', url: '', linkText: '' }, { icon: '⚖️', title: 'Legal', text: 'Agreements, notices and lawyer support.', url: '', linkText: '' }, { icon: '📊', title: 'Advisory', text: 'CFO, fundraising and growth advice.', url: '', linkText: '' }], anchorId: '' },
-  CommonLogos: { kicker: '', heading: 'Trusted by', grayscale: 'yes', items: [], anchorId: '' },
+  CommonLogos: { kicker: '', heading: 'Trusted by', grayscale: 'no', items: [], anchorId: '' },
   CommonButtons: { kicker: '', heading: '', align: 'center', buttons: [{ icon: '🎧', text: 'Talk to an expert', url: '/talk-to-expert', style: 'primary' }, { icon: '📅', text: 'Book a meeting', url: '/book-meeting', style: 'ghost' }], anchorId: '' },
   CommonSpacer: { size: 'md', line: 'no' },
   CommonEmbed: { kind: 'map', url: '', html: '', height: '420', kicker: '', heading: '', caption: '', anchorId: '' },

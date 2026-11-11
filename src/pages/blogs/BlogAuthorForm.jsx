@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { stayAfterSave } from '../../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { BlogAuthorsService } from '../../services/blogAuthor.service';
@@ -75,12 +77,14 @@ const BlogAuthorForm = () => {
         }
       };
 
+      let __savedRecord = null;
       if (isEditMode) {
         await BlogAuthorsService.update(id, submitData);
       } else {
-        await BlogAuthorsService.create(submitData);
+        __savedRecord = await BlogAuthorsService.create(submitData);
       }
-      navigate('/blog-authors');
+      toast.success(isEditMode ? 'Author updated successfully.' : 'Author created successfully.');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/blog-authors/edit', listPath: '/blog-authors' });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save author');
     } finally {

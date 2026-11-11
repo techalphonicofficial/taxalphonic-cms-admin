@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { UserService } from '../services/user.service';
 import { RoleService } from '../services/role.service';
@@ -78,14 +79,15 @@ const UserForm = () => {
     }
 
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await UserService.update(id, payload);
         toast.success('User updated successfully');
       } else {
-        await UserService.create(payload);
+        __savedRecord = await UserService.create(payload);
         toast.success('User created successfully');
       }
-      navigate('/users');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/users/edit', listPath: '/users' });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error saving user');
     } finally {

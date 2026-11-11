@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { stayAfterSave } from '../../utils/stayAfterSave';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import SlugStatus from '../../components/common/SlugStatus';
@@ -58,12 +60,14 @@ const BlogTagForm = () => {
     setError('');
 
     try {
+      let __savedRecord = null;
       if (isEditMode) {
         await BlogTagsService.update(id, formData);
       } else {
-        await BlogTagsService.create(formData);
+        __savedRecord = await BlogTagsService.create(formData);
       }
-      navigate('/blog-tags');
+      toast.success(isEditMode ? 'Tag updated successfully.' : 'Tag created successfully.');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/blog-tags/edit', listPath: '/blog-tags' });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save tag');
     } finally {

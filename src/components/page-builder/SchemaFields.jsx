@@ -269,7 +269,8 @@ const SchemaFields = ({ fields, value, onChange }) => {
                   label={field.label}
                   items={data[field.key]}
                   onChange={set(field.key)}
-                  fields={field.fields}
+                  // fields may depend on the block's other values (e.g. Comparison rows follow "Columns").
+                  fields={typeof field.fields === 'function' ? field.fields(data) : field.fields}
                   addLabel={field.addLabel}
                 />
                 {field.hint && <div className="col-12 form-text mt-n2"><i className="bi bi-aspect-ratio me-1 text-primary"></i>{field.hint}</div>}

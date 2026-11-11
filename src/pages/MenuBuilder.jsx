@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -98,14 +99,15 @@ const MenuBuilder = () => {
         items: toPayload(menuItems)
       };
 
+      let __savedRecord = null;
       if (isEditMode) {
         await api.put(`/menus/${id}`, payload);
         toast.success('Menu updated successfully');
       } else {
-        await api.post('/menus', payload);
+        __savedRecord = await api.post('/menus', payload);
         toast.success('Menu created successfully');
       }
-      navigate('/pages/menus');
+      stayAfterSave(navigate, { isEdit: isEditMode, result: __savedRecord, editPath: '/pages/menus/edit', listPath: '/pages/menus' });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error saving menu');
     } finally {

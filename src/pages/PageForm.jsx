@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { stayAfterSave } from '../utils/stayAfterSave';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import Breadcrumb from '../components/common/Breadcrumb';
@@ -161,14 +162,15 @@ const PageForm = () => {
     setIsLoading(true);
     try {
       const payload = { ...data, sections: pageSections };
+      let __savedRecord = null;
       if (isEditing) {
         await api.put(`/pages/${id}`, payload);
         toast.success('Page updated successfully.');
       } else {
-        await api.post('/pages', payload);
+        __savedRecord = await api.post('/pages', payload);
         toast.success('Page created successfully.');
       }
-      navigate('/pages');
+      stayAfterSave(navigate, { isEdit: isEditing, result: __savedRecord, editPath: '/pages/edit', listPath: '/pages' });
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || 'An error occurred while saving.');

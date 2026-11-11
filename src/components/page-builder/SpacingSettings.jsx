@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 /*
  * "Spacing & border" panel shown on every block of every Page Builder. Saved as section.config.spacing =
  * { marginTop, marginBottom, paddingTop, paddingBottom, paddingLeft, paddingRight, borderWidth,
- * borderRadius (px), borderStyle, borderColor }; an empty field keeps the block's own design. The website applies it in
+ * borderRadius (px), borderStyle, borderColor, contentWidth (full | wide | medium | narrow | custom + customWidth px),
+ * textWidth ("full") }; an empty field keeps the block's own design. The website applies it in
  * components/tax-alphonic/blocks/BlockBackground.jsx (keep the keys in sync).
  */
 
@@ -22,15 +23,15 @@ const PADDINGS = [
 const MAX = 400;
 const HEX = /^#[0-9a-f]{6}$/i;
 
-const SpacingField = ({ field, value, onChange }) => (
+const SpacingField = ({ field, value, onChange, max = MAX, step = 4 }) => (
   <div className="col-6 col-md-3">
     <label className="form-label small text-muted mb-1">{field.label}</label>
     <div className="input-group input-group-sm">
       <input
         type="number"
         min="0"
-        max={MAX}
-        step="4"
+        max={max}
+        step={step}
         className="form-control"
         placeholder="Auto"
         value={value ?? ''}
@@ -47,10 +48,15 @@ const SpacingSettings = ({ section, onChange }) => {
   const used = Object.values(spacing).filter(v => v !== '' && v !== null && v !== undefined);
   const [open, setOpen] = useState(used.length > 0);
 
-  const set = (key, raw) => {
+  const set = (key, raw, max = MAX) => {
     const { [key]: _old, ...rest } = spacing;
-    const value = raw === '' ? null : Math.max(0, Math.min(MAX, Math.round(Number(raw) || 0)));
+    const value = raw === '' ? null : Math.max(0, Math.min(max, Math.round(Number(raw) || 0)));
     onChange({ ...config, spacing: value === null ? rest : { ...rest, [key]: value } });
+  };
+  // Select values: '' removes the key (site default).
+  const setChoice = (key, value) => {
+    const { [key]: _old, ...rest } = spacing;
+    onChange({ ...config, spacing: value ? { ...rest, [key]: value } : rest });
   };
   const setText = (key, value) => onChange({ ...config, spacing: { ...spacing, [key]: value } });
   const clear = () => {
@@ -74,6 +80,30 @@ const SpacingSettings = ({ section, onChange }) => {
 
       {open && (
         <div className="px-3 pb-3">
+          <div className="small fw-semibold mb-2">Width</div>
+          <div className="row g-2 mb-3">
+            <div className="col-6 col-md-3">
+              <label className="form-label small text-muted mb-1">Content width</label>
+              <select className="form-select form-select-sm" value={spacing.contentWidth || ''} onChange={e => setChoice('contentWidth', e.target.value)}>
+                <option value="">Site width (Settings → Website Layout)</option>
+                <option value="full">Full screen</option>
+                <option value="wide">Wide (1600 px)</option>
+                <option value="medium">Medium (1200 px)</option>
+                <option value="narrow">Narrow (960 px)</option>
+                <option value="custom">Custom…</option>
+              </select>
+            </div>
+            {spacing.contentWidth === 'custom' && (
+              <SpacingField field={{ label: 'Custom width' }} max={3000} step={10} value={spacing.customWidth} onChange={v => set('customWidth', v, 3000)} />
+            )}
+            <div className="col-6 col-md-3">
+              <label className="form-label small text-muted mb-1">Text width</label>
+              <select className="form-select form-select-sm" value={spacing.textWidth || ''} onChange={e => setChoice('textWidth', e.target.value)}>
+                <option value="">As designed (easy reading)</option>
+                <option value="full">Full (headings / text use the whole block)</option>
+              </select>
+            </div>
+          </div>
           <div className="small fw-semibold mb-2">Margin (space outside the block)</div>
           <div className="row g-2 mb-3">
             {MARGINS.map(f => <SpacingField key={f.key} field={f} value={spacing[f.key]} onChange={v => set(f.key, v)} />)}

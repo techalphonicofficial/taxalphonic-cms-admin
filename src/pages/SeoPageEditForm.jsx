@@ -75,7 +75,6 @@ const SeoPageEditForm = () => {
             await api.put(`/seo-pages/${id}`, data);
             setDirty(false);
             toast.success(stay ? 'Saved' : 'Landing page variant updated successfully');
-            if (!stay) navigate('/seo-pages');
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to update variant');
         } finally {
