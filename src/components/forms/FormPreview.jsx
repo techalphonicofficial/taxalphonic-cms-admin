@@ -80,6 +80,28 @@ const FormPreview = ({ form, interactive = false, compact = false }) => {
       <div className="row g-3">
         {fields.map(field => {
           const isSingleCheckbox = field.type === 'checkbox' && !field.options?.length;
+          // Text, email, phone, number, date, dropdown and message fields: the label sits on the box's
+          // top border, as on the website (CmsForm.jsx + cms-form.css); help text is not shown there.
+          const floats = !['radio', 'checkbox'].includes(field.type);
+          if (floats) {
+            return (
+              <div key={field.id || field.name} className={field.width === 'half' ? 'col-md-6' : 'col-12'}>
+                <div className="position-relative mt-1">
+                  {React.cloneElement(renderControl(field), {
+                    placeholder: field.type === 'select' ? undefined : field.placeholder || '',
+                    style: { fontSize: 13, paddingTop: 8, paddingBottom: 7, minHeight: 36, ...(field.type === 'textarea' ? { minHeight: compact ? 60 : 84 } : {}) },
+                  })}
+                  <label
+                    htmlFor={`preview_${field.id || field.name}`}
+                    className="position-absolute text-truncate fw-semibold text-body-secondary"
+                    style={{ left: 9, top: 0, transform: 'translateY(-50%)', maxWidth: 'calc(100% - 22px)', padding: '0 4px', fontSize: 10, fontWeight: 500, lineHeight: 1.3, background: 'linear-gradient(to bottom, transparent 50%, var(--bs-body-bg) 50%)', pointerEvents: 'none' }}
+                  >
+                    {field.label}{field.required && <span className="text-danger"> *</span>}
+                  </label>
+                </div>
+              </div>
+            );
+          }
           return (
             <div key={field.id || field.name} className={field.width === 'half' ? 'col-md-6' : 'col-12'}>
               {!isSingleCheckbox && (
