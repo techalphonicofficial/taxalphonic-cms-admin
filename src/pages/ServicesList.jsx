@@ -91,7 +91,8 @@ const ServicesList = () => {
       }
       
       if (params.globalFilter) {
-        apiParams.title_like = params.globalFilter;
+        // Title or slug (a pasted URL / "/slug" works too: backend BaseService title_or_slug_like).
+        apiParams.title_or_slug_like = params.globalFilter.trim();
       }
       
       const res = await api.get('/services', { params: apiParams });
@@ -132,7 +133,7 @@ const ServicesList = () => {
         fetchData({ pageIndex: 0, pageSize: 50, sorting: [] });
       } catch (err) {
         console.error('Failed to delete service:', err);
-        toast.error('Failed to delete service.');
+        toast.error(err.response?.data?.message || 'Failed to delete service.', { autoClose: 9000 });
       }
     }
   }, [fetchData]);
@@ -258,6 +259,7 @@ const ServicesList = () => {
         isLoading={isLoading}
         error={error}
         title="All Services"
+        searchPlaceholder="Search by title or slug / URL…"
         deleteUrl={canDo('delete', 'Services') ? '/services' : undefined}
         deleteMode="trash"
         itemLabel="service"

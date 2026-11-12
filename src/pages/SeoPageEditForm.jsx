@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import AiGenerationModal from '../components/seo/AiGenerationModal';
 import { siteUrl } from '../config/siteUrl';
 import SeoContentEditor from '../components/seo/SeoContentEditor';
+import PseoHeroBackground from '../components/seo/PseoHeroBackground';
 import TailwindPreview from '../components/seo/TailwindPreview';
 import HtmlCodeEditor from '../components/common/code/HtmlCodeEditor';
 
@@ -260,6 +261,12 @@ const SeoPageEditForm = () => {
                                 ) : (
                                     <TailwindPreview html={data.longDescription || ''} />
                                 )}
+                            </div>
+
+                            {/* Hero background image (saved in the content's hero section, pseoHeroBg.js). */}
+                            <div className="col-12 mt-4">
+                                <h6 className="fw-bold mb-3 border-bottom pb-2"><i className="bi bi-image me-2 text-primary"></i>Hero background</h6>
+                                <PseoHeroBackground html={data.longDescription || ''} onChange={setContent} />
                             </div>
 
                             {/* SEO Meta Constraints */}

@@ -56,7 +56,8 @@ const PagesList = () => {
       };
       
       if (params.globalFilter) {
-        apiParams.title_like = params.globalFilter;
+        // Title or slug (a pasted URL / "/slug" works too: backend BaseService title_or_slug_like).
+        apiParams.title_or_slug_like = params.globalFilter.trim();
       }
       
       const res = await api.get('/pages', { params: apiParams });
@@ -97,7 +98,7 @@ const PagesList = () => {
         fetchData({ pageIndex: 0, pageSize: 50, sorting: [] });
       } catch (err) {
         console.error('Failed to delete page:', err);
-        toast.error('Failed to delete page.');
+        toast.error(err.response?.data?.message || 'Failed to delete page.', { autoClose: 9000 });
       }
     }
   };
@@ -374,6 +375,7 @@ const PagesList = () => {
         isLoading={isLoading}
         error={error}
         title="All Pages"
+        searchPlaceholder="Search by title or slug / URL…"
       />
 
       <GridFilterDrawer 

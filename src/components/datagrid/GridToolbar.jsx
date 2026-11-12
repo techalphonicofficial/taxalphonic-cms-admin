@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GridToolbar = ({ title, globalFilter, setGlobalFilter, table }) => {
+const GridToolbar = ({ title, globalFilter, setGlobalFilter, table, searchPlaceholder = 'Search...' }) => {
 
   const exportToCSV = () => {
     if (!table) return;
@@ -43,7 +43,8 @@ const GridToolbar = ({ title, globalFilter, setGlobalFilter, table }) => {
           <input 
             type="text" 
             className="grid-search-input" 
-            placeholder="Search..."
+            placeholder={searchPlaceholder}
+            title={searchPlaceholder}
             value={globalFilter ?? ''}
             onChange={e => setGlobalFilter(e.target.value)}
           />

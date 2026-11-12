@@ -13,6 +13,7 @@ import SearchableSelect from '../components/common/SearchableSelect';
 import MediaPickButton from '../components/media/MediaPickButton';
 import SlugStatus from '../components/common/SlugStatus';
 import { cloneRecord } from '../utils/cloneRecord';
+import { confirmDialog } from '../components/common/confirm';
 import { can, M } from '../utils/permissions';
 import '../components/common/PremiumForms.css';
 
@@ -78,9 +79,20 @@ const ServiceForm = () => {
       .replace(/(^-|-$)+/g, '');
   };
 
-  // Auto-generate slug from service title
+  // Auto-generate slug from service title. A copy (draft whose slug still ends "-copy", made by Clone)
+  // follows its new title too, so it does not keep the original's slug with "-copy" on the end.
+  // copyFollow: decided once when the record loads (a draft whose slug ends "-copy"); typing in the
+  // slug box turns it off.
+  const copyFollow = React.useRef(null);
+  const loadedSlug = watch('slug');
   useEffect(() => {
-    if (title && !isEditMode) {
+    if (copyFollow.current !== null || !isEditMode || !loadedSlug) return;
+    copyFollow.current = /-copy(-\d+)?$/.test(loadedSlug) && watch('status') !== 'published';
+  }, [loadedSlug, isEditMode]);
+  useEffect(() => {
+    if (!title) return;
+    const copyRenamed = copyFollow.current && !/\(copy\)\s*$/i.test(title);
+    if (!isEditMode || copyRenamed) {
       setValue('slug', generateSlug(title), { shouldValidate: true, shouldDirty: true });
     }
   }, [title, setValue, isEditMode]);
@@ -331,29 +343,48 @@ const ServiceForm = () => {
 
       // Handle navigation menu link integration
       if (linkToMenu && data.slug) {
+        // The backend refuses (409) to overwrite a menu item that already links to another page, or to
+        // add the same link twice to one menu; the editor confirms first, then it is sent again.
+        const linkItem = async (body) => {
+          try {
+            return await api.post('/menus/link-item', body);
+          } catch (err) {
+            const code = err.response?.data?.errors?.[0]?.code;
+            if (err.response?.status !== 409 || !['MENU_ITEM_LINKED', 'MENU_URL_EXISTS'].includes(code)) throw err;
+            const ok = await confirmDialog({
+              title: code === 'MENU_ITEM_LINKED' ? 'This menu item already links to another page' : 'This link is already in the menu',
+              message: err.response.data.message,
+              note: code === 'MENU_ITEM_LINKED' ? 'Continue only if that page should leave the menu.' : 'Visitors would see the same page twice in the header / footer.',
+              tone: 'warning',
+              confirmText: code === 'MENU_ITEM_LINKED' ? 'Replace the link' : 'Add it anyway',
+            });
+            if (!ok) return null;
+            return api.post('/menus/link-item', { ...body, confirmReplace: true, confirmDuplicate: true });
+          }
+        };
         try {
           const serviceUrl = `/${data.slug}`;
           if (menuLinkMode === 'existing' && selectedMenuItemId) {
-            await api.post('/menus/link-item', {
+            const done = await linkItem({
               mode: 'link_existing',
               menuItemId: selectedMenuItemId,
               url: serviceUrl,
               title: data.title
             });
-            toast.info(`Navigation menu item linked to /${data.slug}`);
+            if (done) toast.info(`Navigation menu item linked to /${data.slug}`);
           } else if (menuLinkMode === 'new' && selectedMenuId) {
-            await api.post('/menus/link-item', {
+            const done = await linkItem({
               mode: 'add_new',
               menuId: selectedMenuId,
               parentId: selectedParentItemId || null,
               title: data.title,
               url: serviceUrl
             });
-            toast.info(`Added new navigation menu link for /${data.slug}`);
+            if (done) toast.info(`Added new navigation menu link for /${data.slug}`);
           }
         } catch (menuErr) {
           console.error('Error linking service to menu item:', menuErr);
-          toast.warn('Service saved, but navigation menu item could not be updated.');
+          toast.warn(menuErr.response?.data?.message || 'Service saved, but navigation menu item could not be updated.');
         }
       }
 
@@ -477,7 +508,7 @@ const ServiceForm = () => {
                           <input
                             type="text"
                             className={`form-control ${errors.slug ? 'is-invalid' : ''}`}
-                            {...register('slug', { required: 'Slug is required' })}
+                            {...register('slug', { required: 'Slug is required', onChange: () => { copyFollow.current = false; } })}
                             placeholder="service-url-slug"
                           />
                         </div>

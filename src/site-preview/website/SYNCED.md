@@ -2,7 +2,7 @@
 
 Edit the website (../taxalphonic-dynamic-frontend) and run `npm run sync-preview`.
 
-Last sync: 2026-11-12T06:11:53.179Z
+Last sync: 2026-11-12T11:17:15.665Z
 
 - service/servicePreview.js
 - service/servicePageService.js

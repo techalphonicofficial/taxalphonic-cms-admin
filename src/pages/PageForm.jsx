@@ -80,7 +80,7 @@ const PageForm = () => {
     theme: theme === 'dark' ? 'dark' : 'default'
   }), [theme]);
 
-  const { register, handleSubmit, control, reset, watch, setValue, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, reset, watch, setValue, getValues, formState: { errors } } = useForm({
     defaultValues: {
       title: isHome ? 'Home' : startStage ? startStage.title : startHub ? 'Free Tools & Calculators' : startTool ? startTool.title : '',
       slug: isHome ? HOME_PAGE_SLUG : startStage ? `${JOURNEY_SLUG_PREFIX}${startStage.key}` : startHub ? TOOLS_HUB_SLUG : startTool ? `${TOOL_SLUG_PREFIX}${startTool.key}` : '',
@@ -92,6 +92,8 @@ const PageForm = () => {
   });
 
   const title = watch('title');
+  const seenTitle = React.useRef(null);
+  const slugTouched = React.useRef(false);
 
   const slugify = (text) => String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -108,7 +110,16 @@ const PageForm = () => {
       if (!toolSlugTouched) setToolSlug(path);
       if (path) setValue('slug', path, { shouldValidate: true, shouldDirty: true });
     } else if (title) {
-      setValue('slug', slugify(title), { shouldValidate: true, shouldDirty: true });
+      // Editing: the title the record loaded with does not rewrite its slug (a custom slug stays);
+      // after that, a slug typed by hand stops the following.
+      if (isEditing && seenTitle.current === null) { seenTitle.current = title; return; }
+      if (slugTouched.current) return;
+      // A saved live page keeps its URL when the title changes (old links would break). A new page,
+      // a draft and a Clone copy ("…-copy" slug) follow the title.
+      const slugNow = String(getValues('slug') || '');
+      const follows = !isEditing || getValues('status') !== 'published' || /-copy(-\d+)?$/.test(slugNow);
+      // While the copy still has its "(Copy)" title the "-copy" slug stays.
+      if (follows && !(isEditing && /\(copy\)\s*$/i.test(title))) setValue('slug', slugify(title), { shouldValidate: true, shouldDirty: true });
     }
   }, [title, setValue, isHome, isJourney, stageKey, stageKeyTouched, isTool, toolSlug, toolSlugTouched]);
 
@@ -291,7 +302,7 @@ const PageForm = () => {
                       type="text" 
                       className={`form-control border-start-0 ${errors.slug ? 'is-invalid' : ''}`}
                       placeholder="page-slug" 
-                      {...register('slug', { required: 'Slug is required', pattern: { value: /^((journey|tool)\/)?[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens (tool pages: tool/<name>)' } })}
+                      {...register('slug', { onChange: () => { slugTouched.current = true; }, required: 'Slug is required', pattern: { value: /^((journey|tool)\/)?[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens (tool pages: tool/<name>)' } })}
                       disabled
                     />
                   </div>

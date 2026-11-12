@@ -184,6 +184,8 @@ const DataGrid = ({
   itemLabel = 'item',
   // Extra bulk-bar buttons: [{ label, icon, variant, disabled, onClick(selectedRows, clearSelection) }]
   bulkActions = [],
+  // Text in the search box (e.g. "Search by title or slug…").
+  searchPlaceholder,
 }) => {
   // Bulk delete only for a role that may delete on this list page (utils/permissions.js).
   const canDelete = canOnPage('delete', useLocation().pathname);
@@ -319,6 +321,7 @@ const DataGrid = ({
         title={title}
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
+        searchPlaceholder={searchPlaceholder}
       />
 
       <div className="table-responsive-wrapper">
