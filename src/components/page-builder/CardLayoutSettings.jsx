@@ -63,14 +63,28 @@ const PxField = ({ label, value, max, onChange }) => (
   </div>
 );
 
-const WidthSelect = ({ label, value, onChange }) => (
+// Heading / sub text width: as designed, the whole width, one line, or a set maximum width in px
+// (preset or custom; website center-grids.css .ta-ly-hw-px / .ta-ly-sw-px). Where a narrower
+// heading sits follows the Alignment buttons (else the block's own design).
+const WIDTH_PRESETS = ['500', '600', '700', '800', '900', '1000', '1200'];
+const WidthSelect = ({ label, value, px, onChange, onPx }) => (
   <div className="col-6 col-md-4">
     <label className="form-label small text-muted mb-1">{label}</label>
     <select className="form-select form-select-sm" value={value || ''} onChange={e => onChange(e.target.value)}>
       <option value="">As designed (wraps)</option>
       <option value="full">Full width</option>
       <option value="line">One line</option>
+      <optgroup label="Maximum width">
+        {WIDTH_PRESETS.map(w => <option key={w} value={w}>{w} px</option>)}
+        <option value="custom">Custom px…</option>
+      </optgroup>
     </select>
+    {value === 'custom' && (
+      <div className="input-group input-group-sm mt-1">
+        <input type="number" min="200" max="2000" step="10" className="form-control" placeholder="e.g. 750" value={px ?? ''} onChange={e => onPx(e.target.value)} />
+        <span className="input-group-text">px</span>
+      </div>
+    )}
   </div>
 );
 
@@ -158,12 +172,15 @@ const CardLayoutSettings = ({ section, onChange }) => {
               <AlignButtons value={layout.headAlign} onChange={v => set('headAlign', v)} />
             </div>
             <PxField label="Space under heading" value={layout.headGap} max={120} onChange={v => set('headGap', v, 120)} />
-            <WidthSelect label="Heading width" value={layout.headWidth} onChange={v => set('headWidth', v)} />
-            <WidthSelect label="Sub text width" value={layout.subWidth} onChange={v => set('subWidth', v)} />
+            <WidthSelect label="Heading width" value={layout.headWidth} px={layout.headWidthPx} onChange={v => set('headWidth', v)} onPx={v => set('headWidthPx', v, 2000)} />
+            <WidthSelect label="Sub text width" value={layout.subWidth} px={layout.subWidthPx} onChange={v => set('subWidth', v)} onPx={v => set('subWidthPx', v, 2000)} />
             <PxField label="Heading size" value={layout.headSize} max={96} onChange={v => set('headSize', v, 96)} />
           </div>
           {(layout.headWidth === 'line' || layout.subWidth === 'line') && (
             <div className="form-text small mb-2 mt-n2">One line applies on screens 900 px and wider (smaller screens still wrap). Keep that text short.</div>
+          )}
+          {[layout.headWidth, layout.subWidth].some(v => /^\d+$/.test(String(v || '')) || v === 'custom') && (
+            <div className="form-text small mb-2 mt-n2">The text wraps at that width (never wider than the screen). Use Alignment to put it left, in the centre or right.</div>
           )}
 
           <div className="small fw-semibold mb-2">Colours</div>

@@ -16,6 +16,7 @@ import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
   SERVICE_HERO_BLOCKS, SERVICE_SIDEBAR_BLOCKS, SERVICE_ZONES, ZONE_LABELS,
+  BUILTIN_AREAS, BUILTIN_AREA_LABELS, areaTokens, tokensToOrder,
   LAYOUT_SECTION, baseMarkerOf, baseOf, groupColumn, homeDropError, homeRows, insertInFlat, layoutGroups, serviceDropError, servicePlacementOf, serviceZones, tailOf, withGroups
 } from './layoutZones';
 import { confirmDialog } from '../common/confirm';
@@ -109,9 +110,31 @@ const summarize = (section) => {
 
 // Per-block layout options stored in section.config (services, and placement on the homepage).
 const BlockSettings = ({ section, onChange, home = false, heroTaken = false }) => {
-  if (section.type === 'HeroBanner' || isLandingRegion(section.type)) return null;
+  if (isLandingRegion(section.type)) return null;
   const config = section.config || {};
   const set = (key, value) => onChange({ ...config, [key]: value });
+
+  // Hero Banner (2026-11-13): it may sit anywhere, not only at the top (website ApiServicePage isTopHero).
+  if (section.type === 'HeroBanner' && !home) {
+    const value = servicePlacementOf(section);
+    const options = [
+      ...(value === 'hero' || !heroTaken ? [{ value: 'hero', label: 'Hero (top of the page)' }] : []),
+      ...PLACEMENTS.filter(p => p.value !== 'sidebar'),
+    ];
+    return (
+      <div className="row g-2 mb-3 pb-3 border-bottom align-items-end">
+        <div className="col-md-4">
+          <label className="form-label small text-muted mb-1">Placement</label>
+          <select className="form-select form-select-sm" value={value} onChange={e => set('placement', e.target.value)}>
+            {options.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+        </div>
+        <div className="col-md-8 small text-muted">
+          Or drag it, or use the ↑ ↓ buttons, to move it into any area or section of the page.
+        </div>
+      </div>
+    );
+  }
 
   if (home) {
     const rule = homePlacementRule(section.type);
@@ -338,9 +361,10 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   const handleAddBlock = (blockType) => {
     const section = newSection(blockType);
     if (layoutSettings && !isHome) {
+      // A second hero goes to the Top area (the Hero area holds one block); it can be moved anywhere.
       if (blockType === 'HeroBanner' && hasServiceHero()) {
-        toast.warning(`The Hero area already has ${labelOf(heroOf().type)}. Remove it or move it out first.`);
-        return;
+        section.config = { ...(section.config || {}), placement: 'top' };
+        toast.info(`The Hero area already has ${labelOf(heroOf().type)}, so this Hero Banner was added to the Top area.`);
       }
       if (isLandingRegion(blockType) && sections.some(s => s.type === blockType)) {
         toast.warning(`This page already has a ${labelOf(blockType)} block. Open it to change its style.`);
@@ -382,7 +406,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
   // Copy of a block (content, placement, background) placed right below it, in the same area.
   const handleDuplicateBlock = (section) => {
-    if (layoutSettings && !isHome && (section.type === 'HeroBanner' || isLandingRegion(section.type))) {
+    if (layoutSettings && !isHome && isLandingRegion(section.type)) {
       toast.warning(`A page has only one ${labelOf(section.type)} block.`);
       return;
     }
@@ -391,7 +415,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       id: `sec_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     };
     // The Hero area holds one block: a copy of the hero goes to the Top area instead.
-    if (layoutSettings && !isHome && copy.config?.placement === 'hero') copy.config.placement = 'top';
+    if (layoutSettings && !isHome && servicePlacementOf(section) === 'hero') copy.config = { ...(copy.config || {}), placement: 'top' };
     const items = [...sections];
     items.splice(items.indexOf(section) + 1, 0, copy);
     update(items);
@@ -399,10 +423,101 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     toast.success(`${labelOf(section.type)} duplicated below.`);
   };
 
-  // Up/down moves a block within its own area (column).
+  // Every drop area of the canvas, top to bottom, as rendered (2026-11-13). `pair` marks the main and
+  // sidebar columns of one row: they sit side by side, so ↑ / ↓ out of one skips the other.
+  const canvasSlots = () => {
+    const slots = [];
+    const base = baseOf(sections);
+    const groups = layoutGroups(sections);
+    const groupSlots = (g) => (g.marker.data?.payload?.layout === 'full'
+      ? [{ id: `section:${g.marker.id}:full`, items: g.items }]
+      : [
+        { id: `section:${g.marker.id}:main`, items: g.items.filter(s => groupColumn(s) === 'main'), pair: g.marker.id },
+        { id: `section:${g.marker.id}:sidebar`, items: g.items.filter(s => groupColumn(s) === 'sidebar'), pair: g.marker.id },
+      ]);
+    if (layoutSettings && !isHome) {
+      // Service canvas: built-in areas and sections in their saved order (removed empty areas left out).
+      const z = serviceZones(base);
+      const hidden = hiddenOf(sections);
+      if (isLanding) slots.push({ id: 'zone:header', items: z.header });
+      tokensOf(sections).forEach(t => {
+        if (t.key === undefined) slots.push(...groupSlots(groups[t.group]));
+        else if (!areaShown(t.key, z, hidden)) return;
+        else if (t.key === 'body') slots.push({ id: 'zone:main', items: z.main, pair: 'base' }, { id: 'zone:sidebar', items: z.sidebar, pair: 'base' });
+        else slots.push({ id: `zone:${t.key}`, items: z[t.key] });
+      });
+      if (isLanding) slots.push({ id: 'zone:footer', items: z.footer });
+      return slots;
+    }
+    if (isHome) {
+      homeRows(base).forEach((row, r) => {
+        if (row.kind === 'full') slots.push({ id: `zone:${r}:full`, items: row.full });
+        else slots.push({ id: `zone:${r}:main`, items: row.main, pair: `row${r}` }, { id: `zone:${r}:sidebar`, items: row.sidebar, pair: `row${r}` });
+      });
+    } else {
+      slots.push({ id: 'canvas', items: base });
+    }
+    groups.forEach(g => slots.push(...groupSlots(g)));
+    return slots;
+  };
+
+  // Whether `moving` may go into the drop area `id` (same rules as a drag, but silent).
+  const fitsIn = (id, moving) => {
+    if (id === 'canvas') return true;
+    if (id.startsWith('section:')) {
+      const column = id.split(':')[2];
+      if (isLandingRegion(moving.type)) return false;
+      return column !== 'sidebar' || SERVICE_SIDEBAR_BLOCKS.includes(moving.type) || homePlacementRule(moving.type).options.includes('sidebar');
+    }
+    const [, first, second] = id.split(':');
+    if (isHome) return !homeDropError(moving.type, second, labelOf(moving.type));
+    if (serviceDropError(moving.type, first, labelOf(moving.type))) return false;
+    return !(first === 'hero' && heroOf(moving));
+  };
+
+  // Puts `moving` at `index` of the drop area `id` (used by drags and by the ↑ / ↓ buttons).
+  const dropInto = (id, index, moving, fromPalette = false) => {
+    if (id === 'canvas') {
+      const rest = sections.filter(s => s !== moving);
+      const items = baseOf(rest);
+      items.splice(index, 0, moving);
+      update([...items, ...tailOf(rest)]);
+      return moving;
+    }
+    if (id.startsWith('section:')) {
+      const [, markerId, column] = id.split(':');
+      return dropIntoSection(markerId, column, index, moving);
+    }
+    const [, first, second] = id.split(':');
+    return isHome ? dropIntoHome(Number(first), second, index, moving) : dropIntoService(first, index, moving, fromPalette);
+  };
+
+  // The area a block moves into when ↑ / ↓ reaches the edge of its own: the nearest one above / below
+  // that takes it (end of it going up, start going down). null = nowhere to go.
+  const crossTarget = (section, delta, slots) => {
+    const at = slots.findIndex(slot => slot.items.includes(section));
+    if (at < 0) return null;
+    const pair = slots[at].pair;
+    for (let i = at + delta; i >= 0 && i < slots.length; i += delta) {
+      const slot = slots[i];
+      if (pair && slot.pair === pair) continue;
+      if (fitsIn(slot.id, section)) return { id: slot.id, index: delta < 0 ? slot.items.length : 0 };
+    }
+    return null;
+  };
+
+  // Up/down moves a block within its own area; at the edge of the area it moves on into the next
+  // area / section above or below where it fits, so any block can travel the whole page.
   const handleMove = (column, section, delta) => {
     const neighbour = column[column.indexOf(section) + delta];
-    if (!neighbour) return;
+    if (!neighbour) {
+      const target = crossTarget(section, delta, canvasSlots());
+      if (!target) return;
+      const placed = dropInto(target.id, target.index, section);
+      // Keep it in view in its new area (it stays open or closed as it was).
+      if (placed && typeof placed === 'object') setScrollToId(placed.id);
+      return;
+    }
     const items = [...sections];
     const a = items.indexOf(section);
     const b = items.indexOf(neighbour);
@@ -420,8 +535,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       return toast.warning(`This page already has a ${labelOf(moving.type)} block.`);
     }
 
-    // The Hero Banner and landing regions have a fixed area; every other block remembers its area.
-    const placed = moving.type === 'HeroBanner' || isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
+    // Landing regions have a fixed area; every other block (the Hero Banner too) remembers its area.
+    const placed = isLandingRegion(moving.type) ? moving : withPlacement(moving, zone);
     const rest = sections.filter(s => s !== moving);
     const zones = serviceZones(baseOf(rest));
     zones[zone].splice(index, 0, placed);
@@ -450,7 +565,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
 
   // Into a layout section (Add section): its one list, or its main / sidebar column.
   const dropIntoSection = (markerId, column, index, moving) => {
-    if (moving.type === 'HeroBanner' || isLandingRegion(moving.type)) {
+    if (isLandingRegion(moving.type)) {
       toast.warning(`${labelOf(moving.type)} stays in its own area.`);
       return null;
     }
@@ -481,8 +596,81 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     data: { payload: { layout } },
   }]);
   const setMarker = (marker, patch) => update(sections.map(s => (s.id === marker.id ? { ...s, data: { ...s.data, payload: { ...s.data?.payload, ...patch } } } : s)));
-  // Removing a section keeps its blocks: they join what comes before it.
-  const removeLayoutSection = (marker) => update(sections.filter(s => s.id !== marker.id));
+
+  /* ---- Area order (2026-11-13): on the service canvas (services, pages, landing pages) the built-in
+     areas (Hero, Top, Main + Right sidebar, Bottom) and the added sections can be moved up / down and
+     removed like sections. Saved in the "base" LayoutSection marker: payload.areaOrder (layoutZones.js
+     areaTokens, website blocks/layoutSections.js) and payload.hiddenAreas. The blog keeps its fixed layout. */
+  const orderable = Boolean(layoutSettings) && !isHome && !isBlog;
+  const basePayloadOf = (list) => baseMarkerOf(list)?.data?.payload || {};
+  // `list` with the base marker's payload changed (the marker is added / dropped as needed).
+  const withBasePayload = (list, patch) => {
+    const marker = baseMarkerOf(list);
+    const payload = { ...(marker?.data?.payload || {}), ...patch, scope: 'base' };
+    Object.keys(payload).forEach(k => {
+      if (payload[k] === null || payload[k] === undefined || (Array.isArray(payload[k]) && !payload[k].length)) delete payload[k];
+    });
+    const empty = Object.keys(payload).length === 1;
+    if (marker) return empty ? list.filter(s => s !== marker) : list.map(s => (s === marker ? { ...s, data: { ...s.data, payload } } : s));
+    if (empty) return list;
+    return [...baseOf(list), { id: `sec_${Date.now()}_base`, type: LAYOUT_SECTION, config: {}, data: { payload } }, ...tailOf(list)];
+  };
+  const tokensOf = (list) => areaTokens(orderable ? basePayloadOf(list).areaOrder : null, layoutGroups(list).length);
+  const hiddenOf = (list) => new Set(orderable ? basePayloadOf(list).hiddenAreas || [] : []);
+  // A removed built-in area shows again as soon as it holds a block.
+  const areaShown = (key, zones, hidden) => !hidden.has(key) || (key === 'body' ? zones.main.length + zones.sidebar.length : zones[key].length) > 0;
+
+  // ↑ / ↓ on an area or section: swaps it with the nearest visible one above / below.
+  const moveArea = (index, delta) => {
+    const tokens = tokensOf(sections);
+    const zones = serviceZones(baseOf(sections));
+    const hidden = hiddenOf(sections);
+    let j = index + delta;
+    while (tokens[j] && tokens[j].key && !areaShown(tokens[j].key, zones, hidden)) j += delta;
+    if (!tokens[j]) return;
+    [tokens[index], tokens[j]] = [tokens[j], tokens[index]];
+    const groups = layoutGroups(sections);
+    const ordered = tokens.filter(t => t.key === undefined).map(t => groups[t.group]);
+    update(withBasePayload(withGroups(sections, ordered), { areaOrder: tokensToOrder(tokens) }));
+  };
+  const canMoveArea = (index, delta, tokens, zones, hidden) => {
+    let j = index + delta;
+    while (tokens[j] && tokens[j].key && !areaShown(tokens[j].key, zones, hidden)) j += delta;
+    return Boolean(tokens[j]);
+  };
+
+  // Removing a built-in area deletes its blocks (after a confirm) and hides it; "Add section" brings it back.
+  const removeArea = async (key) => {
+    const zones = serviceZones(baseOf(sections));
+    const blocks = key === 'body' ? [...zones.main, ...zones.sidebar] : zones[key];
+    if (blocks.length && !(await confirmDialog({
+      title: `Remove the ${BUILTIN_AREA_LABELS[key]} area?`,
+      message: `Its ${blocks.length} block${blocks.length === 1 ? '' : 's'} will be removed from the page too. Move a block to another area first to keep it. Nothing is saved until you save the page.`,
+      items: blocks.map(b => labelOf(b.type)),
+      tone: 'danger',
+      confirmText: 'Remove area',
+    }))) return;
+    const hidden = [...new Set([...(basePayloadOf(sections).hiddenAreas || []), key])];
+    update(withBasePayload(sections.filter(s => !blocks.includes(s)), { hiddenAreas: hidden }));
+  };
+  const showArea = (key) => update(withBasePayload(sections, { hiddenAreas: (basePayloadOf(sections).hiddenAreas || []).filter(k => k !== key) }));
+
+  // Removing a section keeps its blocks: they join what comes before it (the page's own areas for the first one).
+  const removeLayoutSection = (marker) => {
+    const groups = layoutGroups(sections);
+    const at = groups.findIndex(g => g.marker.id === marker.id);
+    if (at < 0) return;
+    const { items } = groups[at];
+    const rest = groups.filter((_, i) => i !== at);
+    if (at > 0) rest[at - 1] = { ...rest[at - 1], items: [...rest[at - 1].items, ...items] };
+    const baseMarker = baseMarkerOf(sections);
+    let next = [...baseOf(sections), ...(at === 0 ? items : []), ...(baseMarker ? [baseMarker] : []), ...rest.flatMap(g => [g.marker, ...g.items])];
+    if (orderable && basePayloadOf(sections).areaOrder) {
+      const tokens = tokensOf(sections).filter(t => t.group !== at).map(t => (t.group > at ? { group: t.group - 1 } : t));
+      next = withBasePayload(next, { areaOrder: tokensToOrder(tokens) });
+    }
+    update(next);
+  };
   const moveLayoutSection = (marker, delta) => {
     const groups = layoutGroups(sections);
     const at = groups.findIndex(g => g.marker.id === marker.id);
@@ -491,14 +679,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     update(withGroups(sections, groups));
   };
   // Width of the builder's own main + sidebar area.
-  const setBaseWidth = (mainWidth) => {
-    const marker = baseMarkerOf(sections);
-    if (marker) {
-      update(mainWidth ? sections.map(s => (s === marker ? { ...s, data: { payload: { scope: 'base', mainWidth } } } : s)) : sections.filter(s => s !== marker));
-    } else if (mainWidth) {
-      update([...baseOf(sections), { id: `sec_${Date.now()}_base`, type: LAYOUT_SECTION, config: {}, data: { payload: { scope: 'base', mainWidth } } }, ...tailOf(sections)]);
-    }
-  };
+  const setBaseWidth = (mainWidth) => update(withBasePayload(sections, { mainWidth: mainWidth || null }));
 
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -509,29 +690,9 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     const moving = fromPalette ? newSection(draggableId.slice(PALETTE_PREFIX.length)) : sections.find(s => s.id === draggableId);
     if (!moving) return;
 
-    // Plain pages: one list.
-    if (destination.droppableId === 'canvas') {
-      const rest = sections.filter(s => s !== moving);
-      const items = baseOf(rest);
-      items.splice(destination.index, 0, moving);
-      update([...items, ...tailOf(rest)]);
-      if (fromPalette) reveal(moving);
-      return;
-    }
-
-    // section:<marker id>:<column> (a layout section)
-    if (destination.droppableId.startsWith('section:')) {
-      const [, markerId, column] = destination.droppableId.split(':');
-      const placed = dropIntoSection(markerId, column, destination.index, moving);
-      if (fromPalette && placed) reveal(placed);
-      return;
-    }
-
-    // zone:<area> (service) or zone:<row>:<column> (homepage)
-    const [, first, second] = destination.droppableId.split(':');
-    const placed = isHome
-      ? dropIntoHome(Number(first), second, destination.index, moving)
-      : dropIntoService(first, destination.index, moving, fromPalette);
+    // canvas (plain pages), section:<marker id>:<column> (a layout section),
+    // zone:<area> (service) or zone:<row>:<column> (homepage).
+    const placed = dropInto(destination.droppableId, destination.index, moving, fromPalette);
     if (fromPalette && placed && typeof placed === 'object') reveal(placed);
   };
 
@@ -556,12 +717,19 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   );
 
   // One block card. In narrow columns the editor opens below the row instead of inside the card.
+  // The canvas areas, worked out once per render for the ↑ / ↓ buttons.
+  let slotCache = null;
+  const slotsNow = () => (slotCache ||= canvasSlots());
+
   const renderCard = (section, index, column, { inline = true } = {}) => {
     const meta = BLOCK_META[section.type];
     const isOpen = openId === section.id;
     const ordinal = ordinals[section.id];
     const summary = isOpen ? '' : summarize(section);
     const position = column.indexOf(section);
+    // At the edge of its area a block can still move on into the next area / section that takes it.
+    const canUp = position > 0 || Boolean(crossTarget(section, -1, slotsNow()));
+    const canDown = position < column.length - 1 || Boolean(crossTarget(section, 1, slotsNow()));
 
     return (
       <Draggable key={section.id} draggableId={section.id} index={index}>
@@ -595,10 +763,10 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
                 <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => { setOpenId(section.id); setFocusId(section.id); setDockView('block'); setDockOpen(true); }} title="Preview this block" aria-label={`Preview ${meta?.label || section.type}`}>
                   <i className="bi bi-eye text-primary"></i>
                 </button>
-                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, -1)} disabled={position === 0} title="Move Up">
+                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, -1)} disabled={!canUp} title={position === 0 ? 'Move up into the area above' : 'Move Up'}>
                   <i className="bi bi-arrow-up text-secondary"></i>
                 </button>
-                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, 1)} disabled={position === column.length - 1} title="Move Down">
+                <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleMove(column, section, 1)} disabled={!canDown} title={position === column.length - 1 ? 'Move down into the area below' : 'Move Down'}>
                   <i className="bi bi-arrow-down text-secondary"></i>
                 </button>
                 <button type="button" className="btn btn-sm btn-light rounded-circle p-2 d-flex align-items-center justify-content-center" style={iconButton} onClick={() => handleDuplicateBlock(section)} title="Duplicate (copy below)" aria-label={`Duplicate ${meta?.label || section.type}`}>
@@ -687,71 +855,135 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
     </>
   );
 
-  // Repeatable sections below the builder's own canvas, and the buttons that add them.
+  // One added section (full width, or main + sidebar). `controls` = { up, down, canUp, canDown }.
+  const renderGroup = (group, g, controls) => {
+    const p = group.marker.data?.payload || {};
+    const full = p.layout === 'full';
+    return (
+      <div key={group.marker.id} className="border rounded-4 p-3 mb-3">
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <i className={`bi ${full ? 'bi-square' : 'bi-layout-sidebar-reverse'} text-primary`}></i>
+          <span className="fw-bold small">Section {g + 1}: {full ? 'Full width' : 'Main content + Right sidebar'}</span>
+          <div className="ms-auto d-flex gap-1">
+            <button type="button" className="btn btn-sm btn-light" disabled={!controls.canUp} onClick={controls.up} title="Move section up" aria-label="Move section up"><i className="bi bi-arrow-up"></i></button>
+            <button type="button" className="btn btn-sm btn-light" disabled={!controls.canDown} onClick={controls.down} title="Move section down" aria-label="Move section down"><i className="bi bi-arrow-down"></i></button>
+            <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removeLayoutSection(group.marker)} title="Remove section (its blocks stay, in the area above)" aria-label="Remove section"><i className="bi bi-trash"></i></button>
+          </div>
+        </div>
+        {full
+          ? renderZone(`section:${group.marker.id}:full`, ZONE_LABELS.full, 'Blocks one under the other', group.items, { tone: 'secondary' })
+          : (
+            <>
+              {renderWidthControl(p.mainWidth, mainWidth => setMarker(group.marker, { mainWidth }))}
+              {renderTwoColumns(
+                `section:${group.marker.id}:main`,
+                `section:${group.marker.id}:sidebar`,
+                group.items.filter(s => groupColumn(s) === 'main'),
+                group.items.filter(s => groupColumn(s) === 'sidebar'),
+                ['Left column', 'Right column'],
+                p.mainWidth,
+              )}
+            </>
+          )}
+      </div>
+    );
+  };
+
+  // "Add section" buttons (+ the built-in areas the editor removed, to bring them back).
+  const renderAddSection = (hiddenKeys = []) => (
+    <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <span className="small fw-semibold text-muted">Add section:</span>
+      <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('full')}><i className="bi bi-square me-1"></i>Full width</button>
+      <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('split')}><i className="bi bi-layout-sidebar-reverse me-1"></i>Main content + Right sidebar</button>
+      {hiddenKeys.map(key => (
+        <button key={key} type="button" className="btn btn-sm btn-outline-secondary" onClick={() => showArea(key)} title="Bring back this built-in area"><i className="bi bi-arrow-counterclockwise me-1"></i>{BUILTIN_AREA_LABELS[key]} area</button>
+      ))}
+      <span className="small text-muted">New sections go to the end; move them with ↑ ↓.</span>
+    </div>
+  );
+
+  // Repeatable sections below the builder's own canvas (home, journey, tool, plain pages), and the buttons that add them.
   const renderLayoutSections = () => {
     const groups = layoutGroups(sections);
     return (
       <>
-        {groups.map((group, g) => {
-          const p = group.marker.data?.payload || {};
-          const full = p.layout === 'full';
-          return (
-            <div key={group.marker.id} className="border rounded-4 p-3 mb-3">
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <i className={`bi ${full ? 'bi-square' : 'bi-layout-sidebar-reverse'} text-primary`}></i>
-                <span className="fw-bold small">Section {g + 1}: {full ? 'Full width' : 'Main content + Right sidebar'}</span>
-                <div className="ms-auto d-flex gap-1">
-                  <button type="button" className="btn btn-sm btn-light" disabled={g === 0} onClick={() => moveLayoutSection(group.marker, -1)} title="Move section up" aria-label="Move section up"><i className="bi bi-arrow-up"></i></button>
-                  <button type="button" className="btn btn-sm btn-light" disabled={g === groups.length - 1} onClick={() => moveLayoutSection(group.marker, 1)} title="Move section down" aria-label="Move section down"><i className="bi bi-arrow-down"></i></button>
-                  <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removeLayoutSection(group.marker)} title="Remove section (its blocks stay, in the section above)" aria-label="Remove section"><i className="bi bi-trash"></i></button>
-                </div>
-              </div>
-              {full
-                ? renderZone(`section:${group.marker.id}:full`, ZONE_LABELS.full, 'Blocks one under the other', group.items, { tone: 'secondary' })
-                : (
-                  <>
-                    {renderWidthControl(p.mainWidth, mainWidth => setMarker(group.marker, { mainWidth }))}
-                    {renderTwoColumns(
-                      `section:${group.marker.id}:main`,
-                      `section:${group.marker.id}:sidebar`,
-                      group.items.filter(s => groupColumn(s) === 'main'),
-                      group.items.filter(s => groupColumn(s) === 'sidebar'),
-                      ['Left column', 'Right column'],
-                      p.mainWidth,
-                    )}
-                  </>
-                )}
-            </div>
-          );
-        })}
-        <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-          <span className="small fw-semibold text-muted">Add section:</span>
-          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('full')}><i className="bi bi-square me-1"></i>Full width</button>
-          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => addLayoutSection('split')}><i className="bi bi-layout-sidebar-reverse me-1"></i>Main content + Right sidebar</button>
-        </div>
+        {groups.map((group, g) => renderGroup(group, g, {
+          up: () => moveLayoutSection(group.marker, -1),
+          down: () => moveLayoutSection(group.marker, 1),
+          canUp: g > 0,
+          canDown: g < groups.length - 1,
+        }))}
+        {renderAddSection()}
       </>
+    );
+  };
+
+  // A built-in area of the service canvas; on orderable canvases inside its own box with ↑ ↓ and remove.
+  const renderBuiltinArea = (key, zones, controls) => {
+    let body;
+    if (key === 'hero') body = renderZone('zone:hero', ZONE_LABELS.hero, ZONE_HINTS.hero, zones.hero, { tone: 'warning' });
+    else if (key === 'top') body = renderZone('zone:top', ZONE_LABELS.top, ZONE_HINTS.top, zones.top);
+    else if (key === 'bottom') body = renderZone('zone:bottom', ZONE_LABELS.bottom, ZONE_HINTS.bottom, zones.bottom);
+    else if (isBlog) {
+      body = renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [
+        'The article: text and blocks, in order',
+        sidebarSide === 'none' ? 'Sidebar is off (Blog layout): these blocks show at the end of the article' : 'On this page, Share, Expert help, Form, Trust, Contact…',
+      ], undefined, {
+        sideFirst: sidebarSide === 'left',
+        sideLabel: sidebarSide === 'left' ? 'Left sidebar' : sidebarSide === 'none' ? 'Sidebar (off)' : 'Right sidebar',
+      });
+    } else {
+      body = (
+        <>
+          {renderWidthControl(basePayloadOf(sections).mainWidth, setBaseWidth)}
+          {renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar], basePayloadOf(sections).mainWidth)}
+        </>
+      );
+    }
+    if (!controls) return <React.Fragment key={key}>{body}</React.Fragment>;
+    return (
+      <div key={key} className="rounded-4 p-2 pb-0 mb-3" style={{ border: '1px dashed var(--bs-border-color)' }}>
+        <div className="d-flex align-items-center gap-2 px-1 mb-1">
+          <i className="bi bi-bounding-box text-secondary"></i>
+          <span className="small fw-semibold text-muted">Built-in area: {BUILTIN_AREA_LABELS[key]}</span>
+          <div className="ms-auto d-flex gap-1">
+            <button type="button" className="btn btn-sm btn-light" disabled={!controls.canUp} onClick={controls.up} title="Move this area up" aria-label="Move area up"><i className="bi bi-arrow-up"></i></button>
+            <button type="button" className="btn btn-sm btn-light" disabled={!controls.canDown} onClick={controls.down} title="Move this area down" aria-label="Move area down"><i className="bi bi-arrow-down"></i></button>
+            <button type="button" className="btn btn-sm btn-light text-danger" onClick={() => removeArea(key)} title="Remove this area (and its blocks)" aria-label="Remove area"><i className="bi bi-trash"></i></button>
+          </div>
+        </div>
+        {body}
+      </div>
     );
   };
 
   const renderServiceCanvas = () => {
     const zones = serviceZones(baseOf(sections));
+    const groups = layoutGroups(sections);
+    const tokens = tokensOf(sections);
+    const hidden = hiddenOf(sections);
+    const controlsFor = (i) => (orderable ? {
+      up: () => moveArea(i, -1),
+      down: () => moveArea(i, 1),
+      canUp: canMoveArea(i, -1, tokens, zones, hidden),
+      canDown: canMoveArea(i, 1, tokens, zones, hidden),
+    } : null);
     return (
       <>
         {isLanding && renderZone('zone:header', ZONE_LABELS.header, ZONE_HINTS.header, zones.header, { tone: 'info' })}
-        {renderZone('zone:hero', ZONE_LABELS.hero, ZONE_HINTS.hero, zones.hero, { tone: 'warning' })}
-        {renderZone('zone:top', ZONE_LABELS.top, ZONE_HINTS.top, zones.top)}
-        {!isBlog && renderWidthControl(baseMarkerOf(sections)?.data?.payload?.mainWidth, setBaseWidth)}
-        {isBlog
-          ? renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [
-            'The article: text and blocks, in order',
-            sidebarSide === 'none' ? 'Sidebar is off (Blog layout): these blocks show at the end of the article' : 'On this page, Share, Expert help, Form, Trust, Contact…',
-          ], undefined, {
-            sideFirst: sidebarSide === 'left',
-            sideLabel: sidebarSide === 'left' ? 'Left sidebar' : sidebarSide === 'none' ? 'Sidebar (off)' : 'Right sidebar',
-          })
-          : renderTwoColumns('zone:main', 'zone:sidebar', zones.main, zones.sidebar, [ZONE_HINTS.main, ZONE_HINTS.sidebar], baseMarkerOf(sections)?.data?.payload?.mainWidth)}
-        {renderZone('zone:bottom', ZONE_LABELS.bottom, ZONE_HINTS.bottom, zones.bottom)}
-        {renderLayoutSections()}
+        {tokens.map((t, i) => {
+          if (t.key === undefined) {
+            const group = groups[t.group];
+            return renderGroup(group, t.group, controlsFor(i) || {
+              up: () => moveLayoutSection(group.marker, -1),
+              down: () => moveLayoutSection(group.marker, 1),
+              canUp: t.group > 0,
+              canDown: t.group < groups.length - 1,
+            });
+          }
+          return areaShown(t.key, zones, hidden) ? renderBuiltinArea(t.key, zones, controlsFor(i)) : null;
+        })}
+        {renderAddSection(BUILTIN_AREAS.filter(key => !areaShown(key, zones, hidden)))}
         {isLanding && renderZone('zone:footer', ZONE_LABELS.footer, ZONE_HINTS.footer, zones.footer, { tone: 'info' })}
       </>
     );

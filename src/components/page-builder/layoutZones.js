@@ -47,15 +47,16 @@ export const SERVICE_ZONES = ['header', 'hero', 'top', 'main', 'sidebar', 'botto
 const SERVICE_PLACEMENTS = ['top', 'main', 'sidebar', 'bottom'];
 const REGION_ZONE = { LandingHeader: 'header', LandingFooter: 'footer' };
 
-// Blocks that may fill the Hero area (one block there). The Hero Banner always stays there; the others
-// go there with config.placement "hero". Keep in sync with HERO_BLOCKS in the website's ApiServicePage.jsx.
+// Blocks that may fill the Hero area (one block there): with config.placement "hero" (the Hero Banner also
+// without a placement). Since 2026-11-13 the Hero Banner may be placed in any other area / section too
+// (placement top / main / bottom; website ApiServicePage isTopHero). Keep in sync with HERO_BLOCKS there.
 export const SERVICE_HERO_BLOCKS = ['HeroBanner', 'HomeHero', 'CommonFormHero', 'HomeBanners'];
 export const SERVICE_HERO_LABEL = 'Hero Banner, Homepage Hero, Hero with Form, Banners Slider';
 
 export const servicePlacementOf = (section) => {
   if (REGION_ZONE[section.type]) return REGION_ZONE[section.type];
-  if (section.type === 'HeroBanner') return 'hero';
   const placement = section.config?.placement;
+  if (section.type === 'HeroBanner') return ['top', 'main', 'bottom'].includes(placement) ? placement : 'hero';
   if (placement === 'hero' && SERVICE_HERO_BLOCKS.includes(section.type)) return 'hero';
   // Homepage blocks are full-width designs: the Bottom area unless placed elsewhere (website: same rule).
   return SERVICE_PLACEMENTS.includes(placement) ? placement : DEFAULT_PLACEMENT[section.type] || (/^Home[A-Z]/.test(section.type) ? 'bottom' : 'main');
@@ -66,7 +67,6 @@ export const serviceDropError = (type, zone, label) => {
   // Landing page header / footer never mix with the body.
   if (REGION_ZONE[type] && zone !== REGION_ZONE[type]) return `The ${label} block stays in the ${ZONE_LABELS[REGION_ZONE[type]]} area.`;
   if (!REGION_ZONE[type] && (zone === 'header' || zone === 'footer')) return `Only the ${zone === 'header' ? 'Header' : 'Footer'} block goes in the ${ZONE_LABELS[zone]} area.`;
-  if (type === 'HeroBanner' && zone !== 'hero') return `${label} always stays at the top of the page.`;
   if (zone === 'hero' && !SERVICE_HERO_BLOCKS.includes(type)) return `Only a hero block goes in the Hero area (${SERVICE_HERO_LABEL}).`;
   if (zone === 'sidebar' && !SERVICE_SIDEBAR_BLOCKS.includes(type)) {
     return `${label} can't go in the right sidebar. Sidebar blocks: Form, Highlights, Checklist, Call to Action, Free Tool / Calculator, Trust Badges, Contact Card, Quick FAQ.`;
@@ -172,3 +172,44 @@ export const withGroups = (list, groups) => {
     ...groups.flatMap(g => [g.marker, ...g.items]),
   ];
 };
+
+/*
+ * Order of the service canvas areas (2026-11-13): built-in hero / top / body (main + sidebar) / bottom and
+ * the layout sections, in any order, moved with ↑ / ↓ on each area. Saved as payload.areaOrder of the
+ * "base" LayoutSection marker: built-in keys and "g" (the next layout section, in list order); payload
+ * hiddenAreas = built-in areas the editor removed (shown again as soon as a block lands there).
+ * Same rules as the website's blocks/layoutSections.js areaTokens. Returns [{ key }] / [{ group: index }].
+ */
+export const BUILTIN_AREAS = ['hero', 'top', 'body', 'bottom'];
+export const BUILTIN_AREA_LABELS = { hero: 'Hero', top: 'Top (full width)', body: 'Main content + Right sidebar', bottom: 'Bottom (full width)' };
+export function areaTokens(areaOrder, groupCount) {
+  const tokens = [];
+  const seen = new Set();
+  let g = 0;
+  (Array.isArray(areaOrder) ? areaOrder : []).forEach((key) => {
+    if (key === 'g') {
+      if (g < groupCount) tokens.push({ group: g++ });
+    } else if (BUILTIN_AREAS.includes(key) && !seen.has(key)) {
+      seen.add(key);
+      tokens.push({ key });
+    }
+  });
+  BUILTIN_AREAS.forEach((key, i) => {
+    if (seen.has(key)) return;
+    let at = 0;
+    for (let j = i - 1; j >= 0; j -= 1) {
+      const before = tokens.findIndex(t => t.key === BUILTIN_AREAS[j]);
+      if (before >= 0) {
+        at = before + 1;
+        break;
+      }
+    }
+    tokens.splice(at, 0, { key });
+    seen.add(key);
+  });
+  while (g < groupCount) tokens.push({ group: g++ });
+  return tokens;
+}
+
+/** The areaOrder value for `tokens` (groups as "g"). */
+export const tokensToOrder = (tokens) => tokens.map(t => (t.key ? t.key : 'g'));
