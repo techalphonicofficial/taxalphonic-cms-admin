@@ -23,10 +23,16 @@ const FormPreview = ({ form, interactive = false, compact = false }) => {
         return <textarea {...common} className="form-control" rows={compact ? 2 : 4} placeholder={field.placeholder} defaultValue={field.defaultValue || ''} />;
       case 'select':
         return (
-          <select {...common} className="form-select" defaultValue="">
-            <option value="" disabled>{field.placeholder || 'Select an option'}</option>
-            {(field.options || []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+          <>
+            <select {...common} className="form-select" defaultValue="">
+              <option value="" disabled>{field.placeholder || 'Select an option'}</option>
+              {(field.options || []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            {/* Website CmsForm.jsx SearchSelect: more than 6 options = a type-to-search box. */}
+            {(field.optionsSource || (field.options || []).length > 6) && (
+              <div className="form-text"><i className="bi bi-search me-1"></i>On the website this dropdown has a search box (more than 6 options).</div>
+            )}
+          </>
         );
       case 'radio':
         return (
