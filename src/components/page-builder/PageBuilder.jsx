@@ -12,6 +12,7 @@ import BackgroundSettings from './BackgroundSettings';
 import SpacingSettings from './SpacingSettings';
 import CardLayoutSettings from './CardLayoutSettings';
 import BlockButtonsSettings from './BlockButtonsSettings';
+import MobileSettings from './MobileSettings';
 import { LinkPolicyContext } from './blockFields';
 import { LANDING_BLOCKS, isLandingRegion, landingDefaultPayload } from './landingBlocks';
 import {
@@ -709,6 +710,8 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
       <CardLayoutSettings key={`layout-${section.id}`} section={section} onChange={setConfig(section)} />
       {/* Every block, in every builder: extra buttons (website: blocks/BlockBackground.jsx BlockButtons). */}
       <BlockButtonsSettings key={`buttons-${section.id}`} section={section} onChange={setConfig(section)} />
+      {/* Every block, in every builder: how it looks on phones (website: BlockBackground.jsx mobileOf + blocks.css). */}
+      <MobileSettings key={`mobile-${section.id}`} section={section} onChange={setConfig(section)} />
       <SectionRenderer
         section={section}
         onChange={(id, newData) => update(sections.map(s => s.id === id ? { ...s, data: newData } : s))}

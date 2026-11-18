@@ -237,69 +237,9 @@ export const HOME_SCHEMAS = {
     },
     {
       // Website HomeSections.jsx heroMobile + home-page.css "Hero mobile view" (phones up to 767px).
-      key: 'mobile', label: '📱 Mobile view (phones, up to 767 px wide)', type: 'group',
-      hint: 'Only changes how the hero looks on phones; desktop stays as it is. Empty = the phone defaults. Check it in Live Preview → mobile.',
+      key: 'mobile', label: '📱 Phone layout of the hero parts', type: 'group',
+      hint: 'Phones only. Background, image, text colour, sizes and spacing on phones are in the block’s Mobile view panel (above); by default the hero shows no image on phones.',
       fields: [
-        {
-          key: 'bg', label: 'Background on phones', type: 'select', width: 'col-12',
-          options: [
-            { value: '', label: 'Same as desktop (Background panel)' },
-            { value: 'image', label: 'A different image for phones' },
-            { value: 'top', label: 'Image as a banner above the text (text on a plain background)' },
-            { value: 'plain', label: 'No image, plain colour' },
-          ],
-        },
-        {
-          key: 'image', label: 'Phone image', type: 'image',
-          hint: 'Portrait or square works best (e.g. 800 × 1000 px). Banner mode: empty = the desktop background image.',
-          showIf: (m) => m.bg === 'image' || m.bg === 'top',
-        },
-        {
-          key: 'position', label: 'Image focus', type: 'select',
-          options: [
-            { value: 'center', label: 'Centre' },
-            { value: 'top', label: 'Top' },
-            { value: 'bottom', label: 'Bottom' },
-            { value: 'left', label: 'Left' },
-            { value: 'right', label: 'Right' },
-          ],
-          showIf: (m) => m.bg === 'image' || m.bg === 'top',
-        },
-        { key: 'bannerHeight', label: 'Banner height (px)', type: 'text', placeholder: '200', showIf: (m) => m.bg === 'top' },
-        {
-          key: 'bannerFit', label: 'Banner image fit', type: 'select',
-          options: [{ value: 'cover', label: 'Fill (crop)' }, { value: 'contain', label: 'Whole image' }],
-          showIf: (m) => m.bg === 'top',
-        },
-        { key: 'imageAlt', label: 'Banner alt text', type: 'text', showIf: (m) => m.bg === 'top' },
-        { key: 'color', label: 'Background colour', type: 'color', hint: 'Empty = white.', showIf: (m) => m.bg === 'plain' || m.bg === 'top' || m.bg === 'image' },
-        {
-          key: 'shade', label: 'Shade over the image (keeps text readable)', type: 'select',
-          options: [
-            { value: '', label: 'Auto (soft white shade when an image is behind dark text)' },
-            { value: 'light', label: 'White shade (dark text)' },
-            { value: 'dark', label: 'Dark shade (white text)' },
-            { value: 'none', label: 'No shade' },
-          ],
-          showIf: (m) => !m.bg || m.bg === 'image',
-        },
-        { key: 'shadeOpacity', label: 'Shade strength % (0-100)', type: 'text', placeholder: '80', showIf: (m) => (!m.bg || m.bg === 'image') && (m.shade === 'light' || m.shade === 'dark' || !m.shade) },
-        {
-          key: 'text', label: 'Text colour', type: 'select',
-          options: [
-            { value: '', label: 'Automatic (follows the shade / background)' },
-            { value: 'dark', label: 'Dark text' },
-            { value: 'light', label: 'White text' },
-          ],
-        },
-        {
-          key: 'align', label: 'Text alignment', type: 'select',
-          options: [{ value: '', label: 'Same as desktop' }, { value: 'left', label: 'Left' }, { value: 'center', label: 'Centre' }],
-        },
-        { key: 'headingSize', label: 'Heading size (px)', type: 'text', placeholder: '30' },
-        { key: 'ledeSize', label: 'Sub heading size (px)', type: 'text', placeholder: '16' },
-        { key: 'padTop', label: 'Space above (px)', type: 'text', placeholder: '28' },
-        { key: 'padBottom', label: 'Space below (px)', type: 'text', placeholder: '34' },
         { key: 'eyebrow', label: 'Top label (eyebrow)', type: 'select', options: [{ value: '', label: 'Show' }, { value: 'hide', label: 'Hide on phones' }] },
         { key: 'lede', label: 'Sub heading', type: 'select', options: [{ value: '', label: 'Show' }, { value: 'hide', label: 'Hide on phones' }] },
         {
@@ -329,7 +269,7 @@ export const HOME_SCHEMAS = {
           ],
         },
         {
-          key: 'visual', label: 'Right side image / dashboard', type: 'select',
+          key: 'visual', label: 'Right side image / dashboard', type: 'select', hint: 'Hidden on phones by default: Mobile view panel → Images in the block → Show.',
           options: [
             { value: '', label: 'Above the text' },
             { value: 'below', label: 'Below the text' },
