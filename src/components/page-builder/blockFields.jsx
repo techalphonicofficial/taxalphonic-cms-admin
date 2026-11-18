@@ -50,14 +50,14 @@ export const TextField = ({ label, value, onChange, placeholder, textarea = fals
 // A link button: { text, url }. Leave the text empty to hide the button on the website.
 // Button / link URLs that open a CMS form in a popup on the website (lib/formPopup.js there):
 // "#form-<form id>" = that form, "#form" = the page's own form (first Form block).
-const POPUP_URL = /^#form(?:-([A-Za-z0-9_-]{1,64}))?$/;
-const popupFormOf = (url) => {
+export const POPUP_URL = /^#form(?:-([A-Za-z0-9_-]{1,64}))?$/;
+export const popupFormOf = (url) => {
   const match = POPUP_URL.exec(String(url || '').trim());
   return match ? match[1] || '' : null;
 };
 
 /** Active CMS forms for a popup button; "" = the page's own form. */
-const PopupFormSelect = ({ value, onChange }) => {
+export const PopupFormSelect = ({ value, onChange }) => {
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['forms', 'active'],
     queryFn: async () => (await FormService.getAll({ status: 'active', limit: 1000, sortBy: 'name', sortOrder: 'ASC' })).data || [],

@@ -2,7 +2,7 @@
 
 Edit the website (../taxalphonic-dynamic-frontend) and run `npm run sync-preview`.
 
-Last sync: 2026-11-18T07:03:37.505Z
+Last sync: 2026-11-18T10:50:04.582Z
 
 - service/servicePreview.js
 - service/servicePageService.js
@@ -27,6 +27,7 @@ Last sync: 2026-11-18T07:03:37.505Z
 - components/tax-alphonic/blocks/ButtonLabel.jsx
 - components/tax-alphonic/blocks/AnyBlock.jsx
 - components/tax-alphonic/blocks/CommonBlocks.jsx
+- lib/inlineLinks.js
 - components/tax-alphonic/tools/calculators.jsx
 - components/tax-alphonic/tools/toolDefaults.js
 - components/tax-alphonic/blocks/AutoPopup.jsx

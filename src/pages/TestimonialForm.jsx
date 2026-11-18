@@ -112,7 +112,7 @@ const TestimonialForm = () => {
               <h5 className="fw-bold mb-0">Testimonial Content</h5>
             </div>
             <div className="card-body p-4">
-              <form id="testimonialForm" onSubmit={handleSubmit(onSubmit)}>
+              <form id="testimonialForm" data-ta-links="any" onSubmit={handleSubmit(onSubmit)}>
                 
                 <div className="row g-3 mb-4">
                   <div className="col-md-6">

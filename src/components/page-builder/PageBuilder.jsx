@@ -1054,7 +1054,7 @@ const PageBuilder = ({ initialSections = [], onChange, layoutSettings = false, b
   return (
     <LinkPolicyContext.Provider value={isLanding ? 'landing' : 'any'}>
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="d-flex flex-column flex-md-row gap-4" ref={rootRef} style={dockOpen ? { paddingRight: DOCK_WIDTH } : undefined}>
+      <div className="d-flex flex-column flex-md-row gap-4" ref={rootRef} data-ta-links={isLanding ? 'landing' : 'any'} style={dockOpen ? { paddingRight: DOCK_WIDTH } : undefined}>
         {/* Canvas */}
         <div className="flex-grow-1 w-100" style={{ minWidth: 0 }}>
           {sections.length > 0 && (

@@ -103,7 +103,7 @@ const FaqForm = () => {
               <h5 className="fw-bold mb-0">FAQ Content</h5>
             </div>
             <div className="card-body p-4">
-              <form id="faqForm" onSubmit={handleSubmit(onSubmit)}>
+              <form id="faqForm" data-ta-links="any" onSubmit={handleSubmit(onSubmit)}>
                 
                 <div className="mb-4">
                   <label className="form-label fw-medium">Question <span className="text-danger">*</span></label>

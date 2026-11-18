@@ -7,6 +7,7 @@ import SecondarySidebar from '../components/layout/sidebar/SecondarySidebar';
 import Header from '../components/layout/Header';
 import { useSidebar } from '../context/SidebarContext';
 import { LeadNotificationsProvider } from '../context/LeadNotificationsContext';
+import InlineLinkTool from '../components/page-builder/InlineLinkTool';
 
 const SidebarContent = () => (
   <>
@@ -122,6 +123,7 @@ const AdminLayout = () => {
 
         <main ref={mainRef} className="p-4 flex-grow-1 overflow-y-scroll overflow-x-hidden">
           <Outlet />
+          <InlineLinkTool />
         </main>
       </div>
     </div>

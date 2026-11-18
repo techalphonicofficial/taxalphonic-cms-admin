@@ -10,6 +10,7 @@ import LandingPage from './website/components/tax-alphonic/landing/LandingPage';
 import { BlogPostPage } from './website/components/tax-alphonic/blog/BlogPages';
 import { buildBlogPreview, buildHomePreview, buildJourneyPreview, buildLandingPreview, buildPagePreview, buildServicePreview, buildToolPreview } from './website/service/servicePreview';
 import { setPreviewFrame } from './shims/frameGlobals';
+import { watchInlineLinks } from './website/lib/inlineLinks';
 import { layoutCss } from './website/service/siteSettingsService';
 import SettingService from '../services/setting.service';
 
@@ -120,6 +121,9 @@ const SitePreviewFrame = ({ draft, kind = 'service', width = '100%', dark = fals
   useEffect(() => {
     mount?.ownerDocument.documentElement.classList.toggle('dark', dark);
   }, [mount, dark]);
+
+  // [words](url) in block texts becomes a link, as on the website (lib/inlineLinks.js there).
+  useEffect(() => (mount ? watchInlineLinks(mount) : undefined), [mount]);
 
   // Build the page data from the draft (debounced), dropping stale results.
   useEffect(() => {
