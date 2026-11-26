@@ -41,7 +41,7 @@ const RowControls = ({ index, length, onMove, onRemove }) => (
   </div>
 );
 
-const ProviderPanel = ({ providerKey, label, saved, draft, onDraft, isActive, onActivate }) => {
+const ProviderPanel = ({ providerKey, label, saved, draft, onDraft, isActive, onActivate, activating }) => {
   const meta = PROVIDER_META[providerKey] || {};
   const [models, setModels] = useState([]);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -98,7 +98,12 @@ const ProviderPanel = ({ providerKey, label, saved, draft, onDraft, isActive, on
           </div>
           {isActive
             ? <span className="badge bg-primary px-3 py-2"><i className="bi bi-check2-circle me-1"></i>Active for generation</span>
-            : <button type="button" className="btn btn-sm btn-outline-primary" onClick={onActivate}>Use this provider</button>}
+            : (
+              <button type="button" className="btn btn-sm btn-outline-primary" onClick={onActivate} disabled={activating} title="Saves this provider as the one used for generation">
+                {activating && <span className="spinner-border spinner-border-sm me-1"></span>}
+                Use this provider
+              </button>
+            )}
         </div>
 
         {saved.keyUnreadable && (
@@ -170,6 +175,13 @@ const ProviderPanel = ({ providerKey, label, saved, draft, onDraft, isActive, on
                 <i className={`bi ${testResult.ok ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>{testResult.text}
               </span>
             )}
+            {testResult?.ok && !isActive && (
+              <button type="button" className="btn btn-sm btn-primary" onClick={onActivate} disabled={activating}>
+                {activating ? <span className="spinner-border spinner-border-sm me-1"></span> : <i className="bi bi-check2-circle me-1"></i>}
+                Use this provider &amp; save
+              </button>
+            )}
+            {testResult?.ok && <small className="text-muted w-100">A passed test does not save anything by itself.</small>}
           </div>
         </div>
       </div>
@@ -183,11 +195,26 @@ const AiSettings = () => {
   const [form, setForm] = useState(null);
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState(false);
+  const [activating, setActivating] = useState(null);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['seo-ai-settings'],
     queryFn: async () => (await api.get('/seo-pages/ai-settings')).data.data,
   });
+
+  // Anything on screen that differs from what the server has saved
+  const isDirty = Boolean(data && form) && (
+    form.activeProvider !== (data.activeProvider || '')
+    || ['generation', 'sections', 'wordCountTiers', 'toneOptions'].some(k => JSON.stringify(form[k]) !== JSON.stringify(data[k]))
+    || Object.entries(drafts).some(([key, d]) => d.apiKey?.trim() || d.clearKey || (d.model || '') !== (data.providers[key]?.model || ''))
+  );
+
+  useEffect(() => {
+    if (!isDirty) return undefined;
+    const warn = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [isDirty]);
 
   const loadFrom = (d) => {
     setForm({
@@ -200,7 +227,35 @@ const AiSettings = () => {
     setDrafts(Object.fromEntries(d.providerList.map(p => [p.key, { apiKey: '', clearKey: false, model: d.providers[p.key]?.model || '' }])));
   };
 
-  useEffect(() => { if (data) loadFrom(data); }, [data]);
+  // Load once; later loads are explicit (after a full save) so a quick provider save never wipes other unsaved edits
+  useEffect(() => { if (data && !form) loadFrom(data); }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const providerPayload = (d) => ({
+    model: d.model,
+    ...(d.clearKey ? { clearKey: true } : {}),
+    ...(d.apiKey?.trim() ? { apiKey: d.apiKey.trim() } : {}),
+  });
+
+  // "Use this provider" / "Clear active provider": saved at once (with that provider's typed key and model),
+  // so the choice survives a refresh. Other unsaved edits on the page stay as they are.
+  const saveActiveProvider = async (key) => {
+    setActivating(key || 'none');
+    try {
+      const body = { activeProvider: key || null };
+      if (key) body.providers = { [key]: providerPayload(drafts[key] || {}) };
+      const res = await api.put('/seo-pages/ai-settings', body);
+      const saved = res.data.data;
+      queryClient.setQueryData(['seo-ai-settings'], saved);
+      queryClient.invalidateQueries({ queryKey: ['seo-ai-config'] });
+      setForm(prev => ({ ...prev, activeProvider: saved.activeProvider || '' }));
+      if (key) setDrafts(prev => ({ ...prev, [key]: { apiKey: '', clearKey: false, model: saved.providers[key]?.model || '' } }));
+      toast.success(key ? `${saved.active?.label || key} is now used for generation.` : 'Active provider cleared. Generation falls back to .env.');
+    } catch (err) {
+      toast.error(errorText(err, 'Could not save the provider.'), { autoClose: 8000 });
+    } finally {
+      setActivating(null);
+    }
+  };
 
   if (isLoading || !form) {
     if (isError) return <div className="alert alert-danger">{error.response?.data?.message || 'Failed to load AI settings.'}</div>;
@@ -218,13 +273,10 @@ const AiSettings = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const providers = Object.fromEntries(Object.entries(drafts).map(([key, d]) => [key, {
-        model: d.model,
-        ...(d.clearKey ? { clearKey: true } : {}),
-        ...(d.apiKey?.trim() ? { apiKey: d.apiKey.trim() } : {}),
-      }]));
+      const providers = Object.fromEntries(Object.entries(drafts).map(([key, d]) => [key, providerPayload(d)]));
       const res = await api.put('/seo-pages/ai-settings', { ...form, activeProvider: form.activeProvider || null, providers });
       queryClient.setQueryData(['seo-ai-settings'], res.data.data);
+      loadFrom(res.data.data);
       queryClient.invalidateQueries({ queryKey: ['seo-ai-config'] });
       toast.success('AI settings saved.');
     } catch (err) {
@@ -263,7 +315,8 @@ const AiSettings = () => {
           <h4 className="mb-1 fw-bold">pSEO AI Settings</h4>
           <p className="text-muted mb-0">Choose the AI provider and model, and control how matrix page content is generated.</p>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 align-items-center">
+          {isDirty && <span className="badge bg-warning text-dark px-3 py-2"><i className="bi bi-exclamation-circle me-1"></i>Unsaved changes</span>}
           <Link to="/seo-pages" className="btn btn-light border rounded-pill px-4"><i className="bi bi-arrow-left me-2"></i>Matrix Pages</Link>
           <button type="button" className="btn btn-primary rounded-pill px-4" onClick={handleSave} disabled={saving}>
             {saving ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-save me-2"></i>}
@@ -303,11 +356,12 @@ const AiSettings = () => {
               draft={drafts[p.key] || {}}
               onDraft={(patch) => setDrafts(prev => ({ ...prev, [p.key]: { ...prev[p.key], ...patch } }))}
               isActive={form.activeProvider === p.key}
-              onActivate={() => set({ activeProvider: p.key })}
+              onActivate={() => saveActiveProvider(p.key)}
+              activating={activating === p.key}
             />
           ))}
           {form.activeProvider && (
-            <button type="button" className="btn btn-sm btn-link text-muted" onClick={() => set({ activeProvider: '' })}>
+            <button type="button" className="btn btn-sm btn-link text-muted" onClick={() => saveActiveProvider(null)} disabled={Boolean(activating)}>
               Clear active provider (fall back to .env)
             </button>
           )}
